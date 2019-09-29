@@ -1,10 +1,13 @@
 export PATH=$PATH:/home/antoniy/bin
 
-source /Users/achonkov/.rvm/scripts/rvm
 export MAVEN_OPTS="-Xmx4g -Xmx4g -XX:MaxPermSize=512m"
-export JAVA_HOME=`/usr/libexec/java_home -v 11`
-export MAKE_COMMON="/Users/achonkov/projects/re-makefiles-common"
-export PATH=$PATH:/Users/achonkov/bin
+
+# MacOSX set java version when
+if [[ -e /usr/libexec/java_home ]]; then
+    export JAVA_HOME=`/usr/libexec/java_home -v 11`
+fi
+export MAKE_COMMON="$HOME/projects/re-makefiles-common"
+export PATH=$PATH:$HOME/bin
 
 # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
 export PATH="$PATH:$HOME/.rvm/bin"
