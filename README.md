@@ -6,7 +6,7 @@ Dotfiles are the customization files that are used to personalize your Linux or 
 
 Config files are placed in bare Git repository. This eliminates the need of tooling, symlinks or other special configuration. Config file structure is preserved exactly as it is originally on the system.
 
-* New repository from scratch
+### New repository from scratch
 
 For initial initialization, we need to create the repository and configure a few minor things:
 
@@ -34,7 +34,7 @@ config add .bashrc
 config commit -m "Add bashrc"
 config push
 ```
-* Install on a new system
+### Install on a new system
 
 We'll need to create our alias again:
 ```shell
