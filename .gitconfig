@@ -1,7 +1,8 @@
 # gitconfig
 [user]
 	name = Antoniy Chonkov
-	email = achonkov@shutterfly.com
+	email = achonkov@chonkov.net
+	signingkey = 5F771733CEA1C20ADC135ED85708B391BD2997DC
 [github]
     user = antoniy
 #[init]
@@ -127,3 +128,5 @@
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
+[commit]
+	gpgsign = true
