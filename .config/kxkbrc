@@ -1,0 +1,13 @@
+[Layout]
+DisplayNames=,
+LayoutList=us,bg(phonetic)
+LayoutLoopCount=-1
+Model=pc104
+Options=grp:shift_caps_toggle,numpad:mac
+ResetOldOptions=true
+ShowFlag=true
+ShowLabel=false
+ShowLayoutIndicator=true
+ShowSingle=false
+SwitchMode=Window
+Use=true
