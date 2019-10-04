@@ -1,7 +1,7 @@
 # gitconfig
 [user]
 	name = Antoniy Chonkov
-	email = achonkov@chonkov.net
+	email = antoniy@chonkov.net
 	signingkey = 5F771733CEA1C20ADC135ED85708B391BD2997DC
 [github]
     user = antoniy
@@ -130,3 +130,5 @@
 	required = true
 [commit]
 	gpgsign = true
+[include]
+    path = .gitconfig.local
