@@ -182,11 +182,16 @@ set $text-color          #f3f4f5
 set $inactive-text-color #676E7D
 set $urgent-bg-color     #E53935
 
+set $normal-border-color     #312e30
+set $active-border-color     #b1942b
+set $focused-border-color    #6da280
+set $presel-feedback-color   #2a2829
+
 # window colors
 #                       border              background         text                 indicator
-client.focused          $bg-color           $bg-color          $text-color          #00ff00
-client.unfocused        $inactive-bg-color  $inactive-bg-color $inactive-text-color #00ff00
-client.focused_inactive $inactive-bg-color  $inactive-bg-color $inactive-text-color #00ff00
+client.focused          $active-border-color           $bg-color          $text-color          #00ff00
+client.unfocused        $normal-border-color  $inactive-bg-color $inactive-text-color #00ff00
+client.focused_inactive $normal-border-color  $inactive-bg-color $inactive-text-color #00ff00
 client.urgent           $urgent-bg-color    $urgent-bg-color   $text-color          #00ff00
 
 # Lock screen binding
@@ -209,7 +214,7 @@ bindsym $mod+Ctrl+less move workspace to output left
 
 ### Gaps ###
 # Disable windows titlebards to use i3-gaps
-#for_window [class=".*"] border pixel 0
+for_window [class=".*"] border pixel 2
 
 set $mode_gaps Gaps: (o)uter, (i)nner, (h)orizontal, (v)ertical, (t)op, (r)ight, (b)ottom, (l)eft
 set $mode_gaps_outer Outer Gaps: +|-|0 (local), Shift + +|-|0 (global)
@@ -227,8 +232,8 @@ gaps inner 20
 # Only enable gaps on a workspace when there is at least one container
 smart_gaps on
 
-# Only enable outer gaps when there is exactly one container
-smart_gaps inverse_outer
+# Activate smart borders (always)
+smart_borders on
 
 mode "$mode_gaps" {
         bindsym o      mode "$mode_gaps_outer"
