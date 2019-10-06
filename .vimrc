@@ -31,7 +31,7 @@ set visualbell                    " then use a flash instead of a beep sound
 set belloff=esc                   " hitting escape in normal mode does not constitute an error
 set confirm                       " ask for confirmation when quitting a file that has changes
 set hidden                        " hide buffers
-set autoindent                    " indent automatically (useful for formatoptions)
+"set autoindent                    " indent automatically (useful for formatoptions)
 set expandtab                     " use tabs instead of spaces
 set tabstop=4                     " tab character width
 set shiftwidth=4                  " needs to be the same as tabstop
@@ -47,3 +47,27 @@ set wildmode=list:longest,full    " settings for how to complete matched strings
 set nomodeline                    " vim reads the modeline to execute commands for the current file
 set modelines=0                   " how many lines to check in the top/bottom of the file. 0=off
 set timeoutlen=1000 ttimeoutlen=0 " timeoutlen is used for mapping delays, ttimoutlen - for key code delays. The purpose of this configuration is to eliminate the delay when we go from visual mode into insert mode.
+
+if has('unix')
+    set clipboard=unnamedplus         " use system clipboard for copy/paste
+endif
+
+if has('mac')
+    set clipboard=unnamed         " use system clipboard for copy/paste
+endif
+
+"call plug#begin()
+"
+"Plug 'terryma/vim-multiple-cursors'
+"
+"call plug#end()
+
+filetype off                  " required by Vundle
+" set the runtime path to include Vundle and initialize
+set rtp+=~/.vim/bundle/Vundle.vim
+call vundle#begin()
+
+Plugin 'terryma/vim-multiple-cursors'
+
+call vundle#end()            " required
+filetype plugin indent on    " required
