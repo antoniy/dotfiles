@@ -31,7 +31,8 @@ alias .....="cd ../../../.."
 # Changing "ls" to "exa"
 alias ls='exa --color=always --group-directories-first' # my preferred listing
 alias la='exa -a --color=always --group-directories-first'  # all files and dirs
-alias ll='exa -l --color=always --group-directories-first'  # long format
+alias ll='exa -la --color=always --group-directories-first'  # long format
+alias l='exa -l --color=always --group-directories-first'  # long format
 alias lt='exa -aT --color=always --group-directories-first' # tree listing
 
 #alias l="ls -lah ${colorflag}"
@@ -149,15 +150,6 @@ function hl() {
     echo $src | highlight -O rtf --syntax $1 --font Inconsoloata --style $style --line-number --font-size 24 | pbcopy
 }
 
-# set the background color to light
-function light() {
-    export BACKGROUND="light" && reload!
-}
-
-function dark() {
-    export BACKGROUND="dark" && reload!
-}
-
 #####################
 ### END Functions ###
 #####################
@@ -190,8 +182,8 @@ bindkey -v
 export KEYTIMEOUT=1
 
 # allow v to edit the command line (standard behaviour)
-autoload -Uz edit-command-line
-bindkey -M vicmd 'v' edit-command-line
+#autoload -Uz edit-command-line
+#bindkey -M vicmd 'v' edit-command-line
 
 # allow ctrl-p, ctrl-n for navigate history (standard behaviour)
 bindkey '^P' up-history
@@ -276,7 +268,8 @@ set_prompt() {
     PS1+="%{$fg[white]%}]: %{$reset_color%}% "
 }
 
-precmd_functions+=set_prompt
+set_prompt # Initially execute the prompt command
+precmd_functions+=( set_prompt ) # automatically execute prompt command
 
 preexec () {
    (( ${#_elapsed[@]} > 1000 )) && _elapsed=(${_elapsed[@]: -1000})
@@ -484,3 +477,6 @@ compinit
 
 [[ -e ~/.terminfo ]] && export TERMINFO_DIRS=~/.terminfo:/usr/share/terminfo
 
+# ZSH syntax highlighting
+# Source: https://github.com/zsh-users/zsh-syntax-highlighting
+source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
