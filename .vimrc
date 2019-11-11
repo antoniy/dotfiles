@@ -48,19 +48,7 @@ set nomodeline                    " vim reads the modeline to execute commands f
 set modelines=0                   " how many lines to check in the top/bottom of the file. 0=off
 set timeoutlen=1000 ttimeoutlen=0 " timeoutlen is used for mapping delays, ttimoutlen - for key code delays. The purpose of this configuration is to eliminate the delay when we go from visual mode into insert mode.
 
-if has('unix')
-    set clipboard=unnamedplus         " use system clipboard for copy/paste
-endif
-
-if has('mac')
-    set clipboard=unnamed         " use system clipboard for copy/paste
-endif
-
-"call plug#begin()
-"
-"Plug 'terryma/vim-multiple-cursors'
-"
-"call plug#end()
+set clipboard=unnamed         " use system clipboard for copy/paste
 
 filetype off                  " required by Vundle
 " set the runtime path to include Vundle and initialize
