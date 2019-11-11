@@ -14,35 +14,6 @@ export PATH="$PATH:$HOME/.rvm/bin"
 
 export EDITOR='vim'
 
-#########################
-### Oh-my-zsh section ###
-#########################
-
-# Path to your oh-my-zsh installation.
-ZSH=$HOME/.oh-my-zsh
-
-# Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
-# Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-# Add wisely, as too many plugins slow down shell startup.
-plugins=(sudo gpg-agent)
-
-source $ZSH/oh-my-zsh.sh
-
-# Load FZF if available
-if [[ -e /etc/profile.d/fzf.zsh ]]; then
-        . /etc/profile.d/fzf.zsh
-fi
-
-# Load FZF Extras if available
-if [[ -e /etc/profile.d/fzf-extras.zsh ]]; then
-        . /etc/profile.d/fzf-extras.zsh
-fi
-
-#############################
-### END Oh-my-zsh section ###
-#############################
-
 ###############
 ### Aliases ###
 ###############
