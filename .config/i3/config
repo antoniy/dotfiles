@@ -240,7 +240,7 @@ set $mode_gaps_bottom Bottom Gaps: +|-|0 (local), Shift + +|-|0 (global)
 set $mode_gaps_left Left Gaps: +|-|0 (local), Shift + +|-|0 (global)
 bindsym $mod+Shift+g mode "$mode_gaps"
 
-gaps inner 20
+gaps inner 15
 
 # Only enable gaps on a workspace when there is at least one container
 smart_gaps on
