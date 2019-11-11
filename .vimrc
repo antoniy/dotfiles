@@ -56,6 +56,16 @@ set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
 
 Plugin 'terryma/vim-multiple-cursors'
+Plugin 'chriskempson/base16-vim'
 
 call vundle#end()            " required
 filetype plugin indent on    " required
+
+colorscheme base16-default-dark " enable base16 theme
+
+" needed for proper syntax highlighting in tmux
+"if &term =~# '256color' && ( &term =~# '^screen'  || &term =~# '^tmux' )
+  let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+  let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+  set termguicolors
+"endif
