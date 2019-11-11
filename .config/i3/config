@@ -217,7 +217,8 @@ exec --no-startup-id redshift-gtk
 exec --no-startup-id compton
 
 # Set keyboard layouts - us and bg phonetic variant with lCtrl + lWin switch toggle
-exec_always "setxkbmap -model pc104 -layout us,bg -variant ,phonetic -option grp:lctrl_lwin_toggle"
+# Also use Left Shift + Right Shift to toggle Caps-Lock
+exec_always "setxkbmap -model pc104 -layout us,bg -variant ,phonetic -option grp:lctrl_lwin_toggle -option shift:both_capslock"
 
 # move focused workspace between monitors
 bindsym $mod+Ctrl+greater move workspace to output right
