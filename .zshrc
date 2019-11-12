@@ -1,16 +1,6 @@
-export PATH=$PATH:/home/antoniy/bin
-
-export MAVEN_OPTS="-Xmx4g -Xmx4g -XX:MaxPermSize=512m"
-
-# MacOSX set java version when
-if [[ -e /usr/libexec/java_home ]]; then
-    export JAVA_HOME=`/usr/libexec/java_home -v 11`
+if [ -e ~/.zshrcl_local ]; then
+    source ~/.zshrc_local
 fi
-export MAKE_COMMON="$HOME/projects/re-makefiles-common"
-export PATH=$PATH:$HOME/bin
-
-# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
-export PATH="$PATH:$HOME/.rvm/bin"
 
 export EDITOR='vim'
 
@@ -40,6 +30,18 @@ alias lt='exa -aT --color=always --group-directories-first' # tree listing
 #alias ll="ls -lFh ${colorflag}"
 #alias rmf="rm -rf"
 
+# Git aliases
+alias gst='git status'
+alias gl='git ln'
+alias gr='git remotes'
+
+# Config aliases
+alias cfi='vim ~/.config/i3/config'
+alias cft='vim ~/.tmux.conf'
+alias cfv='vim ~/.vimrc'
+alias cfg='vim ~/.gitconfig'
+alias cfz='vim ~/.zshrc'
+
 # Helpers
 alias grep='grep --color=auto'
 alias df='df -h' # disk free, in Gigabytes, not bytes
@@ -52,6 +54,17 @@ alias du='du -h -c' # calculate disk usage for a folder
 #################
 ### Functions ###
 #################
+
+opendir() {
+  tempfile="$(mktemp)"
+  lf -last-dir-path "$tempfile"
+  test -f "$tempfile" &&
+      if [ "$(cat -- "$tempfile")" != "$(echo -n `pwd`)" ]; then
+          cd -- "$(cat "$tempfile")"
+      fi
+  rm -f -- "$tempfile"
+}
+bindkey -s '^O' 'opendir\n'
 
 # print available colors and their numbers
 function colours() {
@@ -282,7 +295,7 @@ precmd () {
 }
 
 ###################
-### END kPrompt ###
+### END Prompt ###
 ###################
 
 
