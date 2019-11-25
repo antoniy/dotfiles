@@ -11,12 +11,26 @@ if [ -d /etc/X11/xinit/xinitrc.d ]; then
   unset f
 fi
 
-[[ -f ~/.Xresources ]] && xrdb -merge ~/.Xresources
+[[ -f ~/.Xresources ]] && xrdb -merge ~/.Xresources &
 
-# exec gnome-session
-# exec startkde
-#exec startxfce4
+# 1. Set default keyboard leyout
+# 2. Set both caps lock keys to toggle caps behavior
+# 3. Make caps lock act as Ctrl when pressed with other key
+setxkbmap -model pc104 -layout us,bg -variant ,phonetic \
+    -option grp:lctrl_lwin_toggle \
+    -option shift:both_capslock \
+    -option caps:ctrl_modifier &
+
+# Set caps lock (single key press) behavior to be Escape
+killall xcape 2>/dev/null ; xcape -e 'Caps_Lock=Escape' &
+
+# Set key repeat delay and interval
+xset r rate 300 50 &
+
+# Start common tools
+compton &
+/usr/lib/geoclue-2.0/demos/agent &
+redsihft-gtk &
+nm-applet &
+
 exec i3
-#exec xmonad
-# ...or the Window Manager of your choice
-

@@ -1,16 +1,21 @@
-if [ -e ~/.zshrc_local ]; then
-    source ~/.zshrc_local
+ZSH_CONFIG="$ZDOTDIR/.zshrc"
+
+if [ -e $ZDOTDIR/.zshrc_local ]; then
+    source $ZDOTDIR/.zshrc_local
 fi
 
-export EDITOR='vim'
+# Use neovim for vim if present.
+command -v nvim >/dev/null && alias vim="nvim" vimdiff="nvim -d"
+
+export EDITOR='nvim'
 
 ###############
 ### Aliases ###
 ###############
 
-alias reload!='source ~/.zshrc'
+alias reload!="source $ZSH_CONFIG"
 
-alias config='/usr/bin/git --git-dir=$HOME/.cfg/ --work-tree=$HOME'
+alias config="/usr/bin/git --git-dir=$HOME/.cfg/ --work-tree=$HOME"
 
 # Filesystem aliases
 alias ..='cd ..'
@@ -38,9 +43,9 @@ alias gr='git remotes'
 # Config aliases
 alias cfi='vim ~/.config/i3/config'
 alias cft='vim ~/.tmux.conf'
-alias cfv='vim ~/.vimrc'
+alias cfv='vim ~/.config/nvim/init.vim'
 alias cfg='vim ~/.gitconfig'
-alias cfz='vim ~/.zshrc'
+alias cfz="vim $ZSH_CONFIG"
 
 # Helpers
 alias grep='grep --color=auto'
