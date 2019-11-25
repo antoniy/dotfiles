@@ -110,7 +110,7 @@
 [core]
     excludesfile = ~/.gitignore_global
     pager = less -FXRS -x2
-    editor = vim
+    editor = nvim
 [rerere]
     enabled = true
 [gitsh]
