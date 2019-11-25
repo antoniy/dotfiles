@@ -1,16 +1,3 @@
-syntax on
-
-"if has('gui_running')
-"  set guifont=Source\ Code\ Pro\ Medium\ 12
-"endif
-
-" turn hybrid line numbers on
-set number relativenumber
-set nu rnu
-
-"set number
-"set guioptions-=T
-"set guioptions-=r
 
 " General settings
 " ----------------
@@ -47,25 +34,46 @@ set wildmode=list:longest,full    " settings for how to complete matched strings
 set nomodeline                    " vim reads the modeline to execute commands for the current file
 set modelines=0                   " how many lines to check in the top/bottom of the file. 0=off
 set timeoutlen=1000 ttimeoutlen=0 " timeoutlen is used for mapping delays, ttimoutlen - for key code delays. The purpose of this configuration is to eliminate the delay when we go from visual mode into insert mode.
+set clipboard=unnamed             " use system clipboard for copy/paste
 
-set clipboard=unnamed         " use system clipboard for copy/paste
+" Section: Plugins
+" ----------------
 
 filetype off                  " required by Vundle
 " set the runtime path to include Vundle and initialize
-set rtp+=~/.vim/bundle/Vundle.vim
-call vundle#begin()
+set rtp+=~/.config/nvim/bundle/Vundle.vim
+call vundle#begin('~/.config/nvim/bundle/')
 
 Plugin 'terryma/vim-multiple-cursors'
 Plugin 'chriskempson/base16-vim'
+Plugin 'mhinz/vim-startify'
+Plugin 'vim-airline/vim-airline'
+Plugin 'vim-airline/vim-airline-themes'
+Plugin 'tpope/vim-fugitive'
+Plugin 'PotatoesMaster/i3-vim-syntax'
 
 call vundle#end()            " required
 filetype plugin indent on    " required
 
+" Section: Appearance
+" -------------------
+
+" enable syntax highlighting
+syntax on
+
+" turn hybrid line numbers on
+set number relativenumber
+set nu rnu
+
+" Default color scheme
 colorscheme base16-default-dark " enable base16 theme
 
+" set airline theme
+let g:airline_theme='base16_default'
+" enable airline powerline symbols
+let g:airline_powerline_fonts = 1
+
 " needed for proper syntax highlighting in tmux
-"if &term =~# '256color' && ( &term =~# '^screen'  || &term =~# '^tmux' )
-  let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
-  let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
-  set termguicolors
-"endif
+let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+set termguicolors
