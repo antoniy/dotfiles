@@ -28,6 +28,7 @@ killall xcape 2>/dev/null ; xcape -e 'Caps_Lock=Escape' &
 xset r rate 300 50 &
 
 # Start common tools
+dunst &
 compton &
 /usr/lib/geoclue-2.0/demos/agent &
 redsihft-gtk &
