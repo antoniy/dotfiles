@@ -15,7 +15,32 @@ export EDITOR='nvim'
 
 alias reload!="source $ZSH_CONFIG"
 
+# Custom git alias which configures git to use specific git data directory
+# and working directory set to $HOME.
+# The purpose for this alias is to be used when dealing with dotfiles.
 alias config="/usr/bin/git --git-dir=$HOME/.cfg/ --work-tree=$HOME"
+
+# Verbosity and settings that you pretty much just always are going to want.
+alias cp="cp -iv"
+alias mv="mv -iv"
+alias rm="rm -v"
+alias mkd="mkdir -pv"
+alias yt="youtube-dl --add-metadata -i"
+alias yta="yt -x -f bestaudio/best"
+alias ffmpeg="ffmpeg -hide_banner"
+
+# Colorize commands when possible.
+alias grep="grep --color=auto"
+alias diff="diff --color=auto"
+alias ccat="highlight --out-format=ansi"
+
+# These common commands are just too long! Abbreviate them.
+alias ka="killall"
+alias ytv="youtube-viewer"
+alias sdn="sudo shutdown -h now"
+alias f="$FILE"
+alias e="$EDITOR"
+alias v="$EDITOR"
 
 # Filesystem aliases
 alias ..='cd ..'
@@ -36,9 +61,11 @@ alias lt='exa -aT --color=always --group-directories-first' # tree listing
 #alias rmf="rm -rf"
 
 # Git aliases
+alias g="git"
 alias gst='git status'
 alias gl='git ln'
 alias gr='git remotes'
+alias gf='git fetch'
 
 # Config aliases
 alias cfi='vim ~/.config/i3/config'
