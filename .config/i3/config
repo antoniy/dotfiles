@@ -50,10 +50,10 @@ bindsym $mod+k focus up
 bindsym $mod+l focus right
 
 # alternatively, you can use the cursor keys:
-bindsym $mod+Left focus left
-bindsym $mod+Down focus down
-bindsym $mod+Up focus up
-bindsym $mod+Right focus right
+#bindsym $mod+Left focus left
+#bindsym $mod+Down focus down
+#bindsym $mod+Up focus up
+#bindsym $mod+Right focus right
 
 # move focused window
 bindsym $mod+Shift+h move left
@@ -62,10 +62,10 @@ bindsym $mod+Shift+k move up
 bindsym $mod+Shift+l move right
 
 # alternatively, you can use the cursor keys:
-bindsym $mod+Shift+Left move left
-bindsym $mod+Shift+Down move down
-bindsym $mod+Shift+Up move up
-bindsym $mod+Shift+Right move right
+#bindsym $mod+Shift+Left move left
+#bindsym $mod+Shift+Down move down
+#bindsym $mod+Shift+Up move up
+#bindsym $mod+Shift+Right move right
 
 # split in horizontal orientation
 bindsym $mod+s split v
@@ -110,7 +110,7 @@ bindsym $mod+Ctrl+less move workspace to output left
 
 bindsym $mod+Escape	workspace prev
 
-# #---Dropdown Windows---# #
+# Dropdown Windows
 # General dropdown window traits. The order can matter.
 for_window [instance="dropdown_*"] floating enable
 for_window [instance="dropdown_*"] move scratchpad
@@ -118,9 +118,12 @@ for_window [instance="dropdown_*"] sticky enable
 for_window [instance="dropdown_*"] scratchpad show
 for_window [instance="dropdown_tmuxdd"] resize set 1600 900
 for_window [instance="dropdown_tmuxdd"] border pixel 3
+for_window [instance="dropdown_calcdd"] resize set 600 300
+for_window [instance="dropdown_calcdd"] border pixel 3
 for_window [instance="dropdown_*"] move position center
 
 bindsym F12 exec --no-startup-id ddspawn tmuxdd
+bindsym $mod+c exec --no-startup-id ddspawn calcdd -f mono:pixelsize=24
 
 # }}}
 
