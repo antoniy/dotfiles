@@ -36,6 +36,7 @@ cmd delete ${{
 
 # Bindings
 map gh
+map <c-f> $lf -remote "send $id select '$(fzf)'"
 map g top
 map D delete
 map a push %mkdir<space>
