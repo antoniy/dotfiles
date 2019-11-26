@@ -1,3 +1,4 @@
+let mapleader = ","
 
 " General settings
 " ----------------
