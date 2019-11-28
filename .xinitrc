@@ -27,11 +27,15 @@ killall xcape 2>/dev/null ; xcape -e 'Caps_Lock=Escape' &
 # Set key repeat delay and interval
 xset r rate 300 50 &
 
+# Set wallpaper
+feg --bg-scale $HOME/.config/wall.jpg
+
 # Start common tools
-dunst &
-compton &
-/usr/lib/geoclue-2.0/demos/agent &
-redsihft-gtk &
-nm-applet &
+dunst & # notification daemon
+compton & # window decorator for transperancy etc.
+/usr/lib/geoclue-2.0/demos/agent & # geoclue agent to know current location for redshift sunset check
+redsihft-gtk & # change color temperature at sunset
+nm-applet & # network manager applet
+xbanish & # hide cursor when mouse pressed
 
 exec i3
