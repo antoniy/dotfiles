@@ -237,7 +237,6 @@ client.background       $base07
 # Auto start apps {{{
 # -------------------
 
-exec_always --no-startup-id feh --bg-scale /home/antoniy/Pictures/wallpapers/arch-wp.png
 exec_always --no-startup-id $HOME/.config/polybar/launch.sh
 
 # }}}
