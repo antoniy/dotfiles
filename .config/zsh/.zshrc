@@ -402,9 +402,25 @@ fi
 
 autoload -U zmv
 
-# initialize autocomplete
+# initialize autocomplete with menu selection
 autoload -U compinit
+zstyle ':completion:*' menu select
+zmodload zsh/complist
 compinit
+
+# Load function 'cdr' for automatic recent directory chooser
+autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
+add-zsh-hook chpwd chpwd_recent_dirs
+
+# Include hidden files in autocomplete:
+_comp_options+=(globdots)
+
+# Use vim keys in tab complete menu:
+bindkey -M menuselect 'h' vi-backward-char
+bindkey -M menuselect 'k' vi-up-line-or-history
+bindkey -M menuselect 'l' vi-forward-char
+bindkey -M menuselect 'j' vi-down-line-or-history
+bindkey -v '^?' backward-delete-char
 
 [ -z "$TMUX" ] && export TERM=xterm-256color
 
