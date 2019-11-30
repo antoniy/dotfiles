@@ -18,9 +18,6 @@
     s = status --short 
     st  = status
     br = branch -v
-    cob = "!zsh -c 'source ~/.dotfiles/zsh/fzf.zsh && fzf_git_branch'"
-
-    mr = "!zsh -c 'print -z $(source ~/.dotfiles/zsh/fzf.zsh && fzf_git_merge_branch)'"
     up = "!f() { local remote; if [[ -z $1 ]]; then remote='origin'; else remote=$1; fi; git push $remote $(git rev-parse --abbrev-ref HEAD); }; f"
 
     new = "!f() { local branch=$(git rev-parse --abbrev-ref HEAD) remote; if [[ -z $1 ]]; then remote='origin'; else remote=$1; fi; echo $branch - $remote; git fetch && git log ^$branch $remote/$branch; } ; f"
