@@ -177,6 +177,14 @@ bindkey '^r' history-incremental-search-backward
 bindkey '^a' beginning-of-line
 bindkey '^e' end-of-line
 
+# alt+{a,e} - go to beginnig/end of the line
+bindkey "^[a" beginning-of-line
+bindkey "^[e" end-of-line
+
+# alt+{b,f} - go to prev/next word
+bindkey "^[b" backward-word
+bindkey "^[f" forward-word
+
 # Change cursor shape for different vi modes.
 function zle-keymap-select {
   if [[ ${KEYMAP} == vicmd ]] ||
@@ -412,17 +420,6 @@ bindkey '^R' fzf-history-widget
 ############################
 ### END Fzf Key Bindings ###
 ############################
-
-
-bindkey "^[a" beginning-of-line
-bindkey "^[e" end-of-line
-
-bindkey "^[b" backward-word
-bindkey "^[f" forward-word
-
-if [[ -a ~/.localrc ]]; then
-    source ~/.localrc
-fi
 
 autoload -U zmv
 
