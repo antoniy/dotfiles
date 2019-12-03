@@ -365,7 +365,7 @@ bindkey '\ec' fzf-cd-widget
 
 # ALT-X - cd into recent directory. Get the recent directory list using ZSH recent dirs file. This feature is enabled at the bottom of this config.
 fzf-recent-dirs() {
-  cmd="cat ${ZDOTDIR:-~}/.chpwd-recent-dirs | sed -r 's/\\$'\''(.+)'\''/\1/'"
+  cmd="sed -r 's/\\$'\''(.+)'\''/\1/' ${ZDOTDIR:-~}/.chpwd-recent-dirs"
   dir=$(eval "$cmd" | FZF_DEFAULT_OPTS="--height ${FZF_TMUX_HEIGHT:-40%} --reverse $FZF_DEFAULT_OPTS $FZF_ALT_X_OPTS --preview=\"echo {} | sed 's/ /\\\ /g' | xargs -I{} exa -l --color=always --group-directories-first {}\"" $(__fzfcmd))
   cd "$dir"
   local ret=$?
