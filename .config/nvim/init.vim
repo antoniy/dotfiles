@@ -57,6 +57,7 @@ Plugin 'vimwiki/vimwiki'
 Plugin 'tpope/vim-surround'
 Plugin 'easymotion/vim-easymotion'
 Plugin 'scrooloose/nerdtree'
+Plugin 'ctrlpvim/ctrlp.vim'
 
 call vundle#end()            " required
 filetype plugin indent on    " required
@@ -91,3 +92,13 @@ noremap <leader>r :so %<CR>
 
 " Nerd tree
 map <leader>n :NERDTreeToggle<CR>
+
+" CtrlP most recently used shortcut
+map <leader>m :CtrlPMRU<CR>
+map <leader>b :CtrlPBuffer<CR>
+
+" Splits shortcuts
+nnoremap <C-J> <C-W><C-J>
+nnoremap <C-K> <C-W><C-K>
+nnoremap <C-L> <C-W><C-L>
+nnoremap <C-H> <C-W><C-H>
