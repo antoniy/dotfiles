@@ -28,12 +28,14 @@ killall xcape 2>/dev/null ; xcape -e 'Caps_Lock=Escape' &
 xset r rate 300 50 &
 
 # Set wallpaper
-feg --bg-scale $HOME/.config/wall.jpg
+feh --bg-scale $HOME/.config/wall.jpg
 
 # Start common tools
+sxhkd -m 1 & # bind keys with sxhkd
 dunst & # notification daemon
 compton & # window decorator for transperancy etc.
 /usr/lib/geoclue-2.0/demos/agent & # geoclue agent to know current location for redshift sunset check
+$HOME/.config/polybar/launch.sh & # launch polybar
 redsihft-gtk & # change color temperature at sunset
 nm-applet & # network manager applet
 xbanish & # hide cursor when mouse pressed
