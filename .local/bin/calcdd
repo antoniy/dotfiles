@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+ifinstalled bc && echo -e "Calculator │\n───────────╯" && bc -lq
+
