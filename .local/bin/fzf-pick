@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+# Read a key/value config file ('key' is separated by 'value' with 4 spaces)
+# and prompt the user to pick from 'key's. The picked result is the 
+# associated 'value' for the selected 'key'
+# Usage:
+#   fzf-pick <config-file-path> [query]
+# There is an optional second 'query' parameter which is used to directly
+# search the keys. If there is a match, it will be picked without prompting.
+
+[ ! -e $1 ] && exit 1
+
+take_input="cat $1 | sed '/^\\s*#.*/d' | sed '/^\\s*$/d'"
+fzf_cmd="fzf -d '    ' --with-nth=1"
+trim_output="sed -E 's/\s*(.*)\s*/\1/'"
+extract_path="awk '{ split(\$0,a,\"    \"); print a[2]; }'"
+
+# When a query param is specified search directly and if we have a single result - open it.
+[ -n "$2" ] && fzf_cmd="$fzf_cmd -q $2 -1"
+
+echo $(eval "$take_input | $fzf_cmd | $extract_path | $trim_output")

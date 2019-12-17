@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+# Show a file chooser and pick config file to be opened in default text
+# editor. Optionally a 'query' can be specified which will automatically
+# search all the options for config files and if a single result is found
+# it will be opened directly.
+# Usage:
+#   cf [query]
+
+cmd="fzf-pick $HOME/.config/config-files.list"
+
+[ -n "$1" ] && cmd="$cmd $1"
+
+selected=$(eval "$cmd")
+[ -n "$selected" ] && eval "$EDITOR $selected"

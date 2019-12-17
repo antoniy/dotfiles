@@ -1,0 +1,21 @@
+# List all config files you frequantly edit here
+# Using tabular vim plugin you can quickly format the
+# table below using "Tabularize /|" command
+NVIM    ~/.config/nvim/init.vim
+Tmux    ~/.tmux.conf
+i3wm    ~/.config/i3/config
+Polybar    ~/.config/polybar/config
+LF file manager    ~/.config/lf/lfrc
+ZSH Shell    ~/.config/zsh/.zshrc
+Simple X Hotkey Daemon    ~/.config/sxhkd/sxhkdrc
+Config Files    ~/.config/config-files.list
+Git    ~/.gitconfig
+xinitrc    ~/.xinitrc
+zprofile    ~/.zprofile
+Zathura PDF Viewer    ~/.config/zathura/zathurarc
+Compton    ~/.config/compton/compton.conf
+Dust Notification Daemon    ~/.config/dust/dunstrc
+PCManFM File Manager     ~/.config/pcmanfm/default/pcmanfm.conf
+Termite    ~/.config/termite/config
+MPV Player    ~/.config/mpv/input.conf
+
