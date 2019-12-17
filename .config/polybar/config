@@ -1,9 +1,3 @@
-#  ____ _____ 
-# |  _ \_   _|  Derek Taylor (DistroTube)
-# | | | || |    http://www.youtube.com/c/DistroTube
-# | |_| || |    http://www.gitlab.com/dwt1/ 
-# |____/ |_|  	
-
 ;=====================================================
 ;
 ; To learn more about how to configure Polybar
@@ -17,10 +11,17 @@
 ;
 ;=====================================================
 
+; -------- WM {{{
+; ---------------
+
 [global/wm]
 ;https://github.com/jaagr/polybar/wiki/Configuration#global-wm-settings
 margin-top = 0
 margin-bottom = 0
+
+; }}}
+; -------- Settings {{{
+; ---------------------
 
 [settings]
 ;https://github.com/jaagr/polybar/wiki/Configuration#application-settings
@@ -44,41 +45,21 @@ format-padding =
 format-margin =
 format-offset =
 
+; }}}
+; -------- Colors {{{
+; -------------------
+
 [colors]
-; Nord theme ============
 background = #292d3e
 foreground = #c0c5ce
 alert = #bd2c40
 volume-min = #a3be8c
 volume-med = #ebcb8b
 volume-max = #bf616a
-; =======================
 
-; Gotham theme ==========
-; background = #0a0f14
-; foreground = #99d1ce
-; alert = #d26937
-; volume-min = #2aa889
-; volume-med = #edb443
-; volume-max = #c23127
-; =======================
-
-; INTRCPTR theme ============
-;background = ${xrdb:color0:#222}
-;background = #aa000000
-;background-alt = #444
-;foreground = ${xrdb:color7:#222}
-;foreground = #fff
-;foreground-alt = #555
-;primary = #ffb52a
-;secondary = #e60053
-;alert = #bd2c40
-
-################################################################################
-################################################################################
-############                         MAINBAR-I3                     ############
-################################################################################
-################################################################################
+; }}}
+; -------- Mainbar i3 {{{
+; -----------------------
 
 [bar/mainbar-i3]
 ;https://github.com/jaagr/polybar/wiki/Configuration
@@ -170,14 +151,9 @@ double-click-right =
 cursor-click =
 cursor-scroll =
 
-
-
-
-################################################################################
-################################################################################
-############                       MODULE I3                        ############
-################################################################################
-################################################################################
+; }}}
+; -------- Mod: i3 {{{
+; --------------------
 
 [module/i3]
 ;https://github.com/jaagr/polybar/wiki/Module:-i3
@@ -294,38 +270,9 @@ label-urgent-padding = 2
 format-foreground = ${colors.foreground}
 format-background = ${colors.background}
 
-
-
-
-################################################################################
-###############################################################################
-############                       MODULES A-Z                      ############
-################################################################################
-################################################################################
-
-[module/arch-aur-updates]
-type = custom/script
-exec = ~/.config/polybar/scripts/check-all-updates.sh
-interval = 1000
-label = Updates: %output%
-format-foreground = #fefefe
-format-background = #A77AC4
-format-prefix = "  "
-format-prefix-foreground = #fefefe
-
-
-[module/aur-updates]
-type = custom/script
-exec = cower -u | wc -l
-interval = 1000
-label = Aur: %output%
-format-foreground = ${colors.foreground}
-format-background = ${colors.background}
-format-prefix = "  "
-format-prefix-foreground = #FFBB00
-format-underline = #FFBB00
-
-################################################################################
+; }}}
+; -------- Mod: backlight-acpi {{{
+; --------------------------------
 
 [module/backlight-acpi]
 inherit = module/xbacklight
@@ -336,7 +283,10 @@ format-background = ${colors.background}
 format-prefix-foreground = #7D49B6
 format-prefix-underline = #7D49B6
 format-underline = #7D49B6
-################################################################################
+
+; }}}
+; -------- Mod: backlight {{{
+; ---------------------------
 
 [module/backlight]
 ;https://github.com/jaagr/polybar/wiki/Module:-backlight
@@ -372,7 +322,9 @@ bar-indicator = |
 bar-fill = ─
 bar-empty = ─
 
-################################################################################
+; }}}
+; -------- Mod: battery {{{
+; -------------------------
 
 [module/battery]
 ;https://github.com/jaagr/polybar/wiki/Module:-battery
@@ -414,7 +366,9 @@ animation-charging-4 = 
 animation-charging-foreground = #a3c725
 animation-charging-framerate = 750
 
-################################################################################
+; }}}
+; -------- Mod: compton {{{
+; -------------------------
 
 [module/compton]
 ;https://github.com/jaagr/polybar/wiki/User-contributed-modules#compton
@@ -426,7 +380,9 @@ format-foreground = ${colors.foreground}
 format-background = ${colors.background}
 ;format-underline = #00AF02
 
-################################################################################
+; }}}
+; -------- Mod: CPU {{{
+; ----------------------
 
 [module/cpu1]
 ;https://github.com/jaagr/polybar/wiki/Module:-cpu
@@ -481,8 +437,6 @@ ramp-coreload-7 = █
 ramp-coreload-7-font = 3
 ramp-coreload-7-foreground = #ff5555
 
-################################################################################
-
 [module/cpu2]
 ;https://github.com/jaagr/polybar/wiki/Module:-cpu
 type = internal/cpu
@@ -513,7 +467,9 @@ format = <label>
 ;label = Cpu %percentage:3%%
 label = %percentage:3%%
 
-################################################################################
+; }}}
+; -------- Mod: date {{{
+; ----------------------
 
 [module/date]
 ;https://github.com/jaagr/polybar/wiki/Module:-date
@@ -535,7 +491,9 @@ format-foreground = #fefefe
 format-background = ${colors.background}
 label = "%date% %time% "
 
-#################################################################
+; }}}
+; -------- Mod: ewmh {{{
+; ----------------------
 
 [module/ewmh]
 type = internal/xworkspaces
@@ -585,8 +543,9 @@ label-empty-padding = 1
 format-foreground = ${colors.foreground}
 format-background = ${colors.background}
 
-
-################################################################################
+; }}}
+; -------- Mod: filesystem {{{
+; ----------------------------
 
 [module/filesystem]
 ;https://github.com/jaagr/polybar/wiki/Module:-filesystem
@@ -640,7 +599,9 @@ format-unmounted-foreground = ${colors.foreground}
 format-unmounted-background = ${colors.background}
 ;format-unmounted-underline = ${colors.alert}
 
-################################################################################
+; }}}
+; -------- Mod: kernel {{{
+; ------------------------
 
 [module/kernel]
 type = custom/script
@@ -654,7 +615,9 @@ format-prefix = "  "
 format-prefix-foreground = #0084FF
 format-underline = #4B5665
 
-################################################################################
+; }}}
+; -------- Mod: jgmenu {{{
+; ------------------------
 
 [module/jgmenu]
 type = custom/script
@@ -664,7 +627,9 @@ click-left = "jgmenu_run >/dev/null 2>&1 &"
 format-foreground = ${colors.foreground}
 format-background = ${colors.background}
 
-################################################################################
+; }}}
+; -------- Mod: load-average {{{
+; ------------------------------
 
 [module/load-average]
 type = custom/script
@@ -681,7 +646,9 @@ format-prefix = "  "
 format-prefix-foreground = #62FF00
 format-underline = #62FF00
 
-################################################################################
+; }}}
+; -------- Mod: Memory {{{
+; -------------------------
 
 [module/memory1]
 ;https://github.com/jaagr/polybar/wiki/Module:-memory
@@ -711,8 +678,6 @@ format-underline = #4B5665
 format-foreground = ${colors.foreground}
 format-background = ${colors.background}
 
-################################################################################
-
 [module/memory2]
 ;https://github.com/jaagr/polybar/wiki/Module:-memory
 type = internal/memory
@@ -737,8 +702,6 @@ format-prefix-foreground = #69eeee
 format-foreground = #fefefe
 format-background = ${colors.background}
 
-################################################################################
-
 [module/memory3]
 ;https://github.com/jaagr/polybar/wiki/Module:-memory
 type = internal/memory
@@ -761,8 +724,9 @@ format-underline = #3384d0
 format-foreground = ${colors.foreground}
 format-background = ${colors.background}
 
-
-################################################################################
+; }}}
+; -------- Mod: mpd {{{
+; ---------------------
 
 [module/mpd]
 ;https://github.com/jaagr/polybar/wiki/Module:-mpd
@@ -786,7 +750,10 @@ bar-progress-fill-background = ${colors.background}
 bar-progress-indicator-foreground = ${colors.foreground}
 format-online-foreground = ${colors.foreground}
 format-online-background = ${colors.background}
-################################################################################
+
+; }}}
+; -------- Mod: network-speed up/down {{{
+; ----------------------------------
 
 [module/networkspeedup]
 ;https://github.com/jaagr/polybar/wiki/Module:-network
@@ -801,8 +768,6 @@ format-connected-prefix = " "
 format-connected-prefix-foreground = #699dee
 format-connected-foreground = #fefefe
 format-connected-background = ${colors.background}
-
-################################################################################
 
 [module/networkspeeddown]
 ;https://github.com/jaagr/polybar/wiki/Module:-network
@@ -819,7 +784,30 @@ format-connected-foreground = #fefefe
 ;format-connected-background = #A77AC4
 format-connected-background = ${colors.background}
 
-################################################################################
+; }}}
+; -------- Mod: Package Updates {{{
+; -----------------------------
+
+[module/aur-updates]
+type = custom/script
+exec = cower -u | wc -l
+interval = 1000
+label = Aur: %output%
+format-foreground = ${colors.foreground}
+format-background = ${colors.background}
+format-prefix = "  "
+format-prefix-foreground = #FFBB00
+format-underline = #FFBB00
+
+[module/arch-aur-updates]
+type = custom/script
+exec = ~/.config/polybar/scripts/check-all-updates.sh
+interval = 1000
+label = Updates: %output%
+format-foreground = #fefefe
+format-background = #A77AC4
+format-prefix = "  "
+format-prefix-foreground = #fefefe
 
 [module/pacman-updates]
 type = custom/script
@@ -834,7 +822,9 @@ format-prefix = "  "
 format-prefix-foreground = #FFBB00
 format-underline = #FFBB00
 
-################################################################################
+; }}}
+; -------- Mod: PulseAudio volume control {{{
+; -------------------------------------------
 
 [module/pavolume]
 type = custom/script
@@ -850,9 +840,9 @@ format-background = ${colors.background}
 format-prefix = " "
 format-prefix-foreground = #bca4f8
 
-
-
-################################################################################
+; }}}
+; -------- Mod: Public IP {{{
+; ---------------------------
 
 [module/pub-ip]
 ;https://linuxconfig.org/polybar-a-better-wm-panel-for-your-linux-system
@@ -866,7 +856,9 @@ label = %output%
 format-prefix = "  "
 format-prefix-foreground = #FFBB00
 
-################################################################################
+; }}}
+; -------- Mod: System release {{{
+; --------------------------------
 
 [module/release]
 type = custom/script
@@ -879,7 +871,9 @@ format-prefix = "  "
 format-prefix-foreground = #62FF00
 format-underline = #62FF00
 
-################################################################################
+; }}}
+; -------- Mod: Separator {{{
+; ---------------------------
 
 [module/sep]
 ; alternative separator
@@ -890,7 +884,9 @@ content-background =  ${colors.background}
 format-foreground = ${colors.foreground}
 format-background = ${colors.background}
 
-################################################################################
+; }}}
+; -------- Mod: Spotify {{{
+; -------------------------
 
 [module/spotify1]
 ;https://github.com/NicholasFeldman/dotfiles/blob/master/polybar/.config/polybar/spotify.sh
@@ -907,7 +903,9 @@ format-prefix = "  "
 format-prefix-foreground = #0f0
 label = %output:0:150%
 
-################################################################################
+; }}}
+; -------- Mod: Temperature {{{
+; -----------------------------
 
 [module/temperature1]
 ;https://github.com/jaagr/polybar/wiki/Module:-temperature
@@ -943,8 +941,6 @@ ramp-3 = 
 ramp-4 = 
 ramp-foreground =${colors.foreground}
 
-################################################################################
-
 [module/temperature2]
 type = custom/script
 exec = ~/.config/polybar/scripts/tempcores.sh
@@ -956,7 +952,9 @@ format-underline = #C1B93E
 format-prefix-foreground = #C1B93E
 label =  %output:0:150:%
 
-################################################################################
+; }}}
+; -------- Mod: uptime {{{
+; ------------------------
 
 [module/uptime]
 ;https://github.com/jaagr/polybar/wiki/User-contributed-modules#uptime
@@ -971,7 +969,9 @@ format-prefix = " "
 format-prefix-foreground = #C15D3E
 format-underline = #C15D3E
 
-################################################################################
+; }}}
+; -------- Mod: Volume {{{
+; ------------------------
 
 [module/volume]
 ;https://github.com/jaagr/polybar/wiki/Module:-volume
@@ -1005,7 +1005,9 @@ format-muted-prefix-foreground = "#ff0000"
 format-muted-foreground = ${colors.foreground}
 format-muted-background = ${colors.background}
 
-################################################################################
+; }}}
+; -------- Mod: Weather {{{
+; -------------------------
 
 [module/weather]
 type = custom/script
@@ -1019,7 +1021,9 @@ format-background = ${colors.background}
 exec = python -u ~/.config/polybar/scripts/weather.py
 tail = true
 
-#################################################################################
+; }}}
+; -------- Mod: Wired Network {{{
+; -------------------------------
 
 [module/wired-network]
 ;https://github.com/jaagr/polybar/wiki/Module:-network
@@ -1051,7 +1055,9 @@ format-disconnected = <label-disconnected>
 format-disconnected-underline = ${colors.alert}
 label-disconnected-foreground = ${colors.foreground}
 
-################################################################################
+; }}}
+; -------- Mod: Wireless Network {{{
+; ----------------------------------
 
 [module/wireless-network]
 ;https://github.com/jaagr/polybar/wiki/Module:-network
@@ -1091,7 +1097,9 @@ ramp-signal-6 = ▇
 ramp-signal-7 = █
 ramp-signal-foreground = #7e52c6
 
-################################################################################
+; }}}
+; -------- Mod: xbacklight {{{
+; ----------------------------
 
 [module/xbacklight]
 ;https://github.com/jaagr/polybar/wiki/Module:-xbacklight
@@ -1116,7 +1124,9 @@ bar-empty-foreground = #fff
 format-foreground = ${colors.foreground}
 format-background = ${colors.background}
 
-################################################################################
+; }}}
+; -------- Mod: xkeyboard {{{
+; -----------------------------
 
 [module/xkeyboard]
 ;https://github.com/jaagr/polybar/wiki/Module:-xkeyboard
@@ -1139,7 +1149,8 @@ label-indicator-margin = 1
 label-indicator-background = ${colors.background}
 label-indicator-underline = ${colors.foreground}
 
-################################################################################
+; }}}
+; -------- Mod: xwindow {{{
 
 [module/xwindow]
 ;https://github.com/jaagr/polybar/wiki/Module:-xwindow
@@ -1155,6 +1166,6 @@ format-prefix = "  "
 format-foreground = ${colors.foreground}
 format-background = ${colors.background}
 
-###############################################################################
-# vim:ft=dosini
+; }}}
+; vim:ft=dosini
 
