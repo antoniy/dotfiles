@@ -9,16 +9,10 @@ command -v nvim >/dev/null && alias vim="nvim" vimdiff="nvim -d"
 
 export EDITOR='nvim'
 
-###############
-### Aliases ###
-###############
+# -------- Aliases {{{
+# --------------------
 
 alias reload!="source $ZSH_CONFIG"
-
-# Custom git alias which configures git to use specific git data directory
-# and working directory set to $HOME.
-# The purpose for this alias is to be used when dealing with dotfiles.
-alias config="/usr/bin/git --git-dir=$HOME/.cfg/ --work-tree=$HOME"
 
 # Verbosity and settings that you pretty much just always are going to want.
 alias cp="cp -iv"
@@ -48,17 +42,23 @@ alias ...='cd ../..'
 alias ....="cd ../../.."
 alias .....="cd ../../../.."
 
-# Changing "ls" to "exa"
-alias ls='exa --color=always --group-directories-first' # my preferred listing
-alias la='exa -a --color=always --group-directories-first'  # all files and dirs
-alias ll='exa -la --color=always --group-directories-first'  # long format
-alias l='exa -l --color=always --group-directories-first'  # long format
-alias lt='exa -aT --color=always --group-directories-first' # tree listing
+# Changing "ls" to "exa" if "exa" is installed
+command -v exa > /dev/null
+if [ "$?" -eq "0" ]; then
+  alias ls='exa --color=always --group-directories-first' # my preferred listing
+  alias la='exa -a --color=always --group-directories-first'  # all files and dirs
+  alias ll='exa -la --color=always --group-directories-first'  # long format
+  alias l='exa -l --color=always --group-directories-first'  # long format
+  alias lt='exa -aT --color=always --group-directories-first' # tree listing
+else
+  alias ls="ls --color=always --group-directories-first"
+  alias la="ls -A --color=always --group-directories-first"
+  alias ll="ls -lAFh --color=always --group-directories-first"
+  alias l="ls -lFh --color=always --group-directories-first"
+  alias lt="tree -aC --dirsfirst"
+fi
 
-#alias l="ls -lah ${colorflag}"
-#alias la="ls -AF ${colorflag}"
-#alias ll="ls -lFh ${colorflag}"
-#alias rmf="rm -rf"
+alias rmf="rm -rf"
 
 # Git aliases
 alias g="git"
@@ -67,25 +67,14 @@ alias gl='git ln'
 alias gr='git remotes'
 alias gf='git fetch'
 
-# Config aliases
-alias cfi='vim ~/.config/i3/config'
-alias cft='vim ~/.tmux.conf'
-alias cfv='vim ~/.config/nvim/init.vim'
-alias cfg='vim ~/.gitconfig'
-alias cfz="vim $ZSH_CONFIG"
-
 # Helpers
 alias grep='grep --color=auto'
 alias df='df -h' # disk free, in Gigabytes, not bytes
 alias du='du -h -c' # calculate disk usage for a folder
 
-###################
-### END Aliases ###
-###################
-
-#################
-### Functions ###
-#################
+# }}}
+# -------- Functions {{{
+# ----------------------
 
 opendir() {
   tempfile="$(mktemp)"
@@ -126,14 +115,9 @@ function extract() {
     fi
 }
 
-#####################
-### END Functions ###
-#####################
-
-
-################
-### Vim mode ###
-################
+# }}}
+# -------- Vim Mode {{{
+# ---------------------
 
 # Updates editor information when the keymap changes.
 function zle-keymap-select() {
@@ -211,13 +195,9 @@ echo -ne '\e[6 q'
 # Use beam shape cursor for each new prompt.
 preexec() { echo -ne '\e[6 q' ;}
 
-####################
-### END Vim mode ###
-####################
-
-##############
-### Prompt ###
-##############
+# }}}
+# -------- Prompt {{{
+# -------------------
 
 # Reference for colors: http://stackoverflow.com/questions/689765/how-can-i-change-the-color-of-my-prompt-in-zsh-different-from-normal-text
 
@@ -247,13 +227,9 @@ set_prompt() {
 autoload -Uz add-zsh-hook
 add-zsh-hook precmd set_prompt
 
-###################
-### END Prompt ###
-###################
-
-##################
-### ZSH Config ###
-##################
+# }}}
+# -------- ZSH Config {{{
+# -----------------------
 
 setopt NO_BG_NICE
 setopt NO_HUP
@@ -278,128 +254,24 @@ setopt COMPLETE_ALIASES
 # display how long all tasks over 10 seconds take
 export REPORTTIME=10
 
-#######################
-### END ZSH Config  ###
-#######################
+# }}}
+# -------- Fzf Key Bindings {{{
+# -----------------------------
 
-########################
-### Fzf Key Bindings ###
-########################
+[ -e /usr/share/fzf/key-bindings.zsh ] && source /usr/share/fzf/key-bindings.zsh
 
-if [[ $- == *i* ]]; then
+# }}}
+# -------- Plugins: zplug {{{
+# -----------------------------
 
-fzf_killps() {
-  zle -I
-  ps -ef | sed 1d | fzf -m | awk '{print $2}' | xargs kill -${1:-9}
-}
-zle -N fzf_killps
-bindkey '^Q' fzf_killps
+source ~/.zplug/init.zsh
 
-# fshow - git commit browser
-fzf_git_log() {
-  zle -I
-  git log --graph --color=always \
-      --format="%C(auto)%h%d %s %C(black)%C(bold)%cr" "$@" |
-  fzf --ansi --no-sort --reverse --tiebreak=index --bind=ctrl-s:toggle-sort \
-      --bind "ctrl-m:execute:
-                (grep -o '[a-f0-9]\{7\}' | head -1 |
-                xargs -I % sh -c 'git show --color=always % | less -R') << 'FZF-EOF'
-                {}
-FZF-EOF"
-}
-zle -N fzf_git_log
-bindkey '^[gl' fzf_git_log
+zplug 'wfxr/forgit'
+zplug 'zsh-users/zsh-autosuggestions'
 
-fzf_git_add() {
-  zle -I
-  GIT_ROOT=$(git rev-parse --show-toplevel)
-  FILES_TO_ADD=$(git status --porcelain | grep -v '^[AMD]' | sed s/^...// | fzf -m)
+zplug load
 
-  if [[ ! -z $FILES_TO_ADD ]]; then
-    for FILE in $FILES_TO_ADD; do
-      git add $@ "$GIT_ROOT/$FILE"
-      done
-  else
-    echo "Nothing to add"
-  fi
-}
-zle -N fzf_git_add
-bindkey '^[g' fzf_git_add
-
-__fzf_use_tmux__() {
-  [ -n "$TMUX_PANE" ] && [ "${FZF_TMUX:-0}" != 0 ] && [ ${LINES:-40} -gt 15 ]
-}
-
-__fzfcmd() {
-  __fzf_use_tmux__ &&
-    echo "fzf-tmux -d${FZF_TMUX_HEIGHT:-40%}" || echo "fzf"
-}
-
-# Ensure precmds are run after cd
-fzf-redraw-prompt() {
-  local precmd
-  for precmd in $precmd_functions; do
-    $precmd
-  done
-  zle reset-prompt
-}
-zle -N fzf-redraw-prompt
-
-# ALT-C - cd into the selected directory
-fzf-cd-widget() {
-  local cmd="${FZF_ALT_C_COMMAND:-"command find -L . -mindepth 1 \\( -path '*/\\.*' -o -fstype 'sysfs' -o -fstype 'devfs' -o -fstype 'devtmpfs' -o -fstype 'proc' \\) -prune \
-    -o -type d -print 2> /dev/null | cut -b3-"}"
-  setopt localoptions pipefail no_aliases 2> /dev/null
-  local dir="$(eval "$cmd" | FZF_DEFAULT_OPTS="--height ${FZF_TMUX_HEIGHT:-40%} --reverse $FZF_DEFAULT_OPTS $FZF_ALT_C_OPTS --preview=\"exa -l --color=always --group-directories-first {}\"" $(__fzfcmd) +m)"
-  if [[ -z "$dir" ]]; then
-    zle redisplay
-    return 0
-  fi
-  cd "$dir"
-  local ret=$?
-  zle fzf-redraw-prompt
-  return $ret
-}
-zle     -N    fzf-cd-widget
-bindkey '\ec' fzf-cd-widget
-
-# ALT-X - cd into recent directory. Get the recent directory list using ZSH recent dirs file. This feature is enabled at the bottom of this config.
-fzf-recent-dirs() {
-  cmd="sed -r 's/\\$'\''(.+)'\''/\1/' ${ZDOTDIR:-~}/.chpwd-recent-dirs"
-  dir=$(eval "$cmd" | FZF_DEFAULT_OPTS="--height ${FZF_TMUX_HEIGHT:-40%} --reverse $FZF_DEFAULT_OPTS $FZF_ALT_X_OPTS --preview=\"echo {} | sed 's/ /\\\ /g' | xargs -I{} exa -l --color=always --group-directories-first {}\"" $(__fzfcmd))
-  cd "$dir"
-  local ret=$?
-  zle fzf-redraw-prompt
-  return $ret
-}
-zle -N fzf-recent-dirs
-bindkey '\ex' fzf-recent-dirs
-
-# CTRL-R - Paste the selected command from history into the command line
-fzf-history-widget() {
-  local selected num
-  setopt localoptions noglobsubst noposixbuiltins pipefail no_aliases 2> /dev/null
-  selected=( $(fc -rl 1 |
-    FZF_DEFAULT_OPTS="--height ${FZF_TMUX_HEIGHT:-40%} $FZF_DEFAULT_OPTS -n2..,.. --tiebreak=index --bind=ctrl-r:toggle-sort $FZF_CTRL_R_OPTS --query=${(qqq)LBUFFER} +m" $(__fzfcmd)) )
-  local ret=$?
-  if [ -n "$selected" ]; then
-    num=$selected[1]
-    if [ -n "$num" ]; then
-      zle vi-fetch-history -n $num
-    fi
-  fi
-  zle reset-prompt
-  return $ret
-}
-zle     -N   fzf-history-widget
-bindkey '^R' fzf-history-widget
-
-fi
-
-############################
-### END Fzf Key Bindings ###
-############################
-
+# }}}
 autoload -U zmv
 
 # initialize autocomplete with menu selection
@@ -433,3 +305,8 @@ if [ -e /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.z
 elif [ -e /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then # test for mac osx standard location
     source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# initialize fasd
+eval "$(fasd --init auto)"
