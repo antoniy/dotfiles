@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+kill $(pgrep -x sxhkd) &> /dev/null
+nohup sxhkd -m 1 &> /dev/null &
+disown
+
