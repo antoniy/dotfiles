@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+
+OUTPUT_DIR="$HOME/screenshots"
+
+[ ! -d $OUTPUT_DIR ] && mkdir $OUTPUT_DIR
+
+case $1 in
+  "screen") maim $OUTPUT_DIR/scr-screen-"$(date '+%y%m%d-%H%M-%S').png" ;;
+  "region") maim -s $OUTPUT_DIR/scr-region-"$(date '+%y%m%d-%H%M-%S').png" ;;
+  "window") maim -i "$(xdotool getactivewindow)" $OUTPUT_DIR/scr-window-"$(date '+%y%m%d-%H%M-%S').png" ;;
+  "copy-screen") maim | xclip -selection clipboard -t image/png ;;
+  "copy-region") maim -s | xclip -selection clipboard -t image/png ;;
+  "copy-window") maim -i "$(xdotool getactivewindow)" | xclip -selection clipboard -t image/png ;;
+esac

@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+
+# This is bound to Shift+PrintScreen by default, requires maim. It lets you
+# choose the kind of screenshot to take, including copying the image or even
+# highlighting an area to copy. scrotcucks on suicidewatch right now.
+case "$(printf "region\\nwindow\\nscreen\\nregion (copy)\\nwindow (copy)\\nscreen (copy)" | dmenu -l 6 -i -p "Screenshot which area?")" in
+	"region") screenshot region ;;
+	"window") screenshot window ;;
+	"screen") screenshot screen ;;
+	"region (copy)") screenshot copy-region ;;
+	"window (copy)") screenshot copy-window ;;
+	"screen (copy)") screenshot copy-screen ;;
+esac
