@@ -1,0 +1,53 @@
+# Terminal
+super + Return
+  $TERMINAL
+
+# Launcher
+alt + {_,shift +} q 
+  { j4-dmenu-desktop, dmenu_run }
+
+# Kill active window
+super + shift + q
+  i3-msg kill
+  # kill -9 `xdotool getwindowfocus getwindowpid`
+
+# Open default personal wiki
+super + shift + w
+	$TERMINAL -e nvim -c $HOME/.wiki/index.md
+
+# Open default browser in normal or private mode
+super + b ; { b, p }
+	$BROWSER {_, --private-window }
+
+# Pick screenchot type
+shift + Print
+  dmenu-screenshot
+
+# Shutdown computer
+super + shift + x
+  prompt "Shutdown computer?" "sudo -A shutdown -h now"
+
+# Reboot
+super + shift + BackSpace
+  prompt "Reboot computer?" "sudo -A reboot"
+
+# Kill Xorg
+super + shift + Escape
+  prompt 'Leave Xorg?' 'killall Xorg'
+
+# Use pactl to adjust volume in PulseAudio
+super + {comma,period} 
+  pactl set-sink-volume @DEFAULT_SINK@ { -2%,+2% }
+
+XF86AudioRaiseVolume 
+  pactl set-sink-volume @DEFAULT_SINK@ +10%
+	
+XF86AudioLowerVolume 
+  pactl set-sink-volume @DEFAULT_SINK@ -10%
+
+XF86AudioMute 
+  pactl set-sink-mute @DEFAULT_SINK@ toggle
+
+XF86AudioMicMute 
+  pactl set-source-mute @DEFAULT_SOURCE@ toggle
+
