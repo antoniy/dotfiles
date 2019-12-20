@@ -62,7 +62,6 @@ Plug 'vim-airline/vim-airline-themes'
 Plug 'tpope/vim-fugitive'
 Plug 'PotatoesMaster/i3-vim-syntax'
 Plug 'godlygeek/tabular'
-Plug 'nelstrom/vim-markdown-folding'
 Plug 'plasticboy/vim-markdown'
 Plug 'suan/vim-instant-markdown', {'for': 'markdown'}
 Plug 'tpope/vim-surround'
@@ -90,7 +89,7 @@ syntax on
 set number relativenumber
 
 " Default color scheme
-colorscheme base16-default-dark " enable base16 theme
+colorscheme base16-tomorrow-night " enable base16 theme
 
 " set airline theme
 let g:airline_theme='base16_default'
@@ -98,8 +97,8 @@ let g:airline_theme='base16_default'
 let g:airline_powerline_fonts = 1
 
 " Switch between dark and light theme using <leader>d and <leader>l respectively
-nnoremap <leader>dark :colorscheme base16-default-dark<CR> :AirlineTheme base16_default<CR>
-nnoremap <leader>light :colorscheme base16-default-light<CR> :AirlineTheme aurora<CR>
+nnoremap <leader>dark :colorscheme base16-tomorrow-night<CR> :AirlineTheme base16_default<CR>
+nnoremap <leader>light :colorscheme base16-tomorrow<CR> :AirlineTheme tomorrow<CR>
 
 " Allow for transparent background
 hi Normal guibg=NONE ctermbg=NONE
@@ -152,10 +151,9 @@ nnoremap <C-W>V :botright vnew<CR>
 " -----------------------------------------
 " https://github.com/suan/vim-instant-markdown
 " https://github.com/plasticboy/vim-markdown
-" https://github.com/masukomi/vim-markdown-folding
 
 " disable vim-markdown folding so we can use the vim-markdown-folding plugin instead
-let g:vim_markdown_folding_disabled = 1
+let g:vim_markdown_folding_style_pythonic = 1
 
 " set enable conceal with simple style
 set conceallevel=2
