@@ -50,33 +50,40 @@ set pastetoggle=<f5>
 " -------- Plugins {{{
 " --------------------
 
-filetype off                  " required by Vundle
-" set the runtime path to include Vundle and initialize
-" set rtp+=~/.config/nvim/bundle/Vundle.vim
 call plug#begin('~/.config/nvim/plugged/')
 
-Plug 'terryma/vim-multiple-cursors'
+" Appearance
 Plug 'chriskempson/base16-vim'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
-Plug 'tpope/vim-fugitive'
-Plug 'PotatoesMaster/i3-vim-syntax'
+
+" Markdown
 Plug 'godlygeek/tabular'
 Plug 'plasticboy/vim-markdown'
 Plug 'suan/vim-instant-markdown', {'for': 'markdown'}
-Plug 'tpope/vim-surround'
-Plug 'easymotion/vim-easymotion'
-Plug 'scrooloose/nerdtree'
-Plug 'ctrlpvim/ctrlp.vim'
-Plug 'tpope/vim-commentary'
+
+" Syntax
 Plug 'kovetskiy/sxhkd-vim'
 Plug 'udalov/kotlin-vim'    
+Plug 'PotatoesMaster/i3-vim-syntax'
+
+" Git 
+Plug 'tpope/vim-fugitive'
+
+" Code/text tools
+Plug 'tpope/vim-surround'
+Plug 'easymotion/vim-easymotion'
+Plug 'tpope/vim-commentary'
+Plug 'terryma/vim-multiple-cursors'
+
+" File finders
+Plug 'scrooloose/nerdtree'
+Plug 'ctrlpvim/ctrlp.vim'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 Plug 'junegunn/gv.vim'
 
 call plug#end()            " required
-filetype plugin indent on    " required
 
 " }}}
 " -------- Appearance {{{
