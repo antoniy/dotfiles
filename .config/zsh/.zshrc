@@ -1,3 +1,6 @@
+# -------- General {{{
+# --------------------
+
 ZSH_CONFIG="$ZDOTDIR/.zshrc"
 
 if [ -e $ZDOTDIR/.zshrc_local ]; then
@@ -5,10 +8,15 @@ if [ -e $ZDOTDIR/.zshrc_local ]; then
 fi
 
 # Use neovim for vim if present.
-command -v nvim >/dev/null && alias vim="nvim" vimdiff="nvim -d"
+[[ $commands[nvim] ]] && alias vim="nvim" vimdiff="nvim -d"
 
 export EDITOR='nvim'
 
+[ -z "$TMUX" ] && export TERM=xterm-256color
+
+[[ -e ~/.terminfo ]] && export TERMINFO_DIRS=~/.terminfo:/usr/share/terminfo
+
+# }}}
 # -------- Aliases {{{
 # --------------------
 
@@ -43,8 +51,7 @@ alias ....="cd ../../.."
 alias .....="cd ../../../.."
 
 # Changing "ls" to "exa" if "exa" is installed
-command -v exa > /dev/null
-if [ "$?" -eq "0" ]; then
+if [[ $commands[exa] ]]; then
   alias ls='exa --color=always --group-directories-first' # my preferred listing
   alias la='exa -a --color=always --group-directories-first'  # all files and dirs
   alias ll='exa -la --color=always --group-directories-first'  # long format
@@ -76,16 +83,27 @@ alias du='du -h -c' # calculate disk usage for a folder
 # -------- Functions {{{
 # ----------------------
 
-opendir() {
-  tempfile="$(mktemp)"
-  lf -last-dir-path "$tempfile"
-  test -f "$tempfile" &&
-      if [ "$(cat -- "$tempfile")" != "$(echo -n `pwd`)" ]; then
-          cd -- "$(cat "$tempfile")"
-      fi
-  rm -f -- "$tempfile"
+# Ensure precmds are run after cd
+redraw-prompt() {
+  local precmd
+  for precmd in $precmd_functions; do
+    $precmd
+  done
+  zle reset-prompt
 }
-bindkey -s '^O' 'opendir\n'
+zle -N redraw-prompt
+
+opendir() {
+  tempfile=`mktemp`
+  lf -last-dir-path $tempfile
+  if [[ -f $tempfile && $(cat -- "$tempfile") != "$(echo -n `pwd`)" ]]; then
+    cd -- "$(cat "$tempfile")"
+  fi
+  rm -f -- "$tempfile" > /dev/null
+  zle redraw-prompt
+}
+zle -N opendir
+bindkey '^O' opendir
 
 # Create a new directory and enter it
 function md() {
@@ -214,7 +232,9 @@ set_prompt() {
     PS1+="%{$fg_bold[cyan]%}${PWD/#$HOME/~}%{$reset_color%}"
 
     # Git
-    if git rev-parse --is-inside-work-tree 2> /dev/null | grep -q 'true' ; then
+    # Note: don't show git info when we're are in $HOME. 
+    # The git repo there is our dotfiles so let's not make a prompt mess in our $HOME.
+    if [[ "$HOME/.git" != `git rev-parse --absolute-git-dir 2> /dev/null` ]]; then
         PS1+=', '
         PS1+="%{$fg[green]%} $(git rev-parse --abbrev-ref HEAD 2> /dev/null)%{$reset_color%}"
     fi
@@ -231,25 +251,31 @@ add-zsh-hook precmd set_prompt
 # -------- ZSH Config {{{
 # -----------------------
 
-setopt NO_BG_NICE
-setopt NO_HUP
-setopt NO_LIST_BEEP
-setopt LOCAL_OPTIONS
-setopt LOCAL_TRAPS
-setopt PROMPT_SUBST
+setopt no_bg_nice
+setopt no_hup
+setopt no_list_beep
+setopt local_options
+setopt local_traps
+setopt prompt_subst
 
 HISTFILE=~/.zsh_history
 HISTSIZE=10000
 SAVEHIST=10000
 
 # history
-setopt HIST_VERIFY
-setopt EXTENDED_HISTORY
-setopt HIST_REDUCE_BLANKS
-unsetopt SHARE_HISTORY
-setopt HIST_IGNORE_ALL_DUPS
+setopt hist_verify
+setopt extended_history
+setopt hist_reduce_blanks
+unsetopt share_history
+setopt hist_ignore_all_dups
 
-setopt COMPLETE_ALIASES
+setopt complete_aliases
+
+# Changing directories
+setopt auto_cd
+setopt auto_pushd
+unsetopt pushd_ignore_dups
+setopt pushdminus
 
 # display how long all tasks over 10 seconds take
 export REPORTTIME=10
@@ -261,17 +287,9 @@ export REPORTTIME=10
 [ -e /usr/share/fzf/key-bindings.zsh ] && source /usr/share/fzf/key-bindings.zsh
 
 # }}}
-# -------- Plugins: zplug {{{
-# -----------------------------
+# -------- ZSH Modules {{{
+# ------------------------
 
-source ~/.zplug/init.zsh
-
-zplug 'wfxr/forgit'
-zplug 'zsh-users/zsh-autosuggestions'
-
-zplug load
-
-# }}}
 autoload -U zmv
 
 # initialize autocomplete with menu selection
@@ -280,33 +298,47 @@ zstyle ':completion:*' menu select
 zmodload zsh/complist
 compinit
 
-# Load function 'cdr' for automatic recent directory chooser
-autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
-add-zsh-hook chpwd chpwd_recent_dirs
-
 # Include hidden files in autocomplete:
 _comp_options+=(globdots)
 
 # Use vim keys in tab complete menu:
 bindkey -M menuselect 'h' vi-backward-char
-bindkey -M menuselect 'k' vi-up-line-or-history
+# bindkey -M menuselect 'k' vi-up-line-or-history
 bindkey -M menuselect 'l' vi-forward-char
-bindkey -M menuselect 'j' vi-down-line-or-history
+# bindkey -M menuselect 'j' vi-down-line-or-history
 bindkey -v '^?' backward-delete-char
 
-[ -z "$TMUX" ] && export TERM=xterm-256color
+# Include hidden files in autocomplete:
+_comp_options+=(globdots)
 
-[[ -e ~/.terminfo ]] && export TERMINFO_DIRS=~/.terminfo:/usr/share/terminfo
+# }}}
+# -------- Plugins: zplug {{{
+# -----------------------------
 
-# ZSH syntax highlighting
-# Source: https://github.com/zsh-users/zsh-syntax-highlighting
-if [ -e /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then # test for linux standard location
-    source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-elif [ -e /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then # test for mac osx standard location
-    source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-fi
+[ -f ~/.zplug/init.zsh ] && source ~/.zplug/init.zsh
 
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+zplug 'zsh-users/zsh-autosuggestions'
+zplug 'zsh-users/zsh-completions'
+zplug 'zsh-users/zsh-history-substring-search'
+zplug 'zdharma/fast-syntax-highlighting'
+zplug 'wfxr/forgit'
+# zplug "rupa/z", use:z.sh
+# zplug "changyuheng/fz", defer:1
+# zplug 'andrewferrier/fzf-z'
+# zplug 'leophys/zsh-plugin-fzf-finder'
+# zplug 'b4b4r07/enhancd', use:init.sh
+
+zplug load
+
+bindkey '^K' history-substring-search-up
+bindkey '^J' history-substring-search-down
+bindkey -M vicmd 'k' history-substring-search-up
+bindkey -M vicmd 'j' history-substring-search-down
+
+# }}}
 
 # initialize fasd
 eval "$(fasd --init auto)"
+
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
