@@ -60,7 +60,8 @@ Plug 'vim-airline/vim-airline-themes'
 " Markdown
 Plug 'godlygeek/tabular'
 Plug 'plasticboy/vim-markdown'
-Plug 'suan/vim-instant-markdown', {'for': 'markdown'}
+Plug 'mzlogin/vim-markdown-toc'
+Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() } }
 
 " Syntax
 Plug 'kovetskiy/sxhkd-vim'
@@ -156,36 +157,31 @@ nnoremap <C-W>V :botright vnew<CR>
 " }}}
 " -------- Markdown {{{
 " -----------------------------------------
-" https://github.com/suan/vim-instant-markdown
+" https://github.com/iamcco/markdown-preview.nvim
 " https://github.com/plasticboy/vim-markdown
 
 " disable vim-markdown folding so we can use the vim-markdown-folding plugin instead
 let g:vim_markdown_folding_style_pythonic = 1
-
 " set enable conceal with simple style
 set conceallevel=2
-
 " work with no extensions for markdown files in links - default for github, gitlab, etc
 let g:vim_markdown_no_extensions_in_markdown = 1
-
 " follow file#anchor links
 let g:vim_markdown_follow_anchor = 1
-" mapping to create markdown link out of the current WORD
-" word -> [word]()
-map <leader>l diWa[]() <ESC>F[pf(
-
-" disable autostart for markdown preview server
-let g:instant_markdown_autostart = 0
 
 " open the server to the world not just localhost
-let g:instant_markdown_open_to_the_world = 1
-
-" use slow refresh for the preview - save CPU resources
-let g:instant_markdown_slow = 1
+let g:mkdp_open_to_the_world = 1
+" Set default port for the preview server
+let g:mkdp_port = '8894'
+" Show preview URL in console when the preview is started
+let g:mkdp_echo_preview_url = 1
 
 " add mapping to trigger markdown preview manually
-map <leader>md :InstantMarkdownPreview<CR>
+nmap <leader>md <Plug>MarkdownPreviewToggle
+" format the ascii table under the cursor
 map <leader>tf :TableFormat<CR>
+" mapping to create markdown link out of the current WORD: word -> [word]()
+map <leader>l diWa[]() <ESC>F[pf(
 
 " }}}
 " -------- Folding {{{
