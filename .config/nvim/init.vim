@@ -217,6 +217,9 @@ noremap <silent> <leader><space> :noh<cr>:call clearmatches()<cr>
 " Don't move on *
 nnoremap * *<c-o>
 
+" Show fuzzy picker for open buffers
+nnoremap <leader>ls :Buffers<CR>
+
 " }}}
 " -------- Sudo feature {{{
 " ----------------------------------------------------------
