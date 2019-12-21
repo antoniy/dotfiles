@@ -220,6 +220,8 @@ nnoremap * *<c-o>
 " Show fuzzy picker for open buffers
 nnoremap <leader>ls :Buffers<CR>
 
+" Show fuzzy picker for recently editted files
+nnoremap <leader>h :History<CR>
 " }}}
 " -------- Sudo feature {{{
 " ----------------------------------------------------------
