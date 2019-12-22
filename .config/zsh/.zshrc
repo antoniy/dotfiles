@@ -34,7 +34,6 @@ alias ffmpeg="ffmpeg -hide_banner"
 # Colorize commands when possible.
 alias grep="grep --color=auto"
 alias diff="diff --color=auto"
-alias ccat="highlight --out-format=ansi"
 
 # These common commands are just too long! Abbreviate them.
 alias ka="killall"
@@ -49,6 +48,12 @@ alias ..='cd ..'
 alias ...='cd ../..'
 alias ....="cd ../../.."
 alias .....="cd ../../../.."
+
+# Helpers
+alias grep='grep --color=auto'
+alias df='df -h' # disk free, in Gigabytes, not bytes
+alias du='du -h -c' # calculate disk usage for a folder
+alias rmf="rm -rf"
 
 # Changing "ls" to "exa" if "exa" is installed
 if [[ $commands[exa] ]]; then
@@ -65,7 +70,24 @@ else
   alias lt="tree -aC --dirsfirst"
 fi
 
-alias rmf="rm -rf"
+[[ $commands[bat] ]] && alias cat="bat --plain --wrap character"
+
+# Colorize a lot tools using grc if available
+if [[ $commands[grc] ]]; then
+ 
+  # Supported commands
+  cmds=(cc configure cvs df diff dig gcc gmake ifconfig last ldap ls make mount mtr netstat ping ping6 ps traceroute traceroute6 wdiff whois iwconfig docker ip dig env fdisk free iptables id lsmod lsof lsblk lspci mvn nmap sensors stat sysctl systemctl uptime vmstat );
+
+  # Set alias for available commands.
+  for cmd in $cmds ; do
+    if (( $+commands[$cmd] )) ; then
+      alias $cmd="grc --colour=auto $(whence $cmd)"
+    fi
+  done
+
+  # Clean up variables
+  unset cmds cmd
+fi
 
 # Git aliases
 alias g="git"
@@ -73,11 +95,6 @@ alias gst='git status'
 alias gl='git ln'
 alias gr='git remotes'
 alias gf='git fetch'
-
-# Helpers
-alias grep='grep --color=auto'
-alias df='df -h' # disk free, in Gigabytes, not bytes
-alias du='du -h -c' # calculate disk usage for a folder
 
 # }}}
 # -------- Functions {{{
