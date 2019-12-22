@@ -84,6 +84,9 @@ Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 Plug 'junegunn/gv.vim'
 
+" Misc
+Plug 'christoomey/vim-tmux-navigator'
+
 call plug#end()            " required
 
 " }}}
@@ -95,6 +98,13 @@ syntax on
 
 " turn hybrid line numbers on
 set number relativenumber
+
+" disable relative numbers in insert mode or when the buffer looses focus
+augroup numbertoggle
+  autocmd!
+  autocmd BufEnter,FocusGained,InsertLeave * set relativenumber
+  autocmd BufLeave,FocusLost,InsertEnter   * set norelativenumber
+augroup END
 
 " Default color scheme
 colorscheme base16-tomorrow-night " enable base16 theme
@@ -144,12 +154,6 @@ map <leader>b :CtrlPBuffer<CR>
 " -----------------------------------
 set splitbelow splitright         " Splits open at the bottom and right, which is non-retarded, unlike vim defaults.
 
-" Ctrl+{h,j,k,l} move between splits
-nnoremap <C-H> <C-W><C-H>
-nnoremap <C-J> <C-W><C-J>
-nnoremap <C-K> <C-W><C-K>
-nnoremap <C-L> <C-W><C-L>
-
 " Ctrl+W + {S,V} split whole screen horizontal/vertical
 nnoremap <C-W>S :botright new<CR>
 nnoremap <C-W>V :botright vnew<CR>
@@ -182,6 +186,8 @@ nmap <leader>md <Plug>MarkdownPreviewToggle
 map <leader>tf :TableFormat<CR>
 " mapping to create markdown link out of the current WORD: word -> [word]()
 map <leader>l diWa[]() <ESC>F[pf(
+" set a shortcut for our general wiki index
+nmap <silent> <leader>ww :e $HOME/.wiki/index.md<CR>
 
 " }}}
 " -------- Folding {{{
