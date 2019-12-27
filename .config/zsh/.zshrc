@@ -89,38 +89,44 @@ if [[ $commands[grc] ]]; then
   unset cmds cmd
 fi
 
-# Git aliases
-alias g="git"
-alias gst='git status'
-alias gl='git ln'
-alias gr='git remotes'
-alias gf='git fetch'
+if [ $commands[git] ]; then
+  # Git aliases
+  alias g="git"
+  alias gst='git status'
+  alias gl='git ln'
+  alias gr='git remotes'
+  alias gf='git fetch'
+fi
 
 # }}}
 # -------- Functions {{{
 # ----------------------
 
-# Ensure precmds are run after cd
-redraw-prompt() {
-  local precmd
-  for precmd in $precmd_functions; do
-    $precmd
-  done
-  zle reset-prompt
-}
-zle -N redraw-prompt
+if [[ $commands[lf] ]]; then
 
-opendir() {
-  tempfile=`mktemp`
-  lf -last-dir-path $tempfile
-  if [[ -f $tempfile && $(cat -- "$tempfile") != "$(echo -n `pwd`)" ]]; then
-    cd -- "$(cat "$tempfile")"
-  fi
-  rm -f -- "$tempfile" > /dev/null
-  zle redraw-prompt
-}
-zle -N opendir
-bindkey '^O' opendir
+  # Ensure precmds are run after cd
+  redraw-prompt() {
+    local precmd
+    for precmd in $precmd_functions; do
+      $precmd
+    done
+    zle reset-prompt
+  }
+  zle -N redraw-prompt
+
+  opendir() {
+    tempfile=`mktemp`
+    lf -last-dir-path $tempfile
+    if [[ -f $tempfile && $(cat -- "$tempfile") != "$(echo -n `pwd`)" ]]; then
+      cd -- "$(cat "$tempfile")"
+    fi
+    rm -f -- "$tempfile" > /dev/null
+    zle redraw-prompt
+  }
+  zle -N opendir
+  bindkey '^O' opendir
+
+fi
 
 # Create a new directory and enter it
 function md() {
@@ -249,7 +255,7 @@ set_prompt() {
     PS1+="%{$fg_bold[cyan]%}${PWD/#$HOME/~}%{$reset_color%}"
 
     # Git
-    # Note: don't show git info when we're are in $HOME. 
+    # Note: don't show git prompt when we're are in $HOME dotfiles repo. 
     # The git repo there is our dotfiles so let's not make a prompt mess in our $HOME.
     if [[ "$HOME/.git" != `git rev-parse --absolute-git-dir 2> /dev/null` ]]; then
         PS1+=', '
@@ -301,7 +307,18 @@ export REPORTTIME=10
 # -------- Fzf Key Bindings {{{
 # -----------------------------
 
-[ -e /usr/share/fzf/key-bindings.zsh ] && source /usr/share/fzf/key-bindings.zsh
+if [ $commands[fzf] ]; then
+  if [ -e /usr/share/fzf/key-bindings.zsh ]; then
+    source /usr/share/fzf/key-bindings.zsh
+  elif [ -f $HOME/.fzf.zsh ]; then
+    source $HOME/.fzf.zsh
+  fi
+
+  # Use by default fd instead of find and set the following params:
+  # search only files, include hiddent files, ignore .git directories
+  export FZF_DEFAULT_COMMAND="fd -t f -H -E '.git'"
+  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+fi
 
 # }}}
 # -------- ZSH Modules {{{
