@@ -14,7 +14,7 @@ xinitrc    ~/.xinitrc
 zprofile    ~/.zprofile
 Zathura PDF Viewer    ~/.config/zathura/zathurarc
 Compton    ~/.config/compton/compton.conf
-Dust Notification Daemon    ~/.config/dust/dunstrc
+Dunst Notification Daemon    ~/.config/dunst/dunstrc
 PCManFM File Manager     ~/.config/pcmanfm/default/pcmanfm.conf
 Termite    ~/.config/termite/config
 MPV Player    ~/.config/mpv/input.conf
