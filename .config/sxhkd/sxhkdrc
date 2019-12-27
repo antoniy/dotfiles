@@ -8,8 +8,7 @@ alt + {_,shift +} q
 
 # Kill active window
 super + shift + q
-  i3-msg kill
-  # kill -9 `xdotool getwindowfocus getwindowpid`
+  xdo close
 
 # Open default personal wiki
 super + shift + w
@@ -34,6 +33,10 @@ super + shift + BackSpace
 # Kill Xorg
 super + shift + Escape
   prompt 'Leave Xorg?' 'killall Xorg'
+
+# Super + mouse wheel up/down will control the PulseAudio volume
+super + {button4, button5}
+  pactl set-sink-volume @DEFAULT_SINK@ { +2%,-2% }
 
 # Use pactl to adjust volume in PulseAudio
 super + {comma,period} 
