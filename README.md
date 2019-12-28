@@ -4,7 +4,7 @@ Dotfiles are the customization files that are used to personalize your Linux or 
 
 ## Usage
 
-Details on the software I use and how to setup these dotfiles for your own system, check my [Wiki Page](Home) for details.
+Details on the software I use and how to setup these dotfiles for your own system, check my [Wiki Page](/wiki) for details.
 
 # License
 
