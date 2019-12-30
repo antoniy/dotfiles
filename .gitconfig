@@ -2,8 +2,6 @@
 	name = Antoniy Chonkov
 	email = antoniy@chonkov.net
 	signingkey = 5F771733CEA1C20ADC135ED85708B391BD2997DC
-[github]
-  user = antoniy
 [alias]
   ; list all aliases
   la = "!git config -l | grep alias | cut -c 7-"
@@ -77,10 +75,17 @@
   local = green
   remote = red bold
 [color "diff"]
-  meta = yellow bold
-  frag = magenta bold
-  old = red bold
-  new = green bold
+  meta = "yellow"
+  frag = "magenta bold"
+  commit = "yellow bold"
+  old = "red bold"
+  new = "green bold"
+  whitespace = "red reverse"
+[color "diff-highlight"]
+  oldNormal = "red bold"
+  oldHighlight = "red bold 52"
+  newNormal = "green bold"
+  newHighlight = "green bold 22"
 [color "status"]
   added = green bold
   changed = yellow bold
@@ -100,7 +105,7 @@
   whitespace = nowarn
 [core]
   excludesfile = ~/.gitignore_global
-	pager = delta --dark
+  pager = "diff-so-fancy | less --tabs=4 -RFX"
   editor = nvim
 [rerere]
   enabled = true
@@ -122,5 +127,6 @@
 	required = true
 [commit]
 	gpgsign = true
+  verbose = true
 [include]
   path = .gitconfig.local
