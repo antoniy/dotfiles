@@ -46,6 +46,9 @@ set lbr
 " Use F5 to toggle paste mode
 set pastetoggle=<f5>
 
+" vim-signify: default updatetime 4000ms is not good for async update
+set updatetime=100
+
 " }}}
 " -------- Plugins {{{
 " --------------------
