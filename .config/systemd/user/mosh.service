@@ -1,0 +1,8 @@
+[Unit]
+Description=Mosh Service
+
+[Service]
+ExecStart=/usr/bin/mosh-server
+
+[Install]
+WantedBy=multi-user.target
