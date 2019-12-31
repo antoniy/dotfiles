@@ -2,7 +2,7 @@
 " -----------------------------
 " Read documentation about each option by executing :h <option>
 
-let mapleader = ","
+let mapleader = " "
 
 map <leader>? :verbose map <CR><CR>
 
@@ -56,6 +56,7 @@ call plug#begin('~/.config/nvim/plugged/')
 Plug 'chriskempson/base16-vim'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
+Plug 'morhetz/gruvbox'
 
 " Markdown
 Plug 'godlygeek/tabular'
@@ -64,12 +65,11 @@ Plug 'mzlogin/vim-markdown-toc'
 Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() } }
 
 " Syntax
-Plug 'kovetskiy/sxhkd-vim'
-Plug 'udalov/kotlin-vim'    
-Plug 'PotatoesMaster/i3-vim-syntax'
+Plug 'sheerun/vim-polyglot'
 
 " Git 
 Plug 'tpope/vim-fugitive'
+Plug 'mhinz/vim-signify'
 
 " Code/text tools
 Plug 'tpope/vim-surround'
@@ -78,14 +78,13 @@ Plug 'tpope/vim-commentary'
 Plug 'terryma/vim-multiple-cursors'
 
 " File finders
-Plug 'scrooloose/nerdtree'
-Plug 'ctrlpvim/ctrlp.vim'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 Plug 'junegunn/gv.vim'
 
 " Misc
 Plug 'christoomey/vim-tmux-navigator'
+Plug 'lyokha/vim-xkbswitch'
 
 call plug#end()            " required
 
@@ -107,19 +106,20 @@ augroup numbertoggle
 augroup END
 
 " Default color scheme
-colorscheme base16-tomorrow-night " enable base16 theme
+colorscheme gruvbox
 
 " set airline theme
-let g:airline_theme='base16_default'
+let g:airline_theme='gruvbox'
 " enable airline powerline symbols
-let g:airline_powerline_fonts = 1
+" let g:airline_powerline_fonts = 1
+let g:airline#extensions#tabline#enabled = 1
 
 " Switch between dark and light theme using <leader>d and <leader>l respectively
-nnoremap <leader>dark :colorscheme base16-tomorrow-night<CR> :AirlineTheme base16_default<CR>
-nnoremap <leader>light :colorscheme base16-tomorrow<CR> :AirlineTheme tomorrow<CR>
+nnoremap <silent> <leader>dark :set background=dark<CR>
+nnoremap <silent> <leader>light :set background=light<CR>
 
 " Allow for transparent background
-hi Normal guibg=NONE ctermbg=NONE
+" hi Normal guibg=NONE ctermbg=NONE
 
 " needed for proper syntax highlighting in tmux
 let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
@@ -139,15 +139,6 @@ augroup END
 " Reload config file manually
 " noremap <leader>r :so %<CR>
 noremap <leader>reload :so $MYVIMRC<CR>
-
-" }}}
-" -------- Nerd tree {{{
-" ----------------------
-map <leader>n :NERDTreeToggle<CR>
-
-" CtrlP most recently used shortcut
-map <leader>m :CtrlPMRU<CR>
-map <leader>b :CtrlPBuffer<CR>
 
 " }}}
 " -------- Splits {{{
@@ -187,7 +178,7 @@ map <leader>tf :TableFormat<CR>
 " mapping to create markdown link out of the current WORD: word -> [word]()
 map <leader>l diWa[]() <ESC>F[pf(
 " set a shortcut for our general wiki index
-nmap <silent> <leader>ww :e $HOME/.wiki/index.md<CR>
+nmap <silent> <leader>ww :e $HOME/.wiki/Home.md<CR>
 
 " }}}
 " -------- Folding {{{
@@ -214,16 +205,30 @@ nnoremap n nzzzv
 nnoremap N Nzzzv
 
 " clear matching after search
-noremap <silent> <leader><space> :noh<cr>:call clearmatches()<cr>
+noremap <silent> ,, :noh<cr>:call clearmatches()<cr>
 
 " Don't move on *
 nnoremap * *<c-o>
 
-" Show fuzzy picker for open buffers
-nnoremap <leader>ls :Buffers<CR>
+" shortcuts to prev/next/delete buffer for normal mode
+map gn :bn<cr>
+map gp :bp<cr>
+map gd :bd<cr>
 
-" Show fuzzy picker for recently editted files
-nnoremap <leader>h :History<CR>
+" }}}
+" -------- Find Tools {{{
+" -----------------------
+
+" Also add a custom ProjectFiles command which search only in ~/projects directory.
+command! -bang -nargs=? -complete=dir ProjectFiles call fzf#vim#files('~/projects/', <bang>0)
+
+" Show fuzzy picker for open buffers, recently editted files and files in home tree
+nnoremap <silent> <leader>b :Buffers<CR>
+nnoremap <silent> <leader>h :History<CR>
+nnoremap <silent> <leader>f :Files<CR>
+nnoremap <silent> <leader>g :GFiles<CR>
+nnoremap <silent> <leader>p :ProjectFiles<CR>
+
 " }}}
 " -------- Sudo feature {{{
 " ----------------------------------------------------------
@@ -231,3 +236,22 @@ nnoremap <leader>h :History<CR>
 " tutorial video: http://www.youtube.com/watch?v=C6xqO4Z1nIo
 map <leader>sudo :w !sudo tee % <CR><CR>
 "}}}
+" -------- Keyboard Layout {{{
+
+" if has("mac")
+"   " xkbswitch-macos - https://github.com/myshov/xkbswitch-macosx
+"   " link to library goes here
+" elseif has("unix")
+"   let g:XkbSwitchEnabled = 1
+"   let g:XkbSwitchKeymapNames = {'bg(phonetic)' : 'bg', 'en' : 'en'}
+"   let g:XkbSwitchLib = '/usr/lib/libxkbswitch.so'
+
+"   let g:XkbSwitchIMappingsTr = {
+"             \ 'bg(phonetic)':
+"             \ {'<': 'qwertyuiop[]asdfghjkl;''zxcvbnm,.`/'.
+"             \       'QWERTYUIOP{}ASDFGHJKL:"ZXCVBNM<>?~@#$^&|',
+"             \  '>': 'явертъуиопшщасдфгхйкл;''зьцжбнм,.ч/'.
+"             \       'ЯВЕРТЪУИОПШЩАСДФГХЙКЛ:"ЗѝЦЖБНМ„“?Ч@№$€§Ю'},
+"             \ }
+" endif
+" }}}
