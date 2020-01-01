@@ -222,7 +222,8 @@ fi
 # ---------------------------
 
 # Tmux attach session
-function ta() {
+if (( $+commands[tmux] )); then
+  function ta() { 
     [[ $TMUX ]] && return 1 # Already in tmux session
     local preview_cmd='<<< {} awk "{print \$2}" | xargs tmux list-windows -t | sed "s/\[.*\]//g" | column -t | sed "s/  \(\S\)/ \1/g"'
     local choice=$(tmux ls -F "#{session_name}" | nl -w2 -s' ' \
@@ -233,7 +234,8 @@ function ta() {
         | awk '{print $2}'
         )
     tmux attach-session -t $choice 2>/dev/null
-}
+  }
+fi
 
 # Misc tools
 (( $+commands[youtube-viewer] )) && ealias ytv="youtube-viewer"
