@@ -1,0 +1,4 @@
+[[snippets]]
+  description = "Netstat - show running servers with their listen IP and port"
+  command = "netstat -tulpn"
+  output = ""
