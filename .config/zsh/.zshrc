@@ -302,6 +302,28 @@ if (( $+commands[lf] )); then
 
 fi
 
+# Trim functions
+function ltrim() { sed 's/^\s\+//g' }
+function rtrim() { sed 's/\s\+$//g' }
+function trim()  { ltrim | rtrim    }
+
+# pet utilities:
+# * Alt-S - select snippet
+# * pet-add-prev alias to add previous cmd as new snippet
+function pet-select() {
+  BUFFER=$(pet search --query "$LBUFFER")
+  CURSOR=$#BUFFER
+  zle redisplay
+}
+zle -N pet-select
+stty -ixon
+bindkey '^[s' pet-select
+
+function pet-add-prev() {
+  PREV=$(fc -lrn | head -n 1)
+  sh -c "pet new `printf %q "$PREV"`"
+}
+
 # Extract archives - use: extract <file>
 # Credits to http://dotfiles.org/~pseup/.bashrc
 function extract() {
