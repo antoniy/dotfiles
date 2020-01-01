@@ -221,21 +221,17 @@ fi
 # -------- Aliases: Tools {{{
 # ---------------------------
 
-# Tmux attach session
-if (( $+commands[tmux] )); then
-  function ta() { 
-    [[ $TMUX ]] && return 1 # Already in tmux session
-    local preview_cmd='<<< {} awk "{print \$2}" | xargs tmux list-windows -t | sed "s/\[.*\]//g" | column -t | sed "s/  \(\S\)/ \1/g"'
-    local choice=$(tmux ls -F "#{session_name}" | nl -w2 -s' ' \
-        | fzf +s -e -1 -0 --height=14 \
-                          --bind 'alt-t:down' --cycle \
-                          --preview="$preview_cmd" \
-                          --preview-window=right:60% \
-        | awk '{print $2}'
-        )
-    tmux attach-session -t $choice 2>/dev/null
+# Tmux attach
+(( $+commands[tmux] )) && \
+  tm() {
+    [[ $TMUX ]] && return 1 # already in tmux session
+    # if session name param is specified - try to attach to it, 
+    # otherwise create session with that name
+    [[ -n $1 ]] && (tmux attach-session -t $1 || tmux new-session -s $1) && return 0
+    # if no name is specified - attach to any session
+    # if none exist - create session with name default
+    tmux attach-session || tmux new-session -s default
   }
-fi
 
 # Misc tools
 (( $+commands[youtube-viewer] )) && ealias ytv="youtube-viewer"
