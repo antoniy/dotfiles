@@ -191,9 +191,7 @@ ealias -g X='| xargs -I%'
 # -------------------------
 
 if (( $+commands[git] )); then
-  if (( $+commands[hub] )); then
-    alias git='hub'
-  fi
+  (( $+commands[hub] )) && alias git='hub'
 
   git_branch() {
     git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'

@@ -87,7 +87,7 @@ Plug 'junegunn/gv.vim'
 
 " Misc
 Plug 'christoomey/vim-tmux-navigator'
-Plug 'lyokha/vim-xkbswitch'
+" Plug 'lyokha/vim-xkbswitch'
 
 call plug#end()            " required
 
