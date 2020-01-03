@@ -20,18 +20,7 @@ export EDITOR='nvim'
 # -------- Aliasses Expansion Functions {{{
 # -----------------------------------------
 
-# blank aliases
-typeset -a baliases
-baliases=()
-
-balias() {
-  alias $@
-  args="$@"
-  args=${args%%\=*}
-  baliases+=(${args##* })
-}
-
-# ignored aliases
+# array with expandable aliases
 typeset -a ealiases
 ealiases=()
 
@@ -42,20 +31,24 @@ ealias() {
   ealiases+=(${args##* })
 }
 
-# functionality
-expand-alias-space() {
-  [[ $LBUFFER =~ "\<(${(j:|:)baliases})\$" ]]; insertBlank=$?
-  if [[ $LBUFFER =~ "\<(${(j:|:)ealiases})\$" ]]; then
-    zle _expand_alias
-  fi
-  zle self-insert
-  if [[ "$insertBlank" = "0" ]]; then
-    zle backward-delete-char
-  fi
+function containsElement () {
+  echo "args: $@\n" >> ~/out.txt
+  local e match="$1"
+  shift
+  for e; do [[ "$e" == "$match" ]] && return 0; done
+  return 1
 }
-zle -N expand-alias-space
 
-bindkey " " expand-alias-space
+# functionality
+expand-alias() {
+  local queryItem=$(echo $LBUFFER | rev | cut -d' ' -f1 | rev)
+  containsElement $queryItem ${ealiases[@]} && zle _expand_alias
+  zle self-insert
+}
+zle -N expand-alias
+
+bindkey " " expand-alias
+bindkey "^ " magic-space
 bindkey -M isearch " " magic-space
 
 # }}}
