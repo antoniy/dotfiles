@@ -153,14 +153,22 @@ background() {
 # Aliases for file extensions.
 # Automatically open certain extensions with specified program.
 alias -s {md,txt,TXT,java,xml,json,js,go,kt,conf,cfg}=$EDITOR
-alias -s {pdf,PDF}=zathura
-alias -s {jpg,JPG,png,PNG,jpeg,JPEG}='background sxiv'
-alias -s {gif,GIF}='background sxiv -a'
-alias -s {avi,AVI,mp4,MP4,mkv,MKV,mpeg,MPEG,mov,MOV}='background mpv'
-alias -s {zip,ZIP,war,WAR}='unzip -l'
-alias -s {jar,JAR}='java -jar'
-alias -s {bz2,gz,tgz,TGZ}='tar -tf'
-alias -s {ods,ODS,odt,ODT,odp,ODP,doc,DOC,docx,DOCX,xls,XLS,xlsx,XLSX,xlsm,XLSM,ppt,PPT,pptx,PPTX,csv,CSV}='background libreoffice'
+(( $+commands[mupdf]       )) && alias -s {pdf,PDF}=mupdf
+(( $+commands[zathura]     )) && alias -s {pdf,PDF}=zathura
+
+(( $+commands[sxiv]        )) && alias -s {jpg,JPG,png,PNG,jpeg,JPEG}='background sxiv'
+(( $+commands[sxiv]        )) && alias -s {gif,GIF}='background sxiv -a'
+
+(( $+commands[vlc]         )) && alias -s {avi,AVI,mp4,MP4,mkv,MKV,mpeg,MPEG,mov,MOV}='background mpv'
+(( $+commands[mpv]         )) && alias -s {avi,AVI,mp4,MP4,mkv,MKV,mpeg,MPEG,mov,MOV}='background mpv'
+
+(( $+commands[chromium]    )) && alias -s {html,HTML}='background chromium'
+(( $+commands[firefox]     )) && alias -s {html,HTML}='background firefox'
+
+(( $+commands[unzip]       )) && alias -s {zip,ZIP,war,WAR}='unzip -l'
+(( $+commands[java]        )) && alias -s {jar,JAR}='java -jar'
+(( $+commands[tar]         )) && alias -s {bz2,gz,tgz,TGZ}='tar -tf'
+(( $+commands[libreoffice] )) && alias -s {ods,ODS,odt,ODT,odp,ODP,doc,DOC,docx,DOCX,xls,XLS,xlsx,XLSX,xlsm,XLSM,ppt,PPT,pptx,PPTX,csv,CSV}='background libreoffice'
 
 # }}}
 # -------- Aliases: Global  {{{
@@ -211,7 +219,12 @@ if (( $+commands[git] )); then
   if (( $+commands[fzf] )); then
     alias gm="git branch -a | fzf | xargs -I% git merge % $(git_branch)"
     alias gf="git remote | fzf -1 | xargs -I% git fetch %"
-    alias gp="git remote | fzf -1 | xargs -I% git push % $(git_branch)"
+    # alias gp="git remote | fzf -1 | xargs -I% git push % $(git_branch)"
+    gp() {
+      local query=""
+      [[ -n $1 ]] && query="$1"
+      git remote | fzf -1 -q "$query" -m --preview='git ls-remote --get-url {}' --preview-window=down:2:wrap | xargs -I% git push % $(git_branch)
+    }
   fi
 fi
 
