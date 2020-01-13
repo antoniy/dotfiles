@@ -1,4 +1,9 @@
 [[snippets]]
-  description = "Netstat - show running servers with their listen IP and port"
+  description = "Netstat"
   command = "netstat -tulpn"
+  output = ""
+
+[[snippets]]
+  description = "MacOSX netstat"
+  command = "netstat -a | grep -i \"listen\""
   output = ""
