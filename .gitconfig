@@ -105,7 +105,9 @@
   whitespace = nowarn
 [core]
   excludesfile = ~/.gitignore_global
-  pager = "diff-so-fancy | less --tabs=4 -RFX"
+  ; pager = "diff-so-fancy | less --tabs=4 -RFX"
+  pager = "delta --dark --minus-color='#4d0100' --plus-color='#014000' --tabs 2"
+  ; pager = "delta --light --tabs 2"
   editor = nvim
 [rerere]
   enabled = true
