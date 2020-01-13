@@ -16,6 +16,8 @@ export EDITOR='nvim'
 
 [[ -e ~/.terminfo ]] && export TERMINFO_DIRS=~/.terminfo:/usr/share/terminfo
 
+export GPG_TTY=$(tty)
+
 # }}}
 # -------- Aliasses Expansion Functions {{{
 # -----------------------------------------
