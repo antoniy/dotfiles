@@ -93,7 +93,7 @@ On_IPurple='\033[0;105m'  # Purple
 On_ICyan='\033[0;106m'    # Cyan
 On_IWhite='\033[0;107m'   # White
 # }}}
-# -------- Aliasses Expansion Functions {{{
+# -------- Aliases Expansion Functions {{{
 # -----------------------------------------
 
 # array with expandable aliases
@@ -343,8 +343,8 @@ fi
 
 # Pacman/Yay aliases
 if (( $+commands[yay] )); then
-  ealias yayu="yay -Syua"
-  ealias yayr="yay -Rns"
+  ealias yau="yay -Syua"
+  ealias yar="yay -Rns"
 fi
 
 # Systemctl
@@ -461,7 +461,6 @@ TRAPWINCH() {
 zle -N zle-keymap-select
 zle -N edit-command-line
 
-
 bindkey -v
 
 # By default, there is a 0.4 second delay after you hit the <ESC> key and when
@@ -546,11 +545,10 @@ set_prompt() {
     # Git
     # Note: don't show git prompt when we're are in $HOME dotfiles repo. 
     # The git repo there is our dotfiles so let's not make a prompt mess in our $HOME.
-    # local git_dir=$(git rev-parse --absolute-git-dir 2> /dev/null)
-    # if [[ -n $git_dir && "$HOME/.git" != $git_dir ]]; then
-    #     PS1+=', '
-    #     PS1+="%{$fg[green]%} $(git rev-parse --abbrev-ref HEAD 2> /dev/null)%{$reset_color%}"
-    # fi
+    local git_dir=$(git rev-parse --absolute-git-dir 2> /dev/null)
+    if [[ -n $git_dir && "$HOME/.git" != $git_dir ]]; then
+        PS1+=", %{$fg[green]%} $(git rev-parse --abbrev-ref HEAD 2> /dev/null)%{$reset_color%}"
+    fi
 
     # ]:
     PS1+="%{$fg[white]%} ❯ %{$reset_color%}% "
@@ -571,7 +569,7 @@ setopt local_options
 setopt local_traps
 setopt prompt_subst
 
-HISTFILE=~/.zsh_history
+HISTFILE="${HISTFILE:-${ZDOTDIR:-$HOME}/.zhistory}"  # The path to the history file.
 HISTSIZE=10000
 SAVEHIST=10000
 
@@ -591,7 +589,8 @@ unsetopt pushd_ignore_dups
 setopt pushdminus
 
 # display how long all tasks over 10 seconds take
-export REPORTTIME=10
+# Negative value - stops that feature
+export REPORTTIME=-1
 
 # }}}
 # -------- FZF {{{
@@ -609,8 +608,8 @@ if (( $+commands[fzf] )); then
   (( $+commands[bat]       )) && FZF_FILE_HIGHLIGHTER='bat --color=always'
   export FZF_FILE_HIGHLIGHTER
 
-  FZF_DIR_HIGHLIGHTER='ls -l --color=always'
-  (( $+commands[tree] )) && FZF_DIR_HIGHLIGHTER='tree -CtrL2'
+  FZF_DIR_HIGHLIGHTER='ls -l --color=always 2> /dev/null || ls -lG 2> /dev/null'
+  (( $+commands[tree] )) && FZF_DIR_HIGHLIGHTER='tree -CtrL 2'
   (( $+commands[exa]  )) && FZF_DIR_HIGHLIGHTER='exa --color=always -TL2'
   export FZF_DIR_HIGHLIGHTER
 
@@ -618,10 +617,6 @@ if (( $+commands[fzf] )); then
            find . -type f -print -o -type l -print | sed s/^..//) 2> /dev/null'
   (( $+commands[ag] )) && FZF_DEFAULT_COMMAND='ag --ignore .git -g "" 2>/dev/null'
   (( $+commands[fd] )) && FZF_DEFAULT_COMMAND='fd --type f --follow --exclude .git 2>/dev/null'
-  # FZF_DEFAULT_COMMAND='(git ls-tree -r --name-only HEAD ||
-  #          find . -path "*/\.*" -prune -o -type f -print -o -type l -print | sed s/^..//) 2> /dev/null'
-  # (( $+commands[ag] )) && FZF_DEFAULT_COMMAND='ag --hidden --ignore .git -g "" 2>/dev/null'
-  # (( $+commands[fd] )) && FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git 2>/dev/null'
   export FZF_DEFAULT_COMMAND
   export FZF_DEFAULT_OPTS=" 
   --border
@@ -654,21 +649,16 @@ if (( $+commands[fzf] )); then
 
   # FZF: Ctrl - R
   export FZF_CTRL_R_OPTS="
-  --preview 'echo {}'
+  --preview 'echo {} | tr -s \" \" | cut -d\" \" -f3-'
   --preview-window 'down:2:wrap'
   --exact
   --expect=ctrl-x
   "
 
   # FZF: Alt - C
-  FZF_ALT_C_COMMAND="command find -L . -mindepth 1 \
-      \\( fstype 'sysfs' -o -fstype 'devfs' -o -fstype 'devtmpfs' -o -fstype 'proc' \\) \
-      -prune -o -type d -print 2> /dev/null | cut -b3-"
-  (( $+commands[fd] )) && FZF_ALT_C_COMMAND='fd --type d --follow --exclude .git 2>/dev/null'
-  # FZF_ALT_C_COMMAND="command find -L . -mindepth 1 \
-  #     \\( -path '*/\\.*' -o -fstype 'sysfs' -o -fstype 'devfs' -o -fstype 'devtmpfs' -o -fstype 'proc' \\) \
-  #     -prune -o -type d -print 2> /dev/null | cut -b3-"
-  # (( $+commands[fd] )) && FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git 2>/dev/null'
+  FZF_ALT_C_COMMAND="command find -L . -mindepth 1 -name '.git' -prune \
+      -o -type d -print 2> /dev/null | cut -b3-"
+  (( $+commands[fd] )) && FZF_ALT_C_COMMAND='command fd --type d --follow --exclude .git 2>/dev/null'
   export FZF_ALT_C_COMMAND
 
   export FZF_ALT_C_OPTS="
@@ -713,9 +703,9 @@ _comp_options+=(globdots)
 
 # Use vim keys in tab complete menu:
 bindkey -M menuselect 'h' vi-backward-char
+bindkey -M menuselect 'j' vi-down-line-or-history
 bindkey -M menuselect 'k' vi-up-line-or-history
 bindkey -M menuselect 'l' vi-forward-char
-bindkey -M menuselect 'j' vi-down-line-or-history
 bindkey -v '^?' backward-delete-char
 
 # Include hidden files in autocomplete:
@@ -736,22 +726,27 @@ zplug 'zsh-users/zsh-completions'
 zplug 'zsh-users/zsh-history-substring-search'
 zplug 'zdharma/fast-syntax-highlighting', defer:2
 zplug 'wfxr/forgit', defer:1
-zplug 'MichaelAquilina/zsh-you-should-use', defer:1
-# zplug 'denysdovhan/spaceship-prompt', use:spaceship.zsh, from:github, as:theme
-# zplug 'mafredri/zsh-async', from:github
-# zplug 'sindresorhus/pure', use:pure.zsh, from:github, as:theme
 
 zplug load
 
-bindkey '^K' history-substring-search-up
-bindkey '^J' history-substring-search-down
-bindkey -M vicmd 'k' history-substring-search-up
-bindkey -M vicmd 'j' history-substring-search-down
+# Substring search options
+# enable fuzzy search: ab c will match *ab*c*
+HISTORY_SUBSTRING_SEARCH_FUZZY='true'
+
+# Up/Down - trigger substring search in insert/command mode
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
+bindkey -M vicmd '^[[A' history-substring-search-up
+bindkey -M vicmd '^[[B' history-substring-search-down
+
+# Alt+j/k - trigger substring search in insert/command mode
+bindkey '^[k' history-substring-search-up
+bindkey '^[j' history-substring-search-down
+bindkey -M vicmd '^[k' history-substring-search-up
+bindkey -M vicmd '^[j' history-substring-search-down
 
 # accept auto suggestion with Ctrl-Space
 bindkey '^ ' autosuggest-accept
-
-[[ -f /usr/share/doc/pkgfile/command-not-found.zsh ]] && source /usr/share/doc/pkgfile/command-not-found.zsh
 
 # initialize fasd
 eval "$(fasd --init auto)"
