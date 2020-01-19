@@ -87,6 +87,8 @@ Plug 'junegunn/gv.vim'
 
 " Misc
 Plug 'christoomey/vim-tmux-navigator'
+Plug 'tpope/vim-eunuch'
+Plug 'tpope/vim-unimpaired'
 " Plug 'lyokha/vim-xkbswitch'
 
 call plug#end()            " required
