@@ -563,10 +563,16 @@ bindkey -v '^?' backward-delete-char
 
 # Reference for colors: http://stackoverflow.com/questions/689765/how-can-i-change-the-color-of-my-prompt-in-zsh-different-from-normal-text
 
+_is_ssh() {
+    [[ -n "${SSH_CONNECTION-}${SSH_CLIENT-}${SSH_TTY-}" ]]
+}
+
 set_prompt() {
 
     # [
     # PS1="%{$fg[white]%}%{$reset_color%}"
+
+    _is_ssh && host=" at %F{yellow}%m%{$reset_color%}" || host=''
 
     # Path: http://stevelosh.com/blog/2010/02/my-extravagant-zsh-prompt/
     PS1="%{$fg_bold[cyan]%}${PWD/#$HOME/~}%{$reset_color%}"
@@ -580,7 +586,7 @@ set_prompt() {
     fi
 
     # ]:
-    PS1+="%{$fg[magenta]%} ❯ %{$reset_color%}% "
+    PS1+="$host%{$fg[magenta]%} ❯ %{$reset_color%}% "
 }
 
 # add prompt generator function to precmd hooks
