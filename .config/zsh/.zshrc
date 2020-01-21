@@ -19,6 +19,439 @@ export EDITOR='nvim'
 export GPG_TTY=$(tty)
 
 # }}}
+# -------- ZSH Config {{{
+# -----------------------
+
+setopt no_bg_nice
+setopt no_hup
+unsetopt list_beep
+setopt local_options
+setopt local_traps
+setopt prompt_subst
+
+HISTFILE="${HISTFILE:-${ZDOTDIR:-$HOME}/.zhistory}"  # The path to the history file.
+HISTSIZE=50000
+SAVEHIST=$HISTSIZE
+
+# history
+setopt hist_verify          # Don't exec command expanded from hist - just place it in the buff
+setopt extended_history     # Use extended hist format with timestamps
+setopt hist_reduce_blanks   # Remove useless blanks from each cmd before write it to hist
+unsetopt share_history      # Don't share history between shells
+setopt hist_ignore_all_dups # If new command is added to hist, remove any older command that's
+                            # a duplicate (even if it's not the last one)
+
+setopt complete_aliases     # Make aliases compleatable
+
+# Changing directories
+setopt auto_cd              # If a command cannot be executed as normal cmd - try to cd into
+                            # directory instead
+setopt auto_pushd           # Make cd push old directory onto the directory stach
+unsetopt pushd_ignore_dups  # Don't push the same directory onto the stack
+setopt pushd_minus          # The meaning of + and - is swapped in the dir stack context
+
+
+# Completion
+setopt auto_menu            # Automatically use menu completion after second tab
+setopt always_to_end        # Move the cursor to end of the completed word
+setopt complete_in_word     # Completion is done from both ends of the word the cursor's in
+unsetopt flow_control       # Disable flow control (assigned to ^S/^Q) in the shell
+unsetopt menu_complete      # On multiple matches, insert the first one immediately then when
+                            # the completion is requested again, remove the first match at put
+                            # the second match, etc. - iterate on matches
+
+# Display how long all tasks over 10 seconds take.
+# Negative value - stops that feature
+export REPORTTIME=-1
+
+# Load zmv program module
+autoload -U zmv
+
+# load colors function - used for prompt coloring
+autoload -U colors && colors
+
+# }}}
+# -------- Vim Mode {{{
+# ---------------------
+
+# Updates editor information when the keymap changes.
+function zle-keymap-select() {
+  zle reset-prompt
+  zle -R
+}
+
+# Ensure that the prompt is redrawn when the terminal size changes.
+TRAPWINCH() {
+  zle &&  zle -R
+}
+
+zle -N zle-keymap-select
+zle -N edit-command-line
+
+bindkey -v
+
+# By default, there is a 0.4 second delay after you hit the <ESC> key and when
+# the mode change is registered. This results in a very jarring and frustrating
+# transition between modes. Let's reduce this delay to 0.1 seconds.
+export KEYTIMEOUT=1
+
+# allow v to edit the command line (standard behaviour)
+autoload -Uz edit-command-line
+bindkey -M vicmd 'v' edit-command-line
+
+# allow ctrl-p, ctrl-n for navigate history (standard behaviour)
+bindkey '^P' up-history
+bindkey '^N' down-history
+
+# allow ctrl-h, ctrl-w, ctrl-? for char and word deletion (standard behaviour)
+bindkey '^?' backward-delete-char
+bindkey '^h' backward-delete-char
+bindkey '^w' backward-kill-word
+
+# allow ctrl-r to perform backward search in history
+bindkey '^r' history-incremental-search-backward
+
+# allow ctrl-a and ctrl-e to move to beginning/end of line
+bindkey '^a' beginning-of-line
+bindkey '^e' end-of-line
+
+# alt+{a,e} - go to beginnig/end of the line
+bindkey "^[a" beginning-of-line
+bindkey "^[e" end-of-line
+
+# alt+{b,f} - go to prev/next word
+bindkey "^[b" backward-word
+bindkey "^[f" forward-word
+
+# Change cursor shape for different vi modes.
+function zle-keymap-select {
+  if [[ ${KEYMAP} == vicmd ]] ||
+     [[ $1 = 'block' ]]; then
+    echo -ne '\e[2 q'
+
+  elif [[ ${KEYMAP} == main ]] ||
+       [[ ${KEYMAP} == viins ]] ||
+       [[ ${KEYMAP} = '' ]] ||
+       [[ $1 = 'beam' ]]; then
+    echo -ne '\e[6 q'
+  fi
+}
+zle -N zle-keymap-select
+
+zle-line-init() {
+    zle -K viins # initiate `vi insert` as keymap (can be removed if `bindkey -V` has been set elsewhere)
+    echo -ne "\e[6 q"
+}
+zle -N zle-line-init
+
+# Use beam shape cursor on startup.
+echo -ne '\e[6 q'
+# Use beam shape cursor for each new prompt.
+preexec() { echo -ne '\e[6 q' ;}
+
+# }}}
+# -------- Prompt {{{
+# -------------------
+
+# Reference for colors: http://stackoverflow.com/questions/689765/how-can-i-change-the-color-of-my-prompt-in-zsh-different-from-normal-text
+
+_is_ssh() {
+    [[ -n "${SSH_CONNECTION-}${SSH_CLIENT-}${SSH_TTY-}" ]]
+}
+
+set_prompt() {
+
+    # [
+    # PS1="%{$fg[white]%}%{$reset_color%}"
+
+    _is_ssh && host=" at %F{yellow}%m%{$reset_color%}" || host=''
+
+    # Path: http://stevelosh.com/blog/2010/02/my-extravagant-zsh-prompt/
+    PS1="%{$fg_bold[cyan]%}${PWD/#$HOME/~}%{$reset_color%}"
+
+    # Git
+    # Note: don't show git prompt when we're are in $HOME dotfiles repo. 
+    # The git repo there is our dotfiles so let's not make a prompt mess in our $HOME.
+    local git_dir=$(git rev-parse --absolute-git-dir 2> /dev/null)
+    if [[ -n $git_dir && "$HOME/.git" != $git_dir ]]; then
+        PS1+=", %{$fg[green]%} $(git rev-parse --abbrev-ref HEAD 2> /dev/null)%{$reset_color%}"
+    fi
+
+    # ]:
+    PS1+="$host%{$fg[magenta]%} ❯ %{$reset_color%}% "
+}
+
+# add prompt generator function to precmd hooks
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd set_prompt
+
+# }}}
+# -------- Plugins: zinit {{{
+# ---------------------------
+
+if [[ ! -f $ZDOTDIR/.zinit/bin/zinit.zsh ]]; then
+    print -P "%F{33}▓▒░ %F{220}Installing DHARMA Initiative Plugin Manager (zdharma/zinit)…%f"
+    command mkdir -p $ZDOTDIR/.zinit
+    command git clone https://github.com/zdharma/zinit $ZDOTDIR/.zinit/bin && \
+        print -P "%F{33}▓▒░ %F{34}Installation successful.%F" || \
+        print -P "%F{160}▓▒░ The clone has failed.%F"
+fi
+source "$HOME/.config/zsh/.zinit/bin/zinit.zsh"
+autoload -Uz _zinit
+(( ${+_comps} )) && _comps[zinit]=_zinit
+
+export ZSH_AUTOSUGGEST_USE_ASYNC=1
+export ZSH_AUTOSUGGEST_MANUAL_REBIND=1
+zinit ice wait lucid atload'_zsh_autosuggest_start'
+zinit light zsh-users/zsh-autosuggestions
+
+zinit ice wait lucid blockf atpull'zinit creinstall -q .'
+zinit light zsh-users/zsh-completions
+
+zinit ice wait lucid
+zinit light zsh-users/zsh-history-substring-search
+
+zinit ice wait'2' lucid
+zinit light wfxr/forgit
+
+zinit ice wait lucid atinit"zpcompinit; zpcdreplay"
+zinit light zdharma/fast-syntax-highlighting
+
+FZF_MARKS_COMMAND="fzf --height 40% --reverse --preview-window right:50%:hidden"
+zinit ice wait lucid
+zinit load urbainvaes/fzf-marks
+
+# Substring search options
+# enable fuzzy search: ab c will match *ab*c*
+HISTORY_SUBSTRING_SEARCH_FUZZY='true'
+
+# Up/Down - trigger substring search in insert/command mode
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
+bindkey -M vicmd '^[[A' history-substring-search-up
+bindkey -M vicmd '^[[B' history-substring-search-down
+
+# Alt+j/k - trigger substring search in insert/command mode
+bindkey '^[k' history-substring-search-up
+bindkey '^[j' history-substring-search-down
+bindkey -M vicmd '^[k' history-substring-search-up
+bindkey -M vicmd '^[j' history-substring-search-down
+
+# accept auto suggestion with Ctrl-Space
+bindkey '^ ' autosuggest-accept
+
+# }}}
+# -------- Completions {{{
+# ------------------------
+
+# If there are no completions, try to correct minor typos in the input.
+zstyle ':completion:*' completer _complete _correct
+
+# Load the nice LS_COLORS into the completion menu too. Pretty!
+zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
+
+# initialize autocomplete with menu selection
+zstyle ':completion:*' menu select
+zstyle ':completion:*' list-prompt ' '
+zstyle ':completion:*' select-prompt ' %F{blue}-- %m --%f'
+  
+# Permit expensive completions to cache info and therefore be usable.
+if [[ "$(uname)" == "Darwin" ]]; then
+  zstyle ':completion::complete:*' use-cache on
+  zstyle ':completion::complete:*' cache-path ~/Library/Caches/zsh/compcache
+elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
+  zstyle ':completion::complete:*' use-cache on
+  zstyle ':completion::complete:*' cache-path $XDG_CACHE_HOME/zsh/compcache
+fi
+
+# When listing directories, treat foo//bar as foo/bar, not foo/*/bar.
+zstyle ':completion:*' squeeze-slashes true
+
+# When completing the names of man pages, group them by section.
+zstyle ':completion:*:manuals'    separate-sections true
+zstyle ':completion:*:manuals.*'  insert-sections   true
+
+# Group completions under cute headings.
+zstyle ':completion:*' format ' %F{yellow}-- %d --%f'
+zstyle ':completion:*:corrections' format ' %F{green}-- %d (errors: %e) --%f'
+zstyle ':completion:*:warnings' format ' %F{red}-- no matches found --%f'
+zstyle ':completion:*' group-name ''
+
+# 0 -- vanilla completion (abc => abc)
+# 1 -- smart case completion (abc => Abc)
+# 2 -- word flex completion (abc => A-big-Car)
+# 3 -- full flex completion (abc => ABraCadabra)
+zstyle ':completion:*' matcher-list '' \
+  'm:{a-z\-}={A-Z\_}' \
+  'r:[^[:alpha:]]||[[:alpha:]]=** r:|=* m:{a-z\-}={A-Z\_}' \
+  'r:|?=** m:{a-z\-}={A-Z\_}'
+
+zmodload zsh/complist
+
+# Include hidden files in autocomplete:
+_comp_options+=(globdots)
+
+# Use vim keys in tab complete menu:
+bindkey -M menuselect 'h' vi-backward-char
+bindkey -M menuselect 'j' vi-down-line-or-history
+bindkey -M menuselect 'k' vi-up-line-or-history
+bindkey -M menuselect 'l' vi-forward-char
+bindkey -v '^?' backward-delete-char
+
+# }}}
+# -------- FZF {{{
+# ----------------
+
+if (( $+commands[fzf] )); then
+  if [[ -e /usr/share/fzf/key-bindings.zsh ]]; then
+    source /usr/share/fzf/key-bindings.zsh
+  elif [[ -f $HOME/.fzf.zsh ]]; then
+    source $HOME/.fzf.zsh
+  fi
+
+  FZF_FILE_HIGHLIGHTER='cat'
+  (( $+commands[highlight] )) && FZF_FILE_HIGHLIGHTER='highlight -lO ansi'
+  (( $+commands[bat]       )) && FZF_FILE_HIGHLIGHTER='bat --color=always'
+  export FZF_FILE_HIGHLIGHTER
+
+  FZF_DIR_HIGHLIGHTER='ls -l --color=always 2> /dev/null || ls -lG 2> /dev/null'
+  (( $+commands[tree] )) && FZF_DIR_HIGHLIGHTER='tree -CtrL 2'
+  (( $+commands[exa]  )) && FZF_DIR_HIGHLIGHTER='exa --color=always -TL2'
+  export FZF_DIR_HIGHLIGHTER
+
+  FZF_DEFAULT_COMMAND='(git ls-tree -r --name-only HEAD ||
+           find . -type f -print -o -type l -print | sed s/^..//) 2> /dev/null'
+  (( $+commands[ag] )) && FZF_DEFAULT_COMMAND='ag --ignore .git -g "" 2>/dev/null'
+  (( $+commands[fd] )) && FZF_DEFAULT_COMMAND='fd --type f --follow --exclude .git 2>/dev/null'
+  export FZF_DEFAULT_COMMAND
+  export FZF_DEFAULT_OPTS=" 
+  --height 80%
+  --extended
+  --ansi
+  --reverse
+  --cycle
+  --bind alt-p:preview-up,alt-n:preview-down
+  --bind ctrl-u:half-page-up
+  --bind ctrl-d:half-page-down
+  --bind alt-u:preview-page-up
+  --bind alt-d:preview-page-down
+  --bind alt-a:select-all,ctrl-r:toggle-all
+  --bind ctrl-s:toggle-sort
+  --bind ?:toggle-preview,alt-w:toggle-preview-wrap
+  --bind 'alt-e:execute($EDITOR {} >/dev/tty </dev/tty)'
+  --preview \"($FZF_FILE_HIGHLIGHTER {} || $FZF_DIR_HIGHLIGHTER {}) 2>/dev/null | head -200\"
+  --preview-window right:50%
+  "
+
+  # FZF: Ctrl - T
+  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+  export FZF_CTRL_T_OPTS="
+  --preview \"($FZF_FILE_HIGHLIGHTER {} || $FZF_DIR_HIGHLIGHTER {}) 2>/dev/null | head -200\"
+  --bind 'enter:execute(echo {})+abort'
+  --bind 'alt-e:execute($EDITOR {} >/dev/tty </dev/tty)'
+  --preview-window right:50%
+  "
+
+  # FZF: Ctrl - R
+  SHELL_HIGHLIGHTER="bat --color=always -l bash"
+  export FZF_CTRL_R_OPTS="
+  --preview 'echo {} | tr -s \" \" | cut -d\" \" -f3- | $SHELL_HIGHLIGHTER'
+  --preview-window 'down:2:wrap'
+  --exact
+  --expect=ctrl-x
+  "
+
+  # FZF: Alt - C
+  FZF_ALT_C_COMMAND="command find -L . -mindepth 1 -name '.git' -prune \
+      -o -type d -print 2> /dev/null | cut -b3-"
+  (( $+commands[fd] )) && FZF_ALT_C_COMMAND='command fd --type d --follow --exclude .git 2>/dev/null'
+  export FZF_ALT_C_COMMAND
+
+  export FZF_ALT_C_OPTS="
+  --exit-0
+  --bind 'enter:execute(echo {})+abort'
+  --preview '($FZF_DIR_HIGHLIGHTER {}) | head -200 2>/dev/null'
+  --preview-window=right:50%
+  "
+
+fi
+
+# }}}
+# -------- Functions {{{
+# ----------------------
+
+if (( $+commands[lf] )); then
+
+  # Ensure precmds are run after cd
+  redraw-prompt() {
+    local precmd
+    for precmd in $precmd_functions; do
+      $precmd
+    done
+    zle reset-prompt
+  }
+  zle -N redraw-prompt
+
+  opendir() {
+    tempfile=`mktemp`
+    lf -last-dir-path $tempfile
+    if [[ -f $tempfile && $(cat -- "$tempfile") != "$(echo -n `pwd`)" ]]; then
+      cd -- "$(cat "$tempfile")"
+    fi
+    rm -f -- "$tempfile" > /dev/null
+    zle redraw-prompt
+  }
+  zle -N opendir
+  bindkey '^O' opendir
+
+fi
+
+# Trim functions
+function ltrim() { sed 's/^\s\+//g' }
+function rtrim() { sed 's/\s\+$//g' }
+function trim()  { ltrim | rtrim    }
+
+# pet utilities:
+# * Alt-S - select snippet
+# * pet-add-prev alias to add previous cmd as new snippet
+function pet-select() {
+  BUFFER=$(pet search --query "$LBUFFER")
+  CURSOR=$#BUFFER
+  zle redisplay
+}
+zle -N pet-select
+stty -ixon
+bindkey '^[s' pet-select
+
+function pet-add-prev() {
+  PREV=$(fc -lrn | head -n 1)
+  sh -c "pet new `printf %q "$PREV"`"
+}
+
+# Extract archives - use: extract <file>
+# Credits to http://dotfiles.org/~pseup/.bashrc
+function extract() {
+  if [[ ! -f $1 ]]; then
+      case $1 in
+          *.tar.bz2) tar xjf $1 ;;
+          *.tar.gz) tar xzf $1 ;;
+          *.bz2) bunzip2 $1 ;;
+          *.rar) rar x $1 ;;
+          *.gz) gunzip $1 ;;
+          *.tar) tar xf $1 ;;
+          *.tbz2) tar xjf $1 ;;
+          *.tgz) tar xzf $1 ;;
+          *.zip) unzip $1 ;;
+          *.Z) uncompress $1 ;;
+          *.7z) 7z x $1 ;;
+          *) echo "'$1' cannot be extracted via extract()" ;;
+      esac
+  else
+      echo "'$1' is not a valid file"
+  fi
+}
+
+# }}}
 # -------- Color Definitions {{{
 # Reset
 Color_Off='\033[0m'       # Text Reset
@@ -124,7 +557,6 @@ expand-alias() {
 zle -N expand-alias
 
 bindkey " " expand-alias
-bindkey "^ " magic-space
 bindkey -M isearch " " magic-space
 
 # }}}
@@ -137,6 +569,7 @@ alias reload!="source $ZSH_CONFIG"
 alias cp="cp -iv"
 alias mv="mv -iv"
 alias rm="rm -v"
+alias mkdir="mkdir -pv"
 alias mkd="mkdir -pv"
 
 # Helpers
@@ -349,14 +782,8 @@ fi
 
 # Systemctl
 if (( $+commands[systemctl] )); then
-  ealias -g scl='systemctl'
-  ealias -g sclss='systemctl status'
-  ealias -g scle='systemctl enable'
-  ealias -g scld='systemctl disable'
-  ealias -g sclr='systemctl restart'
-  ealias -g scls='systemctl start'
-  ealias -g sclt='systemctl stop'
-  ealias -g scldr='systemctl daemon-reload'
+  ealias sc='sudo systemctl'
+  ealias scu='systemctl --user'
 fi
 
 # Journalctl
@@ -368,434 +795,37 @@ if (( $+commands[mvn] )); then
   ealias mcp="mvn clean package"
 fi
 
-# }}}
-# -------- Vim Mode {{{
-# ---------------------
+if (( $+commands[wg] && $+commands[wg-quick] )); then
+  ealias vpnup="sudo wg-quick up wg0"
+  ealias vpndown="sudo wg-quick down wg0"
+  ealias vpns="sudo wg"
+fi
 
-# Updates editor information when the keymap changes.
-function zle-keymap-select() {
-  zle reset-prompt
-  zle -R
-}
-
-# Ensure that the prompt is redrawn when the terminal size changes.
-TRAPWINCH() {
-  zle &&  zle -R
-}
-
-zle -N zle-keymap-select
-zle -N edit-command-line
-
-bindkey -v
-
-# By default, there is a 0.4 second delay after you hit the <ESC> key and when
-# the mode change is registered. This results in a very jarring and frustrating
-# transition between modes. Let's reduce this delay to 0.1 seconds.
-export KEYTIMEOUT=1
-
-# allow v to edit the command line (standard behaviour)
-autoload -Uz edit-command-line
-bindkey -M vicmd 'v' edit-command-line
-
-# allow ctrl-p, ctrl-n for navigate history (standard behaviour)
-bindkey '^P' up-history
-bindkey '^N' down-history
-
-# allow ctrl-h, ctrl-w, ctrl-? for char and word deletion (standard behaviour)
-bindkey '^?' backward-delete-char
-bindkey '^h' backward-delete-char
-bindkey '^w' backward-kill-word
-
-# allow ctrl-r to perform backward search in history
-bindkey '^r' history-incremental-search-backward
-
-# allow ctrl-a and ctrl-e to move to beginning/end of line
-bindkey '^a' beginning-of-line
-bindkey '^e' end-of-line
-
-# alt+{a,e} - go to beginnig/end of the line
-bindkey "^[a" beginning-of-line
-bindkey "^[e" end-of-line
-
-# alt+{b,f} - go to prev/next word
-bindkey "^[b" backward-word
-bindkey "^[f" forward-word
-
-# Change cursor shape for different vi modes.
-function zle-keymap-select {
-  if [[ ${KEYMAP} == vicmd ]] ||
-     [[ $1 = 'block' ]]; then
-    echo -ne '\e[2 q'
-
-  elif [[ ${KEYMAP} == main ]] ||
-       [[ ${KEYMAP} == viins ]] ||
-       [[ ${KEYMAP} = '' ]] ||
-       [[ $1 = 'beam' ]]; then
-    echo -ne '\e[6 q'
-  fi
-}
-zle -N zle-keymap-select
-
-zle-line-init() {
-    zle -K viins # initiate `vi insert` as keymap (can be removed if `bindkey -V` has been set elsewhere)
-    echo -ne "\e[6 q"
-}
-zle -N zle-line-init
-
-# Use beam shape cursor on startup.
-echo -ne '\e[6 q'
-# Use beam shape cursor for each new prompt.
-preexec() { echo -ne '\e[6 q' ;}
+(( $+commands[reflector] )) && 
+  alias reflect='sudo reflector --latest 200 --threads 8 --verbose --protocol http --protocol https --sort rate --save /etc/pacman.d/mirrorlist'
 
 # }}}
-# -------- ZSH Config {{{
-# -----------------------
-
-setopt no_bg_nice
-setopt no_hup
-unsetopt list_beep
-setopt local_options
-setopt local_traps
-setopt prompt_subst
-
-HISTFILE="${HISTFILE:-${ZDOTDIR:-$HOME}/.zhistory}"  # The path to the history file.
-HISTSIZE=50000
-SAVEHIST=$HISTSIZE
-
-# history
-setopt hist_verify          # Don't exec command expanded from hist - just place it in the buff
-setopt extended_history     # Use extended hist format with timestamps
-setopt hist_reduce_blanks   # Remove useless blanks from each cmd before write it to hist
-unsetopt share_history      # Don't share history between shells
-setopt hist_ignore_all_dups # If new command is added to hist, remove any older command that's
-                            # a duplicate (even if it's not the last one)
-
-setopt complete_aliases     # Make aliases compleatable
-
-# Changing directories
-setopt auto_cd              # If a command cannot be executed as normal cmd - try to cd into
-                            # directory instead
-setopt auto_pushd           # Make cd push old directory onto the directory stach
-unsetopt pushd_ignore_dups  # Don't push the same directory onto the stack
-setopt pushd_minus          # The meaning of + and - is swapped in the dir stack context
-
-
-# Completion
-setopt auto_menu            # Automatically use menu completion after second tab
-setopt always_to_end        # Move the cursor to end of the completed word
-setopt complete_in_word     # Completion is done from both ends of the word the cursor's in
-unsetopt flow_control       # Disable flow control (assigned to ^S/^Q) in the shell
-unsetopt menu_complete      # On multiple matches, insert the first one immediately then when
-                            # the completion is requested again, remove the first match at put
-                            # the second match, etc. - iterate on matches
-
-# Display how long all tasks over 10 seconds take.
-# Negative value - stops that feature
-export REPORTTIME=-1
-
-# Load zmv program module
-autoload -U zmv
-
-# load colors function - used for prompt coloring
-autoload -U colors && colors
-
-# }}}
-# -------- Completions {{{
+# -------- Pacman Trap {{{
 # ------------------------
-
-# If there are no completions, try to correct minor typos in the input.
-zstyle ':completion:*' completer _complete _correct
-
-# Load the nice LS_COLORS into the completion menu too. Pretty!
-zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
-
-# initialize autocomplete with menu selection
-zstyle ':completion:*' menu select
-zstyle ':completion:*' list-prompt ' '
-zstyle ':completion:*' select-prompt ' %F{blue}-- %m --%f'
-  
-# Permit expensive completions to cache info and therefore be usable.
-if [[ "$(uname)" == "Darwin" ]]; then
-  zstyle ':completion::complete:*' use-cache on
-  zstyle ':completion::complete:*' cache-path ~/Library/Caches/zsh/compcache
-elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
-  zstyle ':completion::complete:*' use-cache on
-  zstyle ':completion::complete:*' cache-path $XDG_CACHE_HOME/zsh/compcache
-fi
-
-# When listing directories, treat foo//bar as foo/bar, not foo/*/bar.
-zstyle ':completion:*' squeeze-slashes true
-
-# When completing the names of man pages, group them by section.
-zstyle ':completion:*:manuals'    separate-sections true
-zstyle ':completion:*:manuals.*'  insert-sections   true
-
-# Group completions under cute headings.
-zstyle ':completion:*' format ' %F{yellow}-- %d --%f'
-zstyle ':completion:*:corrections' format ' %F{green}-- %d (errors: %e) --%f'
-zstyle ':completion:*:warnings' format ' %F{red}-- no matches found --%f'
-zstyle ':completion:*' group-name ''
-
-# 0 -- vanilla completion (abc => abc)
-# 1 -- smart case completion (abc => Abc)
-# 2 -- word flex completion (abc => A-big-Car)
-# 3 -- full flex completion (abc => ABraCadabra)
-zstyle ':completion:*' matcher-list '' \
-  'm:{a-z\-}={A-Z\_}' \
-  'r:[^[:alpha:]]||[[:alpha:]]=** r:|=* m:{a-z\-}={A-Z\_}' \
-  'r:|?=** m:{a-z\-}={A-Z\_}'
-
-zmodload zsh/complist
-
-# Include hidden files in autocomplete:
-_comp_options+=(globdots)
-
-# Use vim keys in tab complete menu:
-bindkey -M menuselect 'h' vi-backward-char
-bindkey -M menuselect 'j' vi-down-line-or-history
-bindkey -M menuselect 'k' vi-up-line-or-history
-bindkey -M menuselect 'l' vi-forward-char
-bindkey -v '^?' backward-delete-char
-
-# }}}
-# -------- Prompt {{{
-# -------------------
-
-# Reference for colors: http://stackoverflow.com/questions/689765/how-can-i-change-the-color-of-my-prompt-in-zsh-different-from-normal-text
-
-_is_ssh() {
-    [[ -n "${SSH_CONNECTION-}${SSH_CLIENT-}${SSH_TTY-}" ]]
+# from https://wiki.archlinux.org/index.php/Zsh#On-demand_rehash
+# This will solve the problem of zsh automatically rehashes after package installation
+# and this way the new binary will be visible in PATH automatically.
+# A pacman hook is needed as well: /etc/pacman.d/hooks/zsh.hook
+# [Trigger]
+# Operation = Install
+# Operation = Upgrade
+# Operation = Remove
+# Type = Package
+# Target = usr/bin/*
+# 
+# [Action]
+# Depends = zsh
+# Depends = procps-ng
+# When = PostTransaction
+# Exec = /usr/bin/pkill zsh --signal=USR1
+catch_signal_usr1() {
+  trap catch_signal_usr1 USR1
+  rehash
 }
-
-set_prompt() {
-
-    # [
-    # PS1="%{$fg[white]%}%{$reset_color%}"
-
-    _is_ssh && host=" at %F{yellow}%m%{$reset_color%}" || host=''
-
-    # Path: http://stevelosh.com/blog/2010/02/my-extravagant-zsh-prompt/
-    PS1="%{$fg_bold[cyan]%}${PWD/#$HOME/~}%{$reset_color%}"
-
-    # Git
-    # Note: don't show git prompt when we're are in $HOME dotfiles repo. 
-    # The git repo there is our dotfiles so let's not make a prompt mess in our $HOME.
-    local git_dir=$(git rev-parse --absolute-git-dir 2> /dev/null)
-    if [[ -n $git_dir && "$HOME/.git" != $git_dir ]]; then
-        PS1+=", %{$fg[green]%} $(git rev-parse --abbrev-ref HEAD 2> /dev/null)%{$reset_color%}"
-    fi
-
-    # ]:
-    PS1+="$host%{$fg[magenta]%} ❯ %{$reset_color%}% "
-}
-
-# add prompt generator function to precmd hooks
-autoload -Uz add-zsh-hook
-add-zsh-hook precmd set_prompt
-
-# }}}
-# -------- FZF {{{
-# ----------------
-
-if (( $+commands[fzf] )); then
-  if [[ -e /usr/share/fzf/key-bindings.zsh ]]; then
-    source /usr/share/fzf/key-bindings.zsh
-  elif [[ -f $HOME/.fzf.zsh ]]; then
-    source $HOME/.fzf.zsh
-  fi
-
-  FZF_FILE_HIGHLIGHTER='cat'
-  (( $+commands[highlight] )) && FZF_FILE_HIGHLIGHTER='highlight -lO ansi'
-  (( $+commands[bat]       )) && FZF_FILE_HIGHLIGHTER='bat --color=always'
-  export FZF_FILE_HIGHLIGHTER
-
-  FZF_DIR_HIGHLIGHTER='ls -l --color=always 2> /dev/null || ls -lG 2> /dev/null'
-  (( $+commands[tree] )) && FZF_DIR_HIGHLIGHTER='tree -CtrL 2'
-  (( $+commands[exa]  )) && FZF_DIR_HIGHLIGHTER='exa --color=always -TL2'
-  export FZF_DIR_HIGHLIGHTER
-
-  FZF_DEFAULT_COMMAND='(git ls-tree -r --name-only HEAD ||
-           find . -type f -print -o -type l -print | sed s/^..//) 2> /dev/null'
-  (( $+commands[ag] )) && FZF_DEFAULT_COMMAND='ag --ignore .git -g "" 2>/dev/null'
-  (( $+commands[fd] )) && FZF_DEFAULT_COMMAND='fd --type f --follow --exclude .git 2>/dev/null'
-  export FZF_DEFAULT_COMMAND
-  export FZF_DEFAULT_OPTS=" 
-  --border
-  --height 80%
-  --extended
-  --ansi
-  --reverse
-  --cycle
-  --bind alt-p:preview-up,alt-n:preview-down
-  --bind ctrl-u:half-page-up
-  --bind ctrl-d:half-page-down
-  --bind alt-u:preview-page-up
-  --bind alt-d:preview-page-down
-  --bind alt-a:select-all,ctrl-r:toggle-all
-  --bind ctrl-s:toggle-sort
-  --bind ?:toggle-preview,alt-w:toggle-preview-wrap
-  --bind 'alt-e:execute($EDITOR {} >/dev/tty </dev/tty)'
-  --preview \"($FZF_FILE_HIGHLIGHTER {} || $FZF_DIR_HIGHLIGHTER {}) 2>/dev/null | head -200\"
-  --preview-window right:50%
-  "
-
-  # FZF: Ctrl - T
-  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-  export FZF_CTRL_T_OPTS="
-  --preview \"($FZF_FILE_HIGHLIGHTER {} || $FZF_DIR_HIGHLIGHTER {}) 2>/dev/null | head -200\"
-  --bind 'enter:execute(echo {})+abort'
-  --bind 'alt-e:execute($EDITOR {} >/dev/tty </dev/tty)'
-  --preview-window right:50%
-  "
-
-  # FZF: Ctrl - R
-  SHELL_HIGHLIGHTER="bat --color=always -l bash"
-  export FZF_CTRL_R_OPTS="
-  --preview 'echo {} | tr -s \" \" | cut -d\" \" -f3- | $SHELL_HIGHLIGHTER'
-  --preview-window 'down:2:wrap'
-  --exact
-  --expect=ctrl-x
-  "
-
-  # FZF: Alt - C
-  FZF_ALT_C_COMMAND="command find -L . -mindepth 1 -name '.git' -prune \
-      -o -type d -print 2> /dev/null | cut -b3-"
-  (( $+commands[fd] )) && FZF_ALT_C_COMMAND='command fd --type d --follow --exclude .git 2>/dev/null'
-  export FZF_ALT_C_COMMAND
-
-  export FZF_ALT_C_OPTS="
-  --exit-0
-  --bind 'enter:execute(echo {})+abort'
-  --preview '($FZF_DIR_HIGHLIGHTER {}) | head -200 2>/dev/null'
-  --preview-window=right:50%
-  "
-
-fi
-
-# }}}
-# -------- Functions {{{
-# ----------------------
-
-if (( $+commands[lf] )); then
-
-  # Ensure precmds are run after cd
-  redraw-prompt() {
-    local precmd
-    for precmd in $precmd_functions; do
-      $precmd
-    done
-    zle reset-prompt
-  }
-  zle -N redraw-prompt
-
-  opendir() {
-    tempfile=`mktemp`
-    lf -last-dir-path $tempfile
-    if [[ -f $tempfile && $(cat -- "$tempfile") != "$(echo -n `pwd`)" ]]; then
-      cd -- "$(cat "$tempfile")"
-    fi
-    rm -f -- "$tempfile" > /dev/null
-    zle redraw-prompt
-  }
-  zle -N opendir
-  bindkey '^O' opendir
-
-fi
-
-# Trim functions
-function ltrim() { sed 's/^\s\+//g' }
-function rtrim() { sed 's/\s\+$//g' }
-function trim()  { ltrim | rtrim    }
-
-# pet utilities:
-# * Alt-S - select snippet
-# * pet-add-prev alias to add previous cmd as new snippet
-function pet-select() {
-  BUFFER=$(pet search --query "$LBUFFER")
-  CURSOR=$#BUFFER
-  zle redisplay
-}
-zle -N pet-select
-stty -ixon
-bindkey '^[s' pet-select
-
-function pet-add-prev() {
-  PREV=$(fc -lrn | head -n 1)
-  sh -c "pet new `printf %q "$PREV"`"
-}
-
-# Extract archives - use: extract <file>
-# Credits to http://dotfiles.org/~pseup/.bashrc
-function extract() {
-  if [[ ! -f $1 ]]; then
-      case $1 in
-          *.tar.bz2) tar xjf $1 ;;
-          *.tar.gz) tar xzf $1 ;;
-          *.bz2) bunzip2 $1 ;;
-          *.rar) rar x $1 ;;
-          *.gz) gunzip $1 ;;
-          *.tar) tar xf $1 ;;
-          *.tbz2) tar xjf $1 ;;
-          *.tgz) tar xzf $1 ;;
-          *.zip) unzip $1 ;;
-          *.Z) uncompress $1 ;;
-          *.7z) 7z x $1 ;;
-          *) echo "'$1' cannot be extracted via extract()" ;;
-      esac
-  else
-      echo "'$1' is not a valid file"
-  fi
-}
-
-# }}}
-# -------- Plugins: zinit {{{
-# ---------------------------
-
-if [[ ! -f $ZDOTDIR/.zinit/bin/zinit.zsh ]]; then
-    print -P "%F{33}▓▒░ %F{220}Installing DHARMA Initiative Plugin Manager (zdharma/zinit)…%f"
-    command mkdir -p $ZDOTDIR/.zinit
-    command git clone https://github.com/zdharma/zinit $ZDOTDIR/.zinit/bin && \
-        print -P "%F{33}▓▒░ %F{34}Installation successful.%F" || \
-        print -P "%F{160}▓▒░ The clone has failed.%F"
-fi
-source "$HOME/.config/zsh/.zinit/bin/zinit.zsh"
-autoload -Uz _zinit
-(( ${+_comps} )) && _comps[zinit]=_zinit
-
-export ZSH_AUTOSUGGEST_USE_ASYNC=1
-export ZSH_AUTOSUGGEST_MANUAL_REBIND=1
-zinit ice wait lucid atload'_zsh_autosuggest_start'
-zinit light zsh-users/zsh-autosuggestions
-
-zinit ice wait lucid blockf atpull'zinit creinstall -q .'
-zinit light zsh-users/zsh-completions
-
-zinit ice wait lucid
-zinit light zsh-users/zsh-history-substring-search
-
-zinit ice wait'2' lucid
-zinit light wfxr/forgit
-
-zinit ice wait lucid atinit"zpcompinit; zpcdreplay"
-zinit light zdharma/fast-syntax-highlighting
-
-# Substring search options
-# enable fuzzy search: ab c will match *ab*c*
-HISTORY_SUBSTRING_SEARCH_FUZZY='true'
-
-# Up/Down - trigger substring search in insert/command mode
-bindkey '^[[A' history-substring-search-up
-bindkey '^[[B' history-substring-search-down
-bindkey -M vicmd '^[[A' history-substring-search-up
-bindkey -M vicmd '^[[B' history-substring-search-down
-
-# Alt+j/k - trigger substring search in insert/command mode
-bindkey '^[k' history-substring-search-up
-bindkey '^[j' history-substring-search-down
-bindkey -M vicmd '^[k' history-substring-search-up
-bindkey -M vicmd '^[j' history-substring-search-down
-
-# accept auto suggestion with Ctrl-Space
-bindkey '^ ' autosuggest-accept
-
+trap catch_signal_usr1 USR1
 # }}}
