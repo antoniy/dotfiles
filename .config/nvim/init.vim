@@ -81,7 +81,7 @@ Plug 'tpope/vim-commentary'
 Plug 'terryma/vim-multiple-cursors'
 
 " File finders
-Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+Plug 'junegunn/fzf', { 'dir': '~/.fzf' }
 Plug 'junegunn/fzf.vim'
 Plug 'junegunn/gv.vim'
 

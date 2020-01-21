@@ -186,9 +186,22 @@ autoload -Uz add-zsh-hook
 add-zsh-hook precmd set_prompt
 
 # }}}
-# -------- Plugins: zinit {{{
-# ---------------------------
+# -------- Plugins {{{
+# --------------------
 
+# Load fzf
+if [ ! -d ~/.fzf ]; then
+  git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+  ~/.fzf/install --all --no-update-rc --no-bash --no-fish
+fi
+
+if [ -f ~/.fzf.zsh ]; then
+  source ~/.fzf.zsh
+else
+  echo "File ~/.fzf.zsh is missing. Please reinstall fzf: ~/.fzf/install --all"
+fi
+
+# Initialize zinit plugin manager
 if [[ ! -f $ZDOTDIR/.zinit/bin/zinit.zsh ]]; then
     print -P "%F{33}▓▒░ %F{220}Installing DHARMA Initiative Plugin Manager (zdharma/zinit)…%f"
     command mkdir -p $ZDOTDIR/.zinit
@@ -199,15 +212,20 @@ fi
 source "$HOME/.config/zsh/.zinit/bin/zinit.zsh"
 autoload -Uz _zinit
 (( ${+_comps} )) && _comps[zinit]=_zinit
+# end initialization
 
 export ZSH_AUTOSUGGEST_USE_ASYNC=1
 export ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 zinit ice wait lucid atload'_zsh_autosuggest_start'
 zinit light zsh-users/zsh-autosuggestions
+bindkey '^ ' autosuggest-accept # accept auto suggestion with Ctrl-Space
 
 zinit ice wait lucid blockf atpull'zinit creinstall -q .'
 zinit light zsh-users/zsh-completions
 
+# Substring search
+# enable fuzzy search: ab c will match *ab*c*
+HISTORY_SUBSTRING_SEARCH_FUZZY='true'
 zinit ice wait lucid
 zinit light zsh-users/zsh-history-substring-search
 
@@ -218,12 +236,9 @@ zinit ice wait lucid atinit"zpcompinit; zpcdreplay"
 zinit light zdharma/fast-syntax-highlighting
 
 FZF_MARKS_COMMAND="fzf --height 40% --reverse --preview-window right:50%:hidden"
+FZF_MARKS_JUMP='^O'
 zinit ice wait lucid
 zinit load urbainvaes/fzf-marks
-
-# Substring search options
-# enable fuzzy search: ab c will match *ab*c*
-HISTORY_SUBSTRING_SEARCH_FUZZY='true'
 
 # Up/Down - trigger substring search in insert/command mode
 bindkey '^[[A' history-substring-search-up
@@ -236,9 +251,6 @@ bindkey '^[k' history-substring-search-up
 bindkey '^[j' history-substring-search-down
 bindkey -M vicmd '^[k' history-substring-search-up
 bindkey -M vicmd '^[j' history-substring-search-down
-
-# accept auto suggestion with Ctrl-Space
-bindkey '^ ' autosuggest-accept
 
 # }}}
 # -------- Completions {{{
@@ -303,12 +315,6 @@ bindkey -v '^?' backward-delete-char
 # ----------------
 
 if (( $+commands[fzf] )); then
-  if [[ -e /usr/share/fzf/key-bindings.zsh ]]; then
-    source /usr/share/fzf/key-bindings.zsh
-  elif [[ -f $HOME/.fzf.zsh ]]; then
-    source $HOME/.fzf.zsh
-  fi
-
   FZF_FILE_HIGHLIGHTER='cat'
   (( $+commands[highlight] )) && FZF_FILE_HIGHLIGHTER='highlight -lO ansi'
   (( $+commands[bat]       )) && FZF_FILE_HIGHLIGHTER='bat --color=always'
@@ -380,32 +386,6 @@ fi
 # -------- Functions {{{
 # ----------------------
 
-if (( $+commands[lf] )); then
-
-  # Ensure precmds are run after cd
-  redraw-prompt() {
-    local precmd
-    for precmd in $precmd_functions; do
-      $precmd
-    done
-    zle reset-prompt
-  }
-  zle -N redraw-prompt
-
-  opendir() {
-    tempfile=`mktemp`
-    lf -last-dir-path $tempfile
-    if [[ -f $tempfile && $(cat -- "$tempfile") != "$(echo -n `pwd`)" ]]; then
-      cd -- "$(cat "$tempfile")"
-    fi
-    rm -f -- "$tempfile" > /dev/null
-    zle redraw-prompt
-  }
-  zle -N opendir
-  bindkey '^O' opendir
-
-fi
-
 # Trim functions
 function ltrim() { sed 's/^\s\+//g' }
 function rtrim() { sed 's/\s\+$//g' }
@@ -426,29 +406,6 @@ bindkey '^[s' pet-select
 function pet-add-prev() {
   PREV=$(fc -lrn | head -n 1)
   sh -c "pet new `printf %q "$PREV"`"
-}
-
-# Extract archives - use: extract <file>
-# Credits to http://dotfiles.org/~pseup/.bashrc
-function extract() {
-  if [[ ! -f $1 ]]; then
-      case $1 in
-          *.tar.bz2) tar xjf $1 ;;
-          *.tar.gz) tar xzf $1 ;;
-          *.bz2) bunzip2 $1 ;;
-          *.rar) rar x $1 ;;
-          *.gz) gunzip $1 ;;
-          *.tar) tar xf $1 ;;
-          *.tbz2) tar xjf $1 ;;
-          *.tgz) tar xzf $1 ;;
-          *.zip) unzip $1 ;;
-          *.Z) uncompress $1 ;;
-          *.7z) 7z x $1 ;;
-          *) echo "'$1' cannot be extracted via extract()" ;;
-      esac
-  else
-      echo "'$1' is not a valid file"
-  fi
 }
 
 # }}}
@@ -541,7 +498,6 @@ ealias() {
 }
 
 function containsElement () {
-  echo "args: $@\n" >> ~/out.txt
   local e match="$1"
   shift
   for e; do [[ "$e" == "$match" ]] && return 0; done
@@ -557,7 +513,6 @@ expand-alias() {
 zle -N expand-alias
 
 bindkey " " expand-alias
-bindkey -M isearch " " magic-space
 
 # }}}
 # -------- Aliases: General {{{
@@ -570,7 +525,11 @@ alias cp="cp -iv"
 alias mv="mv -iv"
 alias rm="rm -v"
 alias mkdir="mkdir -pv"
-alias mkd="mkdir -pv"
+
+# Create a new directory and enter it
+function md() {
+    mkdir -pv "$@" && cd "$@"
+}
 
 # Helpers
 alias grep='grep --color=auto'
@@ -580,6 +539,7 @@ alias rmf="rm -rf"
 
 ealias ka="killall"
 ealias sdn="sudo shutdown -h now"
+ealias sdr="sudo shutdown -r now"
 
 # editor aliases
 alias f="$FILE"
@@ -590,10 +550,10 @@ alias vv="fzf | xargs -I% $EDITOR %"
 alias vg="git ls-tree -r --name-only HEAD | fzf | xargs -I% $EDITOR %"
 
 # Filesystem aliases
-alias ..='cd ..'
-alias ...='cd ../..'
-alias ....="cd ../../.."
-alias .....="cd ../../../.."
+ealias ..='cd ..'
+ealias ...='cd ../..'
+ealias ....="cd ../../.."
+ealias .....="cd ../../../.."
 alias cd.='\cd ..'
 alias cd..='\cd ..'
 
@@ -604,6 +564,12 @@ if (( $+commands[exa] )); then
   alias ll='exa -la --color=always --group-directories-first'  # long format
   alias l='exa -l --color=always --group-directories-first'  # long format
   alias lt='exa -aT --color=always --group-directories-first' # tree listing
+elif [[ "$OSTYPE" == "darwin"* ]]; then # for MacOSX and bsd version of ls
+  alias ls="ls -G"
+  alias la="ls -AG"
+  alias ll="ls -lAFhG"
+  alias l="ls -lFhG"
+  alias lt="tree -aC --dirsfirst"
 else
   alias ls="ls --color=always --group-directories-first"
   alias la="ls -A --color=always --group-directories-first"
@@ -611,11 +577,6 @@ else
   alias l="ls -lFh --color=always --group-directories-first"
   alias lt="tree -aC --dirsfirst"
 fi
-
-# Create a new directory and enter it
-function md() {
-    mkdir -pv "$@" && cd "$@"
-}
 
 # }}}
 # -------- Aliases: Colors {{{
