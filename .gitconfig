@@ -96,6 +96,7 @@
   ; push will only do the current branch, not all branches
   default = current
 [diff]
+  tool = nvimdiff
   renames = copies
   mnemonicprefix = true
 [difftool]
@@ -105,8 +106,8 @@
   whitespace = nowarn
 [core]
   excludesfile = ~/.gitignore_global
-  ; pager = "diff-so-fancy | less --tabs=4 -RFX"
-  pager = "delta --dark --minus-color='#4d0100' --plus-color='#014000' --tabs 2"
+  pager = "diff-so-fancy | less --tabs=4 -RFX"
+  ; pager = "delta --dark --minus-color='#4d0100' --plus-color='#014000' --tabs 2"
   ; pager = "delta --light --tabs 2"
   editor = nvim
 [rerere]
@@ -118,6 +119,8 @@
   lineNumber = true
 [credential]
 	helper = osxkeychain
+[difftool "nvimdiff"]
+  cmd = "nvim -d \"$LOCAL\" \"$REMOTE\""
 [difftool "IDEA"]
 	cmd = ~/bin/idea.sh diff \"$LOCAL\" \"$REMOTE\"
 [mergetool "IDEA"]
