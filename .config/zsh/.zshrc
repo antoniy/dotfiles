@@ -235,10 +235,16 @@ zinit light wfxr/forgit
 zinit ice wait lucid atinit"zpcompinit; zpcdreplay"
 zinit light zdharma/fast-syntax-highlighting
 
+zinit ice wait"2" lucid as"program" pick"bin/git-dsf"
+zinit load zdharma/zsh-diff-so-fancy
+
 FZF_MARKS_COMMAND="fzf --height 40% --reverse --preview-window right:50%:hidden"
 FZF_MARKS_JUMP='^O'
 zinit ice wait lucid
 zinit load urbainvaes/fzf-marks
+
+zinit ice wait'1' lucid trackbinds bindmap'\e\e -> ^F'
+zinit light laggardkernel/zsh-thefuck
 
 # Up/Down - trigger substring search in insert/command mode
 bindkey '^[[A' history-substring-search-up
@@ -577,6 +583,27 @@ else
   alias l="ls -lFh --color=always --group-directories-first"
   alias lt="tree -aC --dirsfirst"
 fi
+
+alias weather='curl http://wttr.in/Plovdiv'
+
+wd() {
+  case $1 in
+    full)
+      curl "http://wttr.in/Пловдив?m&lang=bg"
+      ;;
+    day)
+      curl "http://wttr.in/Пловдив?m&lang=bg&format=v2"
+      ;;
+    moon)
+      curl "http://wttr.in/Moon?m&lang=bg"
+      ;;
+    '')
+      curl "http://wttr.in/Пловдив?m&lang=bg&format=%l:+%c+%C+%t,+%h,+%w,+%P"
+      ;;
+    *)
+      curl "http://wttr.in/$1?m&lang=bg&format=v2"
+  esac
+}
 
 # }}}
 # -------- Aliases: Colors {{{
