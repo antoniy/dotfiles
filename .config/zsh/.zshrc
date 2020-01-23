@@ -164,7 +164,8 @@ set_prompt() {
     # [
     # PS1="%{$fg[white]%}%{$reset_color%}"
 
-    _is_ssh && host=" at %F{yellow}%m%{$reset_color%}" || host=''
+    local host=''
+    _is_ssh && host=" at %F{yellow}%m%{$reset_color%}"
 
     # Path: http://stevelosh.com/blog/2010/02/my-extravagant-zsh-prompt/
     PS1="%{$fg_bold[cyan]%}${PWD/#$HOME/~}%{$reset_color%}"
@@ -605,6 +606,8 @@ wd() {
   esac
 }
 
+alias external-ip="dig +short myip.opendns.com @resolver1.opendns.com"
+
 # }}}
 # -------- Aliases: Colors {{{
 # ----------------------------
@@ -613,21 +616,18 @@ wd() {
 alias grep="grep --color=auto"
 alias diff="diff --color=auto"
 
-# Colorize a lot tools using grc if available
+# Set grc alias for available commands.
 if (( $+commands[grc] )); then
- 
-  # Supported commands
-  cmds=(cc configure cvs df diff dig gcc gmake ifconfig last ldap ls make mount mtr netstat ping ping6 ps traceroute traceroute6 wdiff whois iwconfig docker ip dig env fdisk free iptables id lsmod lsof lsblk lspci mvn nmap sensors stat sysctl systemctl uptime vmstat );
-
-  # Set alias for available commands.
-  for cmd in $cmds ; do
-    if (( $+commands[$cmd] )) ; then
-      alias $cmd="grc --colour=auto $(whence $cmd)"
-    fi
-  done
-
-  # Clean up variables
-  unset cmds cmd
+  [[ -f /etc/grc.conf ]]           && grc_conf='/etc/grc.conf'
+  [[ -f /usr/local/etc/grc.conf ]] && grc_conf='/usr/local/etc/grc.conf'
+  if [ ! -z "$grc_conf" ]; then
+      for cmd in $(grep '^# ' "$grc_conf" | cut -f 2 -d ' '); do
+          if (( $+commands[$cmd] )) &&  [ "$cmd" != "ls" ]; then
+              alias $cmd="grc --colour=auto $cmd"
+          fi
+      done
+  fi
+  unset grc_conf cmd
 fi
 
 (( $+commands[bat] )) && alias cat="bat --plain --wrap character"
