@@ -178,7 +178,9 @@ set_prompt() {
     fi
 
     # ]:
-    PS1+="$host%{$fg[magenta]%} ❯ %{$reset_color%}% "
+    local symbol="❯"
+    [[ $EUID == 0 ]] && symbol="#"
+    PS1+="$host%{$fg[magenta]%} $symbol %{$reset_color%}% "
 }
 
 # add prompt generator function to precmd hooks
