@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+read input
+
+[ -z $input ] && exit
+
+# open /dev/tty as stdin
+exec 0</dev/tty
+inputEscaped=$(echo $input | sed -e 's/[\/&]/\\&/g') # escape for sed replace
+prompt=$(echo -e "$1" | sed "s/{}/$inputEscaped/g")
+
+read -p "$prompt [Y/n] : " answer
+case $answer in
+  [Yy]*) echo $input;;
+  *) exit;;
+esac
+

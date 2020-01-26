@@ -271,7 +271,6 @@ GitHub.sublime-settings
 *.class
 
 # Generated files
-bin/
 gen/
 out/
 release/
