@@ -3,76 +3,76 @@ default: config bat compton config-files dunst git gnupg htop i3 lf mpv pcmanfm 
 darwin: config bat config-files git gnupg htop karabiner lf mpv pet scripts tmux vim zsh
 
 bat: config
-	stow -R bat
+	stow --no-fold -R bat
 
 compton: config
-	stow -R compton
+	stow --no-fold -R compton
 
 config-files: config
-	stow -R config-files
+	stow --no-fold -R config-files
 
 dunst: config
-	stow -R dunst
+	stow --no-fold -R dunst
 
 git: config
-	stow -R git
+	stow --no-fold -R git
 
 gnupg: config
-	stow -R gnupg
+	stow --no-fold -R gnupg
 
 htop: config
-	stow -R htop
+	stow --no-fold -R htop
 
 i3: config
-	stow -R i3
+	stow --no-fold -R i3
 
 karabiner: config
-	stow -R karabiner
+	stow --no-fold -R karabiner
 
 lf: config
-	stow -R lf
+	stow --no-fold -R lf
 
 mpv: config
-	stow -R mpv
+	stow --no-fold -R mpv
 
 pcmanfm: config
-	stow -R pcmanfm
+	stow --no-fold -R pcmanfm
 
 pet: config
-	stow -R pet
+	stow --no-fold -R pet
 
 polybar: config
-	stow -R polybar
+	stow --no-fold -R polybar
 
 scripts: config
 	stow -R scripts
 
 sxhkd: config
-	stow -R sxhkd
+	stow --no-fold -R sxhkd
 
 systemd: config
-	stow -R systemd
+	stow --no-fold -R systemd
 
 termite: config
-	stow -R termite
+	stow --no-fold -R termite
 
 tmux: config
-	stow -R tmux
+	stow --no-fold -R tmux
 
 vim: config
-	stow -R vim
+	stow --no-fold -R vim
 
 x11: config
-	stow -R x11
+	stow --no-fold -R x11
 
 xfce4: config
-	stow -R xfce4
+	stow --no-fold -R xfce4
 
 zathura: config
-	stow -R zathura
+	stow --no-fold -R zathura
 
 zsh: config
-	stow -R zsh
+	stow --no-fold -R zsh
 
 config: .stowrc
 

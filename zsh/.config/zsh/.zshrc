@@ -173,9 +173,8 @@ set_prompt() {
     # Git
     # Note: don't show git prompt when we're are in $HOME dotfiles repo. 
     # The git repo there is our dotfiles so let's not make a prompt mess in our $HOME.
-    local git_dir=$(git rev-parse --absolute-git-dir 2> /dev/null)
-    if [[ -n $git_dir && "$HOME/.git" != $git_dir ]]; then
-        PS1+=", %{$fg[green]%} $(git rev-parse --abbrev-ref HEAD 2> /dev/null)%{$reset_color%}"
+    if [[ $(git rev-parse --absolute-git-dir 2> /dev/null) ]]; then
+        PS1+=" %{$fg[green]%} $(git rev-parse --abbrev-ref HEAD 2> /dev/null)%{$reset_color%}"
     fi
 
     # ]:
