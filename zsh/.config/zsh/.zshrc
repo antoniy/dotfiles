@@ -335,8 +335,8 @@ if (( $+commands[fzf] )); then
 
   FZF_DEFAULT_COMMAND='(git ls-tree -r --name-only HEAD ||
            find . -type f -print -o -type l -print | sed s/^..//) 2> /dev/null'
-  (( $+commands[ag] )) && FZF_DEFAULT_COMMAND='ag --ignore .git -g "" 2>/dev/null'
-  (( $+commands[fd] )) && FZF_DEFAULT_COMMAND='fd --type f --follow --exclude .git 2>/dev/null'
+  (( $+commands[ag] )) && FZF_DEFAULT_COMMAND='ag --hidden --ignore .git -g "" 2>/dev/null'
+  (( $+commands[fd] )) && FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git 2>/dev/null'
   export FZF_DEFAULT_COMMAND
   export FZF_DEFAULT_OPTS=" 
   --height 80%
@@ -378,7 +378,7 @@ if (( $+commands[fzf] )); then
   # FZF: Alt - C
   FZF_ALT_C_COMMAND="command find -L . -mindepth 1 -name '.git' -prune \
       -o -type d -print 2> /dev/null | cut -b3-"
-  (( $+commands[fd] )) && FZF_ALT_C_COMMAND='command fd --type d --follow --exclude .git 2>/dev/null'
+  (( $+commands[fd] )) && FZF_ALT_C_COMMAND='command fd --type d --hidden --follow --exclude .git 2>/dev/null'
   export FZF_ALT_C_COMMAND
 
   export FZF_ALT_C_OPTS="
