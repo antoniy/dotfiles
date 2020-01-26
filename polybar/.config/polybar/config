@@ -64,7 +64,7 @@ volume-max = #bf616a
 [bar/mainbar-i3]
 ;https://github.com/jaagr/polybar/wiki/Configuration
 
-monitor = ${env:MONITOR}
+monitor = ${env:MONITOR:DVI-I-1}
 ;monitor-fallback = HDMI1
 monitor-strict = false
 override-redirect = false
@@ -100,22 +100,25 @@ module-margin-left = 0
 module-margin-right = 0
 
 ;https://github.com/jaagr/polybar/wiki/Fonts
-font-0 = "UbuntuMono Nerd Font:size=11;2"
-font-1 = "UbuntuMono Nerd Font:size=16;3"
-font-2 = "Font Awesome 5 Free:style=Regular:pixelsize=10;1"
-font-3 = "Font Awesome 5 Free:style=Solid:pixelsize=10;1"
-font-4 = "Font Awesome 5 Brands:pixelsize=10;1"
+font-0 = "InconsolataLGC Nerd Font:size=10;2"
+; font-0 = "UbuntuMono Nerd Font:size=11;2"
+; font-1 = "InconsolataLGC Nerd Font Mono:size=16;2"
+; font-1 = "UbuntuMono Nerd Font:size=16;3"
+; font-2 = "Font Awesome 5 Free:style=Regular:pixelsize=10;1"
+; font-3 = "Font Awesome 5 Free:style=Solid:pixelsize=10;1"
+; font-4 = "Font Awesome 5 Brands:pixelsize=10;1"
 
 modules-left = i3 xwindow
 modules-center = uptime pacman-updates
 ;modules-right = networkspeedup networkspeeddown memory2 cpu2 pavolume arch-aur-updates date
-modules-right = networkspeedup networkspeeddown memory2 cpu2 pavolume xkeyboard date
+; modules-right = networkspeedup networkspeeddown memory2 cpu2 pavolume xkeyboard date
+modules-right = memory2 pavolume xkeyboard date
 
-separator = " ⸱ "
+separator = "  "
 
 ;dim-value = 1.0
 
-tray-position = right
+tray-position = ${env:TRAY_POSITION:right}
 tray-detached = false
 tray-maxsize = 20
 tray-background = ${colors.background}
@@ -203,17 +206,17 @@ fuzzy-match = false
 ;http://fontawesome.io/cheatsheet/
 ;       v     
 
-ws-icon-0 = 1;
-ws-icon-1 = 2;
-ws-icon-2 = 3;
-ws-icon-3 = 4;
-ws-icon-4 = 5;
-ws-icon-5 = 6;
-ws-icon-6 = 7;
-ws-icon-7 = 8;
-ws-icon-8 = 9;
-ws-icon-9 = 10;
-ws-icon-default = " "
+; ws-icon-0 = 1;
+; ws-icon-1 = 2;
+; ws-icon-2 = 3;
+; ws-icon-3 = 4;
+; ws-icon-4 = 5;
+; ws-icon-5 = 6;
+; ws-icon-6 = 7;
+; ws-icon-7 = 8;
+; ws-icon-8 = 9;
+; ws-icon-9 = 10;
+; ws-icon-default = " "
 
 ; Available tags:
 ;   <label-state> (default) - gets replaced with <label-(focused|unfocused|visible|urgent)>
@@ -236,7 +239,7 @@ label-focused = %icon% %name%
 label-focused-background = ${colors.background}
 label-focused-foreground = ${colors.foreground}
 label-focused-underline = #AD69AF
-label-focused-padding = 2
+label-focused-padding = 1
 
 ; Available tokens:
 ;   %name%
@@ -245,7 +248,7 @@ label-focused-padding = 2
 ; Default: %icon%  %name%
 ; unfocused = Inactive workspace on any monitor
 label-unfocused = %icon% %name%
-label-unfocused-padding = 2
+label-unfocused-padding = 1
 label-unfocused-background = ${colors.background}
 label-unfocused-foreground = ${colors.foreground}
 label-unfocused-underline =
@@ -478,18 +481,18 @@ type = internal/date
 interval = 5
 ; See "http://en.cppreference.com/w/cpp/io/manip/put_time" for details on how to format the date string
 ; NOTE: if you want to use syntax tags here you need to use %%{...}
-date = " %a %b %d, %Y"
-date-alt = " %a %b %d, %Y"
+date = " %a %b %d"
+; date-alt = " %a %b %d, %Y"
 time = %H:%M
 time-akt = %H:%M
 ;time = %l:%M%p
 ;time-alt = %l:%M%p
-format-prefix = " "
+; format-prefix = " "
 format-prefix-foreground = #fefefe
 format-foreground = #fefefe
 ;format-background = #7197E7
 format-background = ${colors.background}
-label = "%date% %time% "
+label = "%date%  %time% "
 
 ; }}}
 ; -------- Mod: ewmh {{{
@@ -815,30 +818,12 @@ exec = yay -Qu | wc -l
 ;exec = pacman -Qu | wc -l
 ;exec = checkupdates | wc -l
 interval = 1000
-label = Repo: %output%
+label = %output%
 format-foreground = ${colors.foreground}
 format-background = ${colors.background}
-format-prefix = "  "
+format-prefix = " "
 format-prefix-foreground = #FFBB00
-format-underline = #FFBB00
-
-; }}}
-; -------- Mod: PulseAudio volume control {{{
-; -------------------------------------------
-
-[module/pavolume]
-type = custom/script
-tail = true
-label = %output%
-exec = ~/.config/polybar/scripts/pavolume.sh --listen
-click-right = exec pavucontrol
-click-left = ~/.config/polybar/scripts/pavolume.sh --togmute
-scroll-up = ~/.config/polybar/scripts/pavolume.sh --up
-scroll-down = ~/.config/polybar/scripts/pavolume.sh --down
-format-foreground = #fefefe
-format-background = ${colors.background}
-format-prefix = " "
-format-prefix-foreground = #bca4f8
+; format-underline = #FFBB00
 
 ; }}}
 ; -------- Mod: Public IP {{{
@@ -961,17 +946,57 @@ label =  %output:0:150:%
 type = custom/script
 exec = uptime | awk -F, '{sub(".*up ",x,$1);print $1}'
 interval = 100
-label = Uptime : %output%
+label = %output%
 
 format-foreground = ${colors.foreground}
 format-background = ${colors.background}
 format-prefix = " "
 format-prefix-foreground = #C15D3E
-format-underline = #C15D3E
+; format-underline = #C15D3E
 
 ; }}}
 ; -------- Mod: Volume {{{
 ; ------------------------
+[module/pavolume]
+type = custom/script
+tail = true
+label = %output%
+exec = ~/.config/polybar/scripts/pavolume.sh --listen
+click-right = exec pavucontrol
+click-left = ~/.config/polybar/scripts/pavolume.sh --togmute
+scroll-up = ~/.config/polybar/scripts/pavolume.sh --up
+scroll-down = ~/.config/polybar/scripts/pavolume.sh --down
+format-foreground = #fefefe
+format-background = ${colors.background}
+; format-prefix = " "
+format-prefix-foreground = #bca4f8
+
+[module/pulsevol]
+type = internal/pulseaudio
+
+; Interval for volume increase/decrease (in percent points)
+; Default: 5
+interval = 2
+
+format-volume = <ramp-volume> <label-volume>
+
+; Available tokens:
+;   %percentage% (default)
+;   %decibels% (unreleased)
+label-muted = 🔇 muted
+label-muted-foreground = #666
+
+; Only applies if <ramp-volume> is used
+ramp-volume-0 = 🔈
+ramp-volume-1 = 🔉
+ramp-volume-2 = 🔊
+
+; Right and Middle click (unreleased)
+click-right = pavucontrol &
+; click-middle = 
+format-foreground = #fefefe
+format-background = ${colors.background}
+
 
 [module/volume]
 ;https://github.com/jaagr/polybar/wiki/Module:-volume

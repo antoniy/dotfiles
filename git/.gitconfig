@@ -135,3 +135,5 @@
   verbose = true
 [include]
   path = .gitconfig.local
+
+; vim: set filetype=gitconfig:
