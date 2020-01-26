@@ -96,6 +96,8 @@ Plug 'junegunn/gv.vim'
 Plug 'christoomey/vim-tmux-navigator'
 Plug 'tpope/vim-eunuch'
 Plug 'tpope/vim-unimpaired'
+Plug 'junegunn/goyo.vim'
+Plug 'junegunn/limelight.vim'
 " Plug 'lyokha/vim-xkbswitch'
 
 call plug#end()            " required
@@ -239,6 +241,7 @@ map gd :bd<cr>
 
 " Also add a custom ProjectFiles command which search only in ~/projects directory.
 command! -bang -nargs=? -complete=dir ProjectFiles call fzf#vim#files('~/projects/', <bang>0)
+command! -bang -nargs=? -complete=dir DotFiles call fzf#vim#files('~/.dotfiles/', <bang>0)
 
 " Show fuzzy picker for open buffers, recently editted files and files in home tree
 nnoremap <silent> <leader>b :Buffers<CR>
@@ -246,13 +249,24 @@ nnoremap <silent> <leader>h :History<CR>
 nnoremap <silent> <leader>f :Files<CR>
 nnoremap <silent> <leader>g :GFiles<CR>
 nnoremap <silent> <leader>p :ProjectFiles<CR>
+nnoremap <silent> <leader>d :DotFiles<CR>
 
 " }}}
 " -------- Sudo feature {{{
-" ----------------------------------------------------------
+" -------------------------
 " write file if you forgot to give it sudo permission
 " tutorial video: http://www.youtube.com/watch?v=C6xqO4Z1nIo
 map <leader>sudo :w !sudo tee % <CR><CR>
+"}}}
+" -------- Distraction free mode {{{
+" ----------------------------------
+map <silent> <leader>focus :Goyo<CR>
+
+let g:goyo_width = '70%'
+
+autocmd! User GoyoEnter Limelight
+autocmd! User GoyoLeave Limelight!
+
 "}}}
 " -------- Keyboard Layout {{{
 
