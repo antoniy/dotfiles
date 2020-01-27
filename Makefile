@@ -1,4 +1,6 @@
-default: config bat compton config-files dunst git gnupg htop i3 lf mpv pcmanfm pet polybar scripts sxhkd systemd termite tmux vim x11 xfce4 zathura zsh
+default: config bat config-files git gnupg htop scripts tmux vim zsh
+
+linux: config bat compton config-files dunst git gnupg htop i3 lf mpv pcmanfm pet polybar scripts sxhkd systemd termite tmux vim x11 xfce4 zathura zsh
 
 darwin: config bat config-files git gnupg htop karabiner lf mpv pet scripts tmux vim zsh
 
