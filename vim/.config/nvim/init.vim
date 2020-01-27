@@ -134,9 +134,10 @@ let g:airline_theme='gruvbox'
 " let g:airline_powerline_fonts = 1
 let g:airline#extensions#tabline#enabled = 1
 
+" DEPRECATED: use 'yob' to toggle theme (from unimpaired plugin)
 " Switch between dark and light theme using <leader>d and <leader>l respectively
-nnoremap <silent> <leader>dark :set background=dark<CR>
-nnoremap <silent> <leader>light :set background=light<CR>
+" nnoremap <silent> <leader>dark :set background=dark<CR>
+" nnoremap <silent> <leader>light :set background=light<CR>
 
 " Allow for transparent background
 " hi Normal guibg=NONE ctermbg=NONE
@@ -246,18 +247,12 @@ command! -bang -nargs=? -complete=dir DotFiles call fzf#vim#files('~/.dotfiles/'
 " Show fuzzy picker for open buffers, recently editted files and files in home tree
 nnoremap <silent> <leader>b :Buffers<CR>
 nnoremap <silent> <leader>h :History<CR>
-nnoremap <silent> <leader>f :Files<CR>
-nnoremap <silent> <leader>g :GFiles<CR>
-nnoremap <silent> <leader>p :ProjectFiles<CR>
-nnoremap <silent> <leader>d :DotFiles<CR>
+nnoremap <silent> <leader><leader>f :Files<CR>
+nnoremap <silent> <leader><leader>g :GFiles<CR>
+nnoremap <silent> <leader><leader>p :ProjectFiles<CR>
+nnoremap <silent> <leader><leader>d :DotFiles<CR>
 
 " }}}
-" -------- Sudo feature {{{
-" -------------------------
-" write file if you forgot to give it sudo permission
-" tutorial video: http://www.youtube.com/watch?v=C6xqO4Z1nIo
-map <leader>sudo :w !sudo tee % <CR><CR>
-"}}}
 " -------- Distraction free mode {{{
 " ----------------------------------
 map <silent> <leader>focus :Goyo<CR>
