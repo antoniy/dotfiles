@@ -569,8 +569,8 @@ alias cd..='\cd ..'
 if (( $+commands[exa] )); then
   alias ls='exa --color=always --group-directories-first' # my preferred listing
   alias la='exa -a --color=always --group-directories-first'  # all files and dirs
-  alias ll='exa -la --color=always --group-directories-first'  # long format
-  alias l='exa -l --color=always --group-directories-first'  # long format
+  alias ll='exa -lga --color=always --group-directories-first'  # long format
+  alias l='exa -lg --color=always --group-directories-first'  # long format
   alias lt='exa -aT --color=always --group-directories-first' # tree listing
 elif [[ "$OSTYPE" == "darwin"* ]]; then # for MacOSX and bsd version of ls
   alias ls="ls -G"
@@ -708,12 +708,14 @@ if (( $+commands[git] )); then
   ealias gs='git status'
   ealias gl='git ln'
   ealias gr='git remotes'
+  ealias gco='git checkout'
+  ealias gcob='git checkout -b'
   ealias gc='git commit'
   ealias gca='git commit -a'
   ealias gcm='git commit -m'
   ealias gcam='git commit -am'
-  ealias gdic='git diff --cached'
   ealias gdi='git diff'
+  ealias gdic='git diff --cached'
 
   if (( $+commands[fzf] )); then
     gm() {
