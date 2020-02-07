@@ -543,7 +543,7 @@ function md() {
 alias grep='grep --color=auto'
 alias df='df -h' # disk free, in Gigabytes, not bytes
 alias du='du -h -c' # calculate disk usage for a folder
-alias rmf="rm -rf"
+ealias rmf="rm -rf"
 
 ealias ka="killall"
 ealias sdn="sudo shutdown -h now"
@@ -562,8 +562,8 @@ ealias ..='cd ..'
 ealias ...='cd ../..'
 ealias ....="cd ../../.."
 ealias .....="cd ../../../.."
-alias cd.='\cd ..'
-alias cd..='\cd ..'
+alias cd.='cd ..'
+alias cd..='cd ..'
 
 # Changing "ls" to "exa" if "exa" is installed
 if (( $+commands[exa] )); then
@@ -622,11 +622,15 @@ if (( $+commands[grc] )); then
   [[ -f /etc/grc.conf ]]           && grc_conf='/etc/grc.conf'
   [[ -f /usr/local/etc/grc.conf ]] && grc_conf='/usr/local/etc/grc.conf'
   if [ ! -z "$grc_conf" ]; then
-      for cmd in $(grep '^# ' "$grc_conf" | cut -f 2 -d ' '); do
-          if (( $+commands[$cmd] )) &&  [ "$cmd" != "ls" ]; then
-              alias $cmd="grc --colour=auto $cmd"
-          fi
-      done
+    for cmd in $(grep '^# ' "$grc_conf" | cut -f 2 -d ' '); do
+      if (( $+commands[$cmd] )) && [ "$cmd" != "ls" ]; then
+        if (( $+aliases[$cmd] )); then
+          alias $cmd="grc --colour=auto $aliases[$cmd]"
+        else
+          alias $cmd="grc --colour=auto $cmd"
+        fi
+      fi
+    done
   fi
   unset grc_conf cmd
 fi
