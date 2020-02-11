@@ -49,6 +49,10 @@ set pastetoggle=<f5>
 " vim-signify: default updatetime 4000ms is not good for async update
 set updatetime=100
 
+" highlight cursor line
+set cursorline
+" set cursorcolumn
+
 " }}}
 " -------- Plugins {{{
 " --------------------
@@ -82,6 +86,7 @@ Plug 'tpope/vim-fugitive'
 Plug 'mhinz/vim-signify'
 
 " Code/text tools
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'tpope/vim-surround'
 Plug 'easymotion/vim-easymotion'
 Plug 'tpope/vim-commentary'
@@ -103,10 +108,17 @@ Plug 'junegunn/limelight.vim'
 call plug#end()            " required
 
 " Automatically install missing plugins on startup
-autocmd VimEnter *
-  \  if len(filter(values(g:plugs), '!isdirectory(v:val.dir)'))
-  \|   PlugInstall --sync | q
-  \| endif
+autocmd VimEnter * 
+      \  if len(filter(values(g:plugs), '!isdirectory(v:val.dir)'))
+      \|   PlugInstall --sync | q
+      \| endif
+
+" }}}
+" -------- Coc {{{
+" ----------------
+
+" Use <c-space> to trigger completion.
+inoremap <silent><expr> <c-space> coc#refresh()
 
 " }}}
 " -------- Appearance {{{
@@ -130,8 +142,6 @@ colorscheme gruvbox
 
 " set airline theme
 let g:airline_theme='gruvbox'
-" enable airline powerline symbols
-" let g:airline_powerline_fonts = 1
 let g:airline#extensions#tabline#enabled = 1
 
 " DEPRECATED: use 'yob' to toggle theme (from unimpaired plugin)
@@ -215,6 +225,21 @@ hi FoldColumn cterm=bold ctermfg=DarkBlue ctermbg=none
 nnoremap <leader>z zMzvzz
 
 "}}}
+" -------- Aliases {{{
+" --------------------
+
+" Alias for write and quit
+nnoremap <leader>wq :wq<CR>
+nnoremap <leader>q :q<CR>
+nnoremap <leader>W :w<CR>
+
+" Alias replace all to S
+nnoremap S :%s//g<Left><Left>
+
+" Vertically center document when entering insert mode
+autocmd InsertEnter * norm zz
+
+" }}}
 " -------- Motions and Moves {{{
 " ------------------------------
 " Go to beginning or end of line
