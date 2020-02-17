@@ -94,6 +94,7 @@ Plug 'tpope/vim-surround'
 Plug 'easymotion/vim-easymotion'
 Plug 'tpope/vim-commentary'
 Plug 'terryma/vim-multiple-cursors'
+Plug 'vim-scripts/argtextobj.vim'
 
 " File finders
 Plug 'junegunn/fzf', { 'dir': '~/.fzf' }
@@ -276,7 +277,7 @@ nnoremap <leader>W :w<CR>
 nnoremap S :%s//g<Left><Left>
 
 " Vertically center document when entering insert mode
-" autocmd InsertEnter * norm zz
+autocmd InsertEnter * norm zz
 
 " }}}
 " -------- Motions and Moves {{{
