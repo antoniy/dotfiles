@@ -41,6 +41,7 @@ map g top
 map D delete
 map a push %mkdir<space>
 map r push :rename<space>
+map R $lf -remote "send $id push :rename<space>$f"
 map <enter> shell
 map R reload
 map x $$f
