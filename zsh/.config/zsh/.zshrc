@@ -7,6 +7,8 @@ if [[ -e $ZDOTDIR/.zshrc_local ]]; then
     source $ZDOTDIR/.zshrc_local
 fi
 
+export LC_ALL=en_US.UTF-8
+
 # Use neovim for vim if present.
 (( $+commands[nvim] )) && alias vim="nvim" vimdiff="nvim -d"
 

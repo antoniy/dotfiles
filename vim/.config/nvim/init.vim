@@ -97,6 +97,7 @@ Plug 'terryma/vim-multiple-cursors'
 Plug 'vim-scripts/argtextobj.vim'
 Plug 'vim-syntastic/syntastic'
 Plug 'majutsushi/tagbar'
+Plug 'alvan/vim-closetag'
 
 " File finders
 Plug 'junegunn/fzf', { 'dir': '~/.fzf' }
@@ -264,8 +265,17 @@ set foldmethod=marker
 hi Folded cterm=bold ctermfg=DarkBlue ctermbg=none
 hi FoldColumn cterm=bold ctermfg=DarkBlue ctermbg=none
 
-"refocus folds; close any other fold except the one that you are on
+" refocus folds; close any other fold except the one that you are on
 nnoremap <leader>z zMzvzz
+
+" automatic folding for xml
+augroup XML
+  autocmd!
+  autocmd FileType xml let g:xml_syntax_folding=1
+  autocmd FileType xml setlocal foldmethod=syntax fdn=2 fdl=1
+  autocmd FileType xml :syntax on
+  " autocmd FileType xml :%foldopen!
+augroup END
 
 "}}}
 " -------- Aliases {{{
@@ -375,4 +385,49 @@ map <leader>check :SyntasticCheck<CR>
 " -------- Tagbar {{{
 " -------------------
 nmap <F8> :TagbarToggle<CR>
+" }}}
+" -------- Closetag {{{
+" ---------------------
+
+" filenames like *.xml, *.html, *.xhtml, ...
+" These are the file extensions where this plugin is enabled.
+"
+let g:closetag_filenames = '*.html,*.xhtml,*.phtml,*.xml'
+
+" filenames like *.xml, *.xhtml, ...
+" This will make the list of non-closing tags self-closing in the specified files.
+"
+let g:closetag_xhtml_filenames = '*.xhtml,*.jsx,*.xml'
+
+" filetypes like xml, html, xhtml, ...
+" These are the file types where this plugin is enabled.
+"
+let g:closetag_filetypes = 'html,xhtml,phtml,xml'
+
+" filetypes like xml, xhtml, ...
+" This will make the list of non-closing tags self-closing in the specified files.
+"
+let g:closetag_xhtml_filetypes = 'xhtml,jsx,xml'
+
+" integer value [0|1]
+" This will make the list of non-closing tags case-sensitive (e.g. `<Link>` will be closed while `<link>` won't.)
+"
+let g:closetag_emptyTags_caseSensitive = 1
+
+" dict
+" Disables auto-close if not in a "valid" region (based on filetype)
+"
+let g:closetag_regions = {
+    \ 'typescript.tsx': 'jsxRegion,tsxRegion',
+    \ 'javascript.jsx': 'jsxRegion',
+    \ }
+
+" Shortcut for closing tags, default is '>'
+"
+let g:closetag_shortcut = '>'
+
+" Add > at current position without closing the current tag, default is ''
+"
+let g:closetag_close_shortcut = '<leader>>'
+
 " }}}
