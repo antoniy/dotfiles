@@ -751,26 +751,26 @@ fi
 # tm - create new tmux session, or switch to existing one. Works from within tmux too. (@bag-man)
 # `tm` will allow you to select your tmux session via fzf.
 # `tm irc` will attach to the irc session (if it exists), else it will create it.
-(( $+commands[tmux] )) && \
-  tm() {
-    [[ -n "$TMUX" ]] && change="switch-client" || change="attach-session"
-    if [ $1 ]; then
-      tmux $change -t "$1" 2>/dev/null || (tmux new-session -d -s $1 && tmux $change -t "$1"); return
-    fi
-    session=$(tmux list-sessions -F "#{session_name}" 2>/dev/null | fzf --exit-0) &&  tmux $change -t "$session" || echo "No sessions found."
-  }
-
-# # Tmux attach
 # (( $+commands[tmux] )) && \
 #   tm() {
-#     [[ $TMUX ]] && return 1 # already in tmux session
-#     # if session name param is specified - try to attach to it, 
-#     # otherwise create session with that name
-#     [[ -n $1 ]] && (tmux attach-session -t $1 || tmux new-session -s $1) && return 0
-#     # if no name is specified - attach to any session
-#     # if none exist - create session with name default
-#     tmux attach-session || tmux new-session -s default
+#     [[ -n "$TMUX" ]] && change="switch-client" || change="attach-session"
+#     if [ $1 ]; then
+#       tmux $change -t "$1" 2>/dev/null || (tmux new-session -d -s $1 && tmux $change -t "$1"); return
+#     fi
+#     session=$(tmux list-sessions -F "#{session_name}" 2>/dev/null | fzf --exit-0) &&  tmux $change -t "$session" || echo "No sessions found."
 #   }
+
+# Tmux attach
+(( $+commands[tmux] )) && \
+  tm() {
+    [[ $TMUX ]] && return 1 # already in tmux session
+    # if session name param is specified - try to attach to it, 
+    # otherwise create session with that name
+    [[ -n $1 ]] && (tmux attach-session -t $1 || tmux new-session -s $1) && return 0
+    # if no name is specified - attach to any session
+    # if none exist - create session with name default
+    tmux attach-session || tmux new-session -s default
+  }
 
 # Misc tools
 (( $+commands[youtube-viewer] )) && ealias ytv="youtube-viewer"
