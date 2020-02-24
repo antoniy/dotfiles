@@ -95,11 +95,14 @@ Plug 'easymotion/vim-easymotion'
 Plug 'tpope/vim-commentary'
 Plug 'terryma/vim-multiple-cursors'
 Plug 'vim-scripts/argtextobj.vim'
+Plug 'vim-syntastic/syntastic'
+Plug 'majutsushi/tagbar'
 
 " File finders
 Plug 'junegunn/fzf', { 'dir': '~/.fzf' }
 Plug 'junegunn/fzf.vim'
 Plug 'junegunn/gv.vim'
+Plug 'preservim/nerdtree'
 
 " Misc
 Plug 'christoomey/vim-tmux-navigator'
@@ -310,12 +313,15 @@ command! -bang -nargs=? -complete=dir ProjectFiles call fzf#vim#files('~/project
 command! -bang -nargs=? -complete=dir DotFiles call fzf#vim#files('~/.dotfiles/', <bang>0)
 
 " Show fuzzy picker for open buffers, recently editted files and files in home tree
-nnoremap <silent> <leader>b :Buffers<CR>
+nnoremap <silent> <leader>e :Buffers<CR>
 nnoremap <silent> <leader>h :History<CR>
 nnoremap <silent> <leader><leader>f :Files<CR>
 nnoremap <silent> <leader><leader>g :GFiles<CR>
 nnoremap <silent> <leader><leader>p :ProjectFiles<CR>
 nnoremap <silent> <leader><leader>d :DotFiles<CR>
+
+" Nerdtree
+map <leader>n :NERDTreeToggle<CR>
 
 " }}}
 " -------- Distraction free mode {{{
@@ -346,4 +352,27 @@ autocmd! User GoyoLeave Limelight!
 "             \       'ЯВЕРТЪУИОПШЩАСДФГХЙКЛ:"ЗѝЦЖБНМ„“?Ч@№$€§Ю'},
 "             \ }
 " endif
+" }}}
+" -------- Syntastic {{{
+" ----------------------
+set statusline+=%#warningmsg#
+set statusline+=%{SyntasticStatuslineFlag()}
+set statusline+=%*
+
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_auto_loc_list = 1
+let g:syntastic_check_on_open = 0
+let g:syntastic_check_on_wq = 0
+
+let g:syntastic_mode_map = {
+      \ "mode": "active",
+      \ "active_filetypes": [],
+      \ "passive_filetypes": ["java"] }
+
+map <leader>check :SyntasticCheck<CR>
+
+" }}}
+" -------- Tagbar {{{
+" -------------------
+nmap <F8> :TagbarToggle<CR>
 " }}}
