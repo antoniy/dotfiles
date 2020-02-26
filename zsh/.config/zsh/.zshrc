@@ -806,8 +806,8 @@ if (( $+commands[mvn] )); then
 fi
 
 if (( $+commands[wg] && $+commands[wg-quick] )); then
-  ealias vpnup="sudo wg-quick up wg0"
-  ealias vpndown="sudo wg-quick down wg0"
+  ealias vpnu="sudo wg-quick up wg0"
+  ealias vpnd="sudo wg-quick down wg0"
   ealias vpns="sudo wg"
 fi
 
@@ -816,6 +816,8 @@ fi
 
 (( $+commands[unflac] )) &&
   alias unflacva='unflac -n "{{- printf .Input.TrackNumberFmt .Track.Number}}. {{.Track.Performer}} - {{.Track.Title | Elem}}"'
+
+(( $+commands[speedtest-cli] )) && ealias spt="speedtest-cli --bytes --simple"
 # }}}
 # -------- Pacman Trap {{{
 # ------------------------
