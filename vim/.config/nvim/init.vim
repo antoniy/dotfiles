@@ -312,6 +312,9 @@ map gn :bn<cr>
 map gp :bp<cr>
 map gd :bd<cr>
 
+" When typing jj in insert mode go to normal mode
+imap jj <esc>
+
 " }}}
 " -------- Git {{{
 " ----------------
