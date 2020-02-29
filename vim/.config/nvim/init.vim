@@ -87,6 +87,7 @@ Plug 'sheerun/vim-polyglot'
 " Git 
 Plug 'tpope/vim-fugitive'
 Plug 'airblade/vim-gitgutter'
+Plug 'rhysd/git-messenger.vim'
 
 " Code/text tools
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
@@ -335,6 +336,12 @@ xmap ah <Plug>(GitGutterTextObjectOuterVisual)
 " gitgutter#fold#foldtext():  +-- 45 lines (*): abcdef
 set foldtext=gitgutter#fold#foldtext()
 
+" git-messenger change of binding - use it 2 times to move focus into popup
+" window. Use ? to see options for the popup window.
+nmap <C-w>m <Plug>(git-messenger)
+
+" fugitive
+nmap <silent> <leader>gg :G<CR>
 " }}}
 " -------- Find Tools {{{
 " -----------------------
@@ -355,7 +362,7 @@ nnoremap <silent> <leader><leader>d :DotFiles<CR>
 map <leader>n :NERDTreeToggle<CR>
 let NERDTreeWinSize=40
 let NERDTreeIgnore=['\.pyc','\~$','\.swo$','\.swp$','\.git$','\.svn','\.idea$',
-    \ '\.bzr','\.DS_Store','\.sass-cache','\.vagrant']
+      \ '\.bzr','\.DS_Store','\.sass-cache','\.vagrant']
 let NERDTreeQuitOnOpen=1
 let NERDTreeDirArrows=1
 
