@@ -193,6 +193,11 @@ add-zsh-hook precmd set_prompt
 # -------- Plugins {{{
 # --------------------
 
+# Install tmux tpm plugin manager
+if [[ $commands[tmux] && ! -d ~/.tmux/plugins/tpm ]]; then
+  git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+fi
+
 # Load fzf
 if [ ! -d ~/.fzf ]; then
   git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
@@ -814,10 +819,13 @@ fi
 (( $+commands[reflector] )) && 
   alias reflect='sudo reflector --latest 200 --threads 8 --verbose --protocol http --protocol https --sort rate --save /etc/pacman.d/mirrorlist'
 
+# Unflac alias for Various Artists albums - include track performer in the audio file names
 (( $+commands[unflac] )) &&
   alias unflacva='unflac -n "{{- printf .Input.TrackNumberFmt .Track.Number}}. {{.Track.Performer}} - {{.Track.Title | Elem}}"'
 
 (( $+commands[speedtest-cli] )) && ealias spt="speedtest-cli --bytes --simple"
+
+(( $+commands[nnn] )) && alias n="nnn"
 # }}}
 # -------- Pacman Trap {{{
 # ------------------------
