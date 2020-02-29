@@ -295,15 +295,12 @@ autocmd InsertEnter * norm zz
 " }}}
 " -------- Motions and Moves {{{
 " ------------------------------
-" Go to beginning or end of line
-noremap H ^
-noremap L $
 
 " keep search matches in the middle of the window.
 nnoremap n nzzzv
 nnoremap N Nzzzv
 
-" clear matching after search
+" clear matches after search
 noremap <silent> ,, :noh<cr>:call clearmatches()<cr>
 
 " Don't move on *
