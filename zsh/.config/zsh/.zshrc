@@ -31,7 +31,7 @@ setopt local_options
 setopt local_traps
 setopt prompt_subst
 
-HISTFILE="${HISTFILE:-${ZDOTDIR:-$HOME}/.zhistory}"  # The path to the history file.
+HISTFILE="${ZDOTDIR:-$HOME}/.zhistory"  # The path to the history file.
 HISTSIZE=50000
 SAVEHIST=$HISTSIZE
 
