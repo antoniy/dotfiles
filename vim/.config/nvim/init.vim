@@ -332,6 +332,11 @@ nnoremap <silent> <leader><leader>d :DotFiles<CR>
 
 " Nerdtree
 map <leader>n :NERDTreeToggle<CR>
+let NERDTreeWinSize=40
+let NERDTreeIgnore=['\.pyc','\~$','\.swo$','\.swp$','\.git$','\.svn','\.idea$',
+    \ '\.bzr','\.DS_Store','\.sass-cache','\.vagrant']
+let NERDTreeQuitOnOpen=1
+let NERDTreeDirArrows=1
 
 " }}}
 " -------- Distraction free mode {{{
