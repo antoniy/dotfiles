@@ -86,7 +86,7 @@ Plug 'sheerun/vim-polyglot'
 
 " Git 
 Plug 'tpope/vim-fugitive'
-Plug 'mhinz/vim-signify'
+Plug 'airblade/vim-gitgutter'
 
 " Code/text tools
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
@@ -310,6 +310,30 @@ nnoremap * *<c-o>
 map gn :bn<cr>
 map gp :bp<cr>
 map gd :bd<cr>
+
+" }}}
+" -------- Git {{{
+" ----------------
+
+let g:gitgutter_highlight_linenrs = 1
+
+nmap ]h <Plug>(GitGutterNextHunk)
+nmap [h <Plug>(GitGutterPrevHunk)
+nmap ghs <Plug>(GitGutterStageHunk)
+nmap ghu <Plug>(GitGutterUndoHunk)
+nmap ghp <Plug>(GitGutterPreviewHunk)
+
+" Remaps git gutter text objects from 'c' (default) to 'h'
+omap ih <Plug>(GitGutterTextObjectInnerPending)
+omap ah <Plug>(GitGutterTextObjectOuterPending)
+xmap ih <Plug>(GitGutterTextObjectInnerVisual)
+xmap ah <Plug>(GitGutterTextObjectOuterVisual)
+
+" Mark folding text that there are changes
+" Example:
+" Default foldtext():         +-- 45 lines: abcdef
+" gitgutter#fold#foldtext():  +-- 45 lines (*): abcdef
+set foldtext=gitgutter#fold#foldtext()
 
 " }}}
 " -------- Find Tools {{{
