@@ -1,6 +1,4 @@
-" -------- General settings {{{
-" -----------------------------
-" Read documentation about each option by executing :h <option>
+" -------- General settings {{{1
 
 let mapleader = " "
 
@@ -56,9 +54,7 @@ set cursorline
 " set cmdheight=2
 set signcolumn=yes
 
-" }}}
-" -------- Plugins {{{
-" --------------------
+" -------- Plugins {{{1
 
 " Auto install VimPlug if missing
 if empty(glob('~/.local/share/nvim/site/autoload/plug.vim'))
@@ -122,9 +118,7 @@ autocmd VimEnter *
       \|   PlugInstall --sync | q
       \| endif
 
-" }}}
-" -------- Coc {{{
-" ----------------
+" -------- Coc {{{1
 
 " Use tab for trigger completion with characters ahead and navigate.
 " Use command ':verbose imap <tab>' to make sure tab is not mapped by other plugin.
@@ -203,9 +197,8 @@ xmap if <Plug>(coc-funcobj-i)
 xmap af <Plug>(coc-funcobj-a)
 omap if <Plug>(coc-funcobj-i)
 omap af <Plug>(coc-funcobj-a)
-" }}}
-" -------- Appearance {{{
-" -----------------------
+
+" -------- Appearance {{{1
 
 " enable syntax highlighting
 syntax on
@@ -240,9 +233,8 @@ let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
 let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
 set termguicolors
 
-" }}}
-" -------- Config Reload {{{
-" --------------------------
+" -------- Config Reload {{{1
+
 " watch for changes then auto source vimrc
 " http://stackoverflow.com/a/2403926
 augroup myvimrc
@@ -254,18 +246,16 @@ augroup END
 " noremap <leader>r :so %<CR>
 noremap <leader>reload :so $MYVIMRC<CR>
 
-" }}}
-" -------- Splits {{{
-" -----------------------------------
+" -------- Splits {{{1
+
 set splitbelow splitright         " Splits open at the bottom and right, which is non-retarded, unlike vim defaults.
 
 " Ctrl+W + {S,V} split whole screen horizontal/vertical
 nnoremap <C-W>S :botright new<CR>
 nnoremap <C-W>V :botright vnew<CR>
 
-" }}}
-" -------- Markdown {{{
-" -----------------------------------------
+" -------- Markdown {{{1
+
 " https://github.com/iamcco/markdown-preview.nvim
 " https://github.com/plasticboy/vim-markdown
 
@@ -294,9 +284,8 @@ map <leader>l diWa[]() <ESC>F[pf(
 " set a shortcut for our general wiki index
 nmap <silent> <leader>ww :e $HOME/.wiki/Home.md<CR>
 
-" }}}
-" -------- Folding {{{
-" --------------------------------------------------
+" -------- Folding {{{1
+
 " enable folding; http://vim.wikia.com/wiki/Folding
 set foldmethod=marker
 
@@ -316,9 +305,7 @@ augroup XML
   " autocmd FileType xml :%foldopen!
 augroup END
 
-"}}}
-" -------- Aliases {{{
-" --------------------
+" -------- Aliases {{{1
 
 " Alias for write and quit
 nnoremap <leader>wq :wq<CR>
@@ -331,9 +318,7 @@ nnoremap S :%s//g<Left><Left>
 " Vertically center document when entering insert mode
 autocmd InsertEnter * norm zz
 
-" }}}
-" -------- Motions and Moves {{{
-" ------------------------------
+" -------- Motions and Moves {{{1
 
 " keep search matches in the middle of the window.
 nnoremap n nzzzv
@@ -353,9 +338,7 @@ map gp :bp<cr>
 " When typing jj in insert mode go to normal mode
 imap jj <esc>
 
-" }}}
-" -------- Git {{{
-" ----------------
+" -------- Git {{{1
 
 let g:gitgutter_highlight_linenrs = 1
 
@@ -383,9 +366,8 @@ nmap <C-w>m <Plug>(git-messenger)
 
 " fugitive
 nmap <silent> <leader>gg :G<CR>
-" }}}
-" -------- Find Tools {{{
-" -----------------------
+
+" -------- Find Tools {{{1
 
 " Also add a custom ProjectFiles command which search only in ~/projects directory.
 command! -bang -nargs=? -complete=dir ProjectFiles call fzf#vim#files('~/projects/', <bang>0)
@@ -410,9 +392,8 @@ let NERDTreeIgnore=['\.pyc','\~$','\.swo$','\.swp$','\.git$','\.svn','\.idea$',
 let NERDTreeQuitOnOpen=1
 let NERDTreeDirArrows=1
 
-" }}}
-" -------- Distraction free mode {{{
-" ----------------------------------
+" -------- Distraction free mode {{{1
+
 map <silent> <leader>focus :Goyo<CR>
 
 let g:goyo_width = '70%'
@@ -420,8 +401,7 @@ let g:goyo_width = '70%'
 autocmd! User GoyoEnter Limelight
 autocmd! User GoyoLeave Limelight!
 
-"}}}
-" -------- Keyboard Layout {{{
+" -------- Keyboard Layout {{{1
 
 " if has("mac")
 "   " xkbswitch-macos - https://github.com/myshov/xkbswitch-macosx
@@ -439,9 +419,9 @@ autocmd! User GoyoLeave Limelight!
 "             \       'ЯВЕРТЪУИОПШЩАСДФГХЙКЛ:"ЗѝЦЖБНМ„“?Ч@№$€§Ю'},
 "             \ }
 " endif
-" }}}
-" -------- Syntastic {{{
-" ----------------------
+
+" -------- Syntastic {{{1
+
 set statusline+=%#warningmsg#
 set statusline+=%{SyntasticStatuslineFlag()}
 set statusline+=%*
@@ -458,13 +438,11 @@ let g:syntastic_mode_map = {
 
 map <leader>check :SyntasticCheck<CR>
 
-" }}}
-" -------- Tagbar {{{
-" -------------------
+" -------- Tagbar {{{1
+
 nmap <F8> :TagbarToggle<CR>
-" }}}
-" -------- Closetag {{{
-" ---------------------
+
+" -------- Closetag {{{1
 
 " filenames like *.xml, *.html, *.xhtml, ...
 " These are the file extensions where this plugin is enabled.
@@ -507,4 +485,3 @@ let g:closetag_shortcut = '>'
 "
 let g:closetag_close_shortcut = '<leader>>'
 
-" }}}
