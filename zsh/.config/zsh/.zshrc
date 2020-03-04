@@ -1,5 +1,4 @@
-# -------- General {{{
-# --------------------
+# -------- General {{{1
 
 ZSH_CONFIG="$ZDOTDIR/.zshrc"
 
@@ -20,9 +19,7 @@ export EDITOR='nvim'
 
 export GPG_TTY=$(tty)
 
-# }}}
-# -------- ZSH Config {{{
-# -----------------------
+# -------- ZSH Config {{{1
 
 setopt no_bg_nice
 setopt no_hup
@@ -72,9 +69,7 @@ autoload -U zmv
 # load colors function - used for prompt coloring
 autoload -U colors && colors
 
-# }}}
-# -------- Vim Mode {{{
-# ---------------------
+# -------- Vim Mode {{{1
 
 # Updates editor information when the keymap changes.
 function zle-keymap-select() {
@@ -152,8 +147,7 @@ echo -ne '\e[6 q'
 preexec() { echo -ne '\e[6 q' ;}
 
 # }}}
-# -------- Prompt {{{
-# -------------------
+# -------- Prompt {{{1
 
 # Reference for colors: http://stackoverflow.com/questions/689765/how-can-i-change-the-color-of-my-prompt-in-zsh-different-from-normal-text
 
@@ -189,9 +183,7 @@ set_prompt() {
 autoload -Uz add-zsh-hook
 add-zsh-hook precmd set_prompt
 
-# }}}
-# -------- Plugins {{{
-# --------------------
+# -------- Plugins {{{1
 
 # Install tmux tpm plugin manager
 if [[ $commands[tmux] && ! -d ~/.tmux/plugins/tpm ]]; then
@@ -268,8 +260,7 @@ bindkey -M vicmd '^[k' history-substring-search-up
 bindkey -M vicmd '^[j' history-substring-search-down
 
 # }}}
-# -------- Completions {{{
-# ------------------------
+# -------- Completions {{{1
 
 # If there are no completions, try to correct minor typos in the input.
 zstyle ':completion:*' completer _complete _correct
@@ -325,9 +316,7 @@ bindkey -M menuselect 'k' vi-up-line-or-history
 bindkey -M menuselect 'l' vi-forward-char
 bindkey -v '^?' backward-delete-char
 
-# }}}
-# -------- FZF {{{
-# ----------------
+# -------- FZF {{{1
 
 if (( $+commands[fzf] )); then
   FZF_FILE_HIGHLIGHTER='cat'
@@ -397,9 +386,7 @@ if (( $+commands[fzf] )); then
 
 fi
 
-# }}}
-# -------- Functions {{{
-# ----------------------
+# -------- Functions {{{1
 
 # Trim functions
 function ltrim() { sed 's/^\s\+//g' }
@@ -423,8 +410,7 @@ function pet-add-prev() {
   sh -c "pet new `printf %q "$PREV"`"
 }
 
-# }}}
-# -------- Color Definitions {{{
+# -------- Color Definitions {{{1
 # Reset
 Color_Off='\033[0m'       # Text Reset
 
@@ -497,9 +483,8 @@ On_IBlue='\033[0;104m'    # Blue
 On_IPurple='\033[0;105m'  # Purple
 On_ICyan='\033[0;106m'    # Cyan
 On_IWhite='\033[0;107m'   # White
-# }}}
-# -------- Aliases Expansion Functions {{{
-# -----------------------------------------
+# -------- Aliases {{{1
+# -------- Aliases: Expansion Functions {{{
 
 # array with expandable aliases
 typeset -a ealiases
@@ -529,9 +514,7 @@ zle -N expand-alias
 
 bindkey " " expand-alias
 
-# }}}
-# -------- Aliases: General {{{
-# ---------------------------
+# -------- Aliases: General {{{2
 
 alias reload!="source $ZSH_CONFIG"
 
@@ -617,9 +600,7 @@ wd() {
 
 alias external-ip="dig +short myip.opendns.com @resolver1.opendns.com"
 
-# }}}
-# -------- Aliases: Colors {{{
-# ----------------------------
+# -------- Aliases: Colors {{{2
 
 # Colorize commands when possible.
 alias grep="grep --color=auto"
@@ -645,9 +626,7 @@ fi
 
 (( $+commands[bat] )) && alias cat="bat --plain --wrap character"
 
-# }}}
-# -------- Aliases: Suffix/Extension {{{
-# --------------------------------------
+# -------- Aliases: Suffix/Extension {{{2
 
 # starts one or multiple args as programs in background
 background() {
@@ -676,9 +655,7 @@ alias -s {md,txt,TXT,java,xml,json,js,go,kt,conf,cfg}=$EDITOR
 (( $+commands[tar]         )) && alias -s {bz2,gz,tgz,TGZ}='tar -tf'
 (( $+commands[libreoffice] )) && alias -s {ods,ODS,odt,ODT,odp,ODP,doc,DOC,docx,DOCX,xls,XLS,xlsx,XLSX,xlsm,XLSM,ppt,PPT,pptx,PPTX,csv,CSV}='background libreoffice'
 
-# }}}
-# -------- Aliases: Global  {{{
-# -----------------------------
+# -------- Aliases: Global  {{{2
 # Global alias are those aliases that can be used in more than one command. You can use it more
 # than once in a single command or use it anywhere within the command as it fits, except at the
 # very beginning.
@@ -703,9 +680,7 @@ ealias -g ...="../.."
 ealias -g ....="../../.."
 ealias -g .....="../../../.."
 
-# }}}
-# -------- Aliases: Git {{{
-# -------------------------
+# -------- Aliases: Git {{{2
 
 if (( $+commands[git] )); then
   (( $+commands[hub] )) && alias git='hub'
@@ -751,9 +726,7 @@ if (( $+commands[git] )); then
   fi
 fi
 
-# }}}
-# -------- Aliases: Tools {{{
-# ---------------------------
+# -------- Aliases: Tools {{{2
 
 # tm - create new tmux session, or switch to existing one. Works from within tmux too. (@bag-man)
 # `tm` will allow you to select your tmux session via fzf.
@@ -826,9 +799,7 @@ fi
 (( $+commands[speedtest-cli] )) && ealias spt="speedtest-cli --bytes --simple"
 
 (( $+commands[nnn] )) && alias n="nnn"
-# }}}
-# -------- Pacman Trap {{{
-# ------------------------
+# -------- Pacman Trap {{{1
 # from https://wiki.archlinux.org/index.php/Zsh#On-demand_rehash
 # This will solve the problem of zsh automatically rehashes after package installation
 # and this way the new binary will be visible in PATH automatically.
@@ -850,4 +821,3 @@ catch_signal_usr1() {
   rehash
 }
 trap catch_signal_usr1 USR1
-# }}}
