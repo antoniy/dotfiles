@@ -159,31 +159,30 @@ preexec() { echo -ne '\e[6 q' ;}
 # Reference for colors: http://stackoverflow.com/questions/689765/how-can-i-change-the-color-of-my-prompt-in-zsh-different-from-normal-text
 
 _is_ssh() {
-    [[ -n "${SSH_CONNECTION-}${SSH_CLIENT-}${SSH_TTY-}" ]]
+  [[ -n "${SSH_CONNECTION-}${SSH_CLIENT-}${SSH_TTY-}" ]]
 }
 
 set_prompt() {
+  # [
+  # PS1="%{$fg[white]%}%{$reset_color%}"
 
-    # [
-    # PS1="%{$fg[white]%}%{$reset_color%}"
+  local host=''
+  _is_ssh && host=" at %F{yellow}%m%{$reset_color%}"
 
-    local host=''
-    _is_ssh && host=" at %F{yellow}%m%{$reset_color%}"
+  # Path: http://stevelosh.com/blog/2010/02/my-extravagant-zsh-prompt/
+  PS1="%{$fg_bold[cyan]%}${PWD/#$HOME/~}%{$reset_color%}"
 
-    # Path: http://stevelosh.com/blog/2010/02/my-extravagant-zsh-prompt/
-    PS1="%{$fg_bold[cyan]%}${PWD/#$HOME/~}%{$reset_color%}"
+  # Git
+  # Note: don't show git prompt when we're are in $HOME dotfiles repo. 
+  # The git repo there is our dotfiles so let's not make a prompt mess in our $HOME.
+  if [[ $(git rev-parse --absolute-git-dir 2> /dev/null) ]]; then
+    PS1+=" %{$fg[green]%} $(git rev-parse --abbrev-ref HEAD 2> /dev/null)%{$reset_color%}"
+  fi
 
-    # Git
-    # Note: don't show git prompt when we're are in $HOME dotfiles repo. 
-    # The git repo there is our dotfiles so let's not make a prompt mess in our $HOME.
-    if [[ $(git rev-parse --absolute-git-dir 2> /dev/null) ]]; then
-        PS1+=" %{$fg[green]%} $(git rev-parse --abbrev-ref HEAD 2> /dev/null)%{$reset_color%}"
-    fi
-
-    # ]:
-    local symbol="❯"
-    [[ $EUID == 0 ]] && symbol="#"
-    PS1+="$host%{$fg[magenta]%} $symbol %{$reset_color%}% "
+  # ]:
+  local symbol="❯"
+  [[ $EUID == 0 ]] && symbol="#"
+  PS1+="$host%{$fg[magenta]%} $symbol %{$reset_color%}% "
 }
 
 # add prompt generator function to precmd hooks
@@ -191,7 +190,7 @@ autoload -Uz add-zsh-hook
 add-zsh-hook precmd set_prompt
 
 # -------- Plugins {{{1
-
+# -------- Initialize TPM (tmux plugin manager) {{{2
 # Install tmux tpm plugin manager
 if [[ $commands[tmux] && ! -d ~/.tmux/plugins/tpm ]]; then
   git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
@@ -209,50 +208,35 @@ else
   echo "File ~/.fzf.zsh is missing. Please reinstall fzf: ~/.fzf/install --all"
 fi
 
-# Initialize zinit plugin manager
+# -------- Initialize plugin manager {{{2
 if [[ ! -f $ZDOTDIR/.zinit/bin/zinit.zsh ]]; then
-    print -P "%F{33}▓▒░ %F{220}Installing DHARMA Initiative Plugin Manager (zdharma/zinit)…%f"
-    command mkdir -p $ZDOTDIR/.zinit
-    command git clone https://github.com/zdharma/zinit $ZDOTDIR/.zinit/bin && \
-        print -P "%F{33}▓▒░ %F{34}Installation successful.%F" || \
-        print -P "%F{160}▓▒░ The clone has failed.%F"
+  print -P "%F{33}▓▒░ %F{220}Installing DHARMA Initiative Plugin Manager (zdharma/zinit)…%f"
+  command mkdir -p $ZDOTDIR/.zinit
+  command git clone https://github.com/zdharma/zinit $ZDOTDIR/.zinit/bin && \
+    print -P "%F{33}▓▒░ %F{34}Installation successful.%F" || \
+    print -P "%F{160}▓▒░ The clone has failed.%F"
 fi
 source "$HOME/.config/zsh/.zinit/bin/zinit.zsh"
 autoload -Uz _zinit
 (( ${+_comps} )) && _comps[zinit]=_zinit
-# end initialization
 
+# -------- Plugin: zsh-autosuggestions {{{2
 export ZSH_AUTOSUGGEST_USE_ASYNC=1
 export ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 zinit ice wait lucid atload'_zsh_autosuggest_start'
 zinit light zsh-users/zsh-autosuggestions
 bindkey '^ ' autosuggest-accept # accept auto suggestion with Ctrl-Space
 
+# -------- Plugin: zsh-completions {{{2
 zinit ice wait lucid blockf atpull'zinit creinstall -q .'
 zinit light zsh-users/zsh-completions
 
+# -------- Plugin: zsh-history-substring-search {{{2
 # Substring search
 # enable fuzzy search: ab c will match *ab*c*
 HISTORY_SUBSTRING_SEARCH_FUZZY='true'
 zinit ice wait lucid
 zinit light zsh-users/zsh-history-substring-search
-
-zinit ice wait'2' lucid
-zinit light wfxr/forgit
-
-zinit ice wait lucid atinit"zpcompinit; zpcdreplay"
-zinit light zdharma/fast-syntax-highlighting
-
-zinit ice wait"2" lucid as"program" pick"bin/git-dsf"
-zinit load zdharma/zsh-diff-so-fancy
-
-FZF_MARKS_COMMAND="fzf --height 40% --reverse --preview-window right:50%:hidden"
-FZF_MARKS_JUMP='^O'
-zinit ice wait lucid
-zinit load urbainvaes/fzf-marks
-
-zinit ice wait'1' lucid trackbinds bindmap'\e\e -> ^F'
-zinit light laggardkernel/zsh-thefuck
 
 # Up/Down - trigger substring search in insert/command mode
 bindkey '^[[A' history-substring-search-up
@@ -265,6 +249,28 @@ bindkey '^[k' history-substring-search-up
 bindkey '^[j' history-substring-search-down
 bindkey -M vicmd '^[k' history-substring-search-up
 bindkey -M vicmd '^[j' history-substring-search-down
+
+# -------- Plugin: forgit {{{2
+zinit ice wait'2' lucid
+zinit light wfxr/forgit
+
+# -------- Plugin: fast-syntax-highlighting {{{2
+zinit ice wait lucid atinit"zpcompinit; zpcdreplay"
+zinit light zdharma/fast-syntax-highlighting
+
+# -------- Plugin: zsh-diff-so-fancy {{{2
+zinit ice wait"2" lucid as"program" pick"bin/git-dsf"
+zinit load zdharma/zsh-diff-so-fancy
+
+# -------- Plugin: fzf-marks {{{2
+FZF_MARKS_COMMAND="fzf --height 40% --reverse --preview-window right:50%:hidden"
+FZF_MARKS_JUMP='^O'
+zinit ice wait lucid
+zinit load urbainvaes/fzf-marks
+
+# -------- Plugin: zsh-thefuck {{{2
+zinit ice wait'1' lucid trackbinds bindmap'\e\e -> ^F'
+zinit light laggardkernel/zsh-thefuck
 
 # }}}
 # -------- Completions {{{1
