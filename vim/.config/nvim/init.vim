@@ -7,10 +7,6 @@
 "
 " -------- General settings {{{1
 
-let mapleader = " "
-
-map <leader>? :verbose map <CR><CR>
-
 set nocompatible                  " do not preserve compatibility with Vi
 set modifiable                    " buffer contents can be modified
 set encoding=utf-8                " default character encoding
@@ -60,6 +56,41 @@ set cursorline
 
 " set cmdheight=2
 set signcolumn=yes
+
+" -------- Mappings {{{1
+
+"---------------------------------------------------------------------------"
+" Commands \ Modes | Normal | Insert | Command | Visual | Select | Operator |
+"------------------|--------|--------|---------|--------|--------|----------|
+" map  / noremap   |    @   |   -    |    -    |   @    |   @    |    @     |
+" nmap / nnoremap  |    @   |   -    |    -    |   -    |   -    |    -     |
+" vmap / vnoremap  |    -   |   -    |    -    |   @    |   @    |    -     |
+" omap / onoremap  |    -   |   -    |    -    |   -    |   -    |    @     |
+" xmap / xnoremap  |    -   |   -    |    -    |   @    |   -    |    -     |
+" smap / snoremap  |    -   |   -    |    -    |   -    |   @    |    -     |
+" map! / noremap!  |    -   |   @    |    @    |   -    |   -    |    -     |
+" imap / inoremap  |    -   |   @    |    -    |   -    |   -    |    -     |
+" cmap / cnoremap  |    -   |   -    |    @    |   -    |   -    |    -     |
+"---------------------------------------------------------------------------"
+
+let mapleader = " "
+
+map <leader>? :verbose map <CR><CR>
+
+noremap! <C-F> <Right>
+noremap! <C-B> <Left>
+noremap! <C-D> <Del>
+
+cnoremap <C-A> <HOME>
+cnoremap <C-E> <END>
+cnoremap <C-P> <Up>
+cnoremap <C-N> <Down>
+
+" Changing window size.
+noremap <silent> <S-Left>  :<C-U>wincmd <<CR>
+noremap <silent> <S-Right> :<C-U>wincmd ><CR>
+noremap <silent> <S-Up>    :<C-U>wincmd -<CR>
+noremap <silent> <S-Down>  :<C-U>wincmd +<CR>
 
 " -------- Plugins {{{1
 
