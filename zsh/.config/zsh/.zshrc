@@ -812,6 +812,9 @@ fi
 (( $+commands[speedtest-cli] )) && ealias spt="speedtest-cli --bytes --simple"
 
 (( $+commands[nnn] )) && alias n="nnn"
+
+(( $+commands[beet] )) && ealias bei="beet import "
+
 # -------- Pacman Trap {{{1
 # from https://wiki.archlinux.org/index.php/Zsh#On-demand_rehash
 # This will solve the problem of zsh automatically rehashes after package installation
