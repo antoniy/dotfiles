@@ -8,6 +8,26 @@
 " -------- General settings {{{1
 
 set nocompatible                  " do not preserve compatibility with Vi
+
+" -------- OS Detection {{{2
+silent function! OSX()
+  return has('macunix')
+endfunction
+
+silent function! LINUX()
+    return has('unix') && !has('macunix') && !has('win32unix')
+endfunction
+
+silent function! WINDOWS()
+  return  (has('win16') || has('win32') || has('win64'))
+endfunction
+
+silent function! FREEBSD()
+  let s:uname = system("uname -s")
+  return (match(s:uname, 'FreeBSD') >= 0)
+endfunction
+" }}}
+
 set modifiable                    " buffer contents can be modified
 set encoding=utf-8                " default character encoding
 set autoread                      " detect when a file has been modified externally
@@ -38,7 +58,11 @@ set wildmenu                      " enable tab completion with suggestions when 
 set wildmode=longest,list,full    " settings for how to complete matched strings
 set modeline                    " vim reads the modeline to execute commands for the current file
 set timeoutlen=1000 ttimeoutlen=0 " timeoutlen is used for mapping delays, ttimoutlen - for key code delays. The purpose of this configuration is to eliminate the delay when we go from visual mode into insert mode.
-set clipboard=unnamedplus         " use system clipboard for copy/paste
+
+" if LINUX()
+  set clipboard+=unnamedplus         " use system clipboard for copy/paste
+" endif
+" set clipboard+=unnamed
 
 " better word wrapping: breaks at spaces or hyphens
 set formatoptions=l
@@ -141,12 +165,16 @@ Plug 'vim-scripts/argtextobj.vim'
 Plug 'vim-syntastic/syntastic'
 Plug 'majutsushi/tagbar'
 Plug 'alvan/vim-closetag'
+Plug 'vim-scripts/ReplaceWithRegister'
+Plug 'tpope/vim-repeat'
+Plug 'tpope/vim-speeddating'
 
 " File finders
 Plug 'junegunn/fzf', { 'dir': '~/.fzf' }
 Plug 'junegunn/fzf.vim'
 Plug 'junegunn/gv.vim'
 Plug 'preservim/nerdtree'
+Plug 'glacambre/firenvim', { 'do': { _ -> firenvim#install(0) } }
 
 " Misc
 Plug 'christoomey/vim-tmux-navigator'
@@ -359,7 +387,7 @@ nnoremap <leader>q :q<CR>
 nnoremap <leader>W :w<CR>
 
 " Alias replace all to S
-nnoremap S :%s//g<Left><Left>
+" nnoremap S :%s//g<Left><Left>
 
 " Vertically center document when entering insert mode
 autocmd InsertEnter * norm zz
@@ -484,6 +512,10 @@ let g:syntastic_mode_map = {
 
 map <leader>check :SyntasticCheck<CR>
 
+" -------- Firevim {{{1
+if exists('g:started_by_firenvim')
+  set background=light
+endif
 " -------- Tagbar {{{1
 
 nmap <F8> :TagbarToggle<CR>
