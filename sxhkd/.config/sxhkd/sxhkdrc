@@ -1,22 +1,24 @@
 # Terminal
-super + Return
-  $TERMINAL
+#super + Return
+#  $TERMINAL
 
 # Launcher
 alt + {_,shift +} q 
   { j4-dmenu-desktop, dmenu_run }
 
+ctrl + alt + Delete
+  i3lock -c 000000
 # Kill active window
-super + shift + q
-  xdo close
+#super + shift + q
+#  xdo close
 
 # Open default personal wiki
 super + shift + w
 	$TERMINAL -e nvim -c $HOME/.wiki/index.md
 
 # Open default browser in normal or private mode
-super + b ; { b, p }
-	$BROWSER {_, --private-window }
+#super + b ; { b, p }
+#	$BROWSER {_, --private-window }
 
 # Pick screenchot type
 shift + Print
@@ -39,8 +41,8 @@ super + {button4, button5}
   pactl set-sink-volume @DEFAULT_SINK@ { +2%,-2% }
 
 # Use pactl to adjust volume in PulseAudio
-super + {comma,period} 
-  pactl set-sink-volume @DEFAULT_SINK@ { -2%,+2% }
+# super + {comma,period} 
+#   pactl set-sink-volume @DEFAULT_SINK@ { -2%,+2% }
 
 XF86AudioRaiseVolume 
   pactl set-sink-volume @DEFAULT_SINK@ +10%
