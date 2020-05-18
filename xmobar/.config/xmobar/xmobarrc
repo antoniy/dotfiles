@@ -12,7 +12,7 @@ Config { font    = "xft:InconsolataLGC Nerd Font:pixelsize=12:antialias=true:hin
        , hideOnStart = False
        , allDesktops = True
        , persistent = True
-       , iconRoot = "~/.xmonad/xpm/"  -- default: "."
+       , iconRoot = "/home/antoniy/.xmonad/xpm/"  -- default: "."
        , commands = [ 
                       -- Time and date
                       Run Date "\xf133 %b %d %Y (%H:%M)" "date" 50
