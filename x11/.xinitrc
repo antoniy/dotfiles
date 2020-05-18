@@ -35,9 +35,9 @@ sxhkd -m 1 & # bind keys with sxhkd
 dunst & # notification daemon
 compton & # window decorator for transperancy etc.
 /usr/lib/geoclue-2.0/demos/agent & # geoclue agent to know current location for redshift sunset check
-$HOME/.config/polybar/launch.sh & # launch polybar
+# $HOME/.config/polybar/launch.sh & # launch polybar
 redsihft &> /dev/null & # change color temperature at sunset
 nm-applet & # network manager applet
 xbanish & # hide cursor when mouse pressed
 
-exec i3
+exec xmonad
