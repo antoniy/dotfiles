@@ -660,6 +660,7 @@ alias -s {md,txt,TXT,java,xml,json,js,go,kt,conf,cfg}=$EDITOR
 (( $+commands[vlc]         )) && alias -s {avi,AVI,mp4,MP4,mkv,MKV,mpeg,MPEG,mov,MOV}='background mpv'
 (( $+commands[mpv]         )) && alias -s {avi,AVI,mp4,MP4,mkv,MKV,mpeg,MPEG,mov,MOV}='background mpv'
 
+(( $+commands[brave]       )) && alias -s {html,HTML}='background brave'
 (( $+commands[chromium]    )) && alias -s {html,HTML}='background chromium'
 (( $+commands[firefox]     )) && alias -s {html,HTML}='background firefox'
 
