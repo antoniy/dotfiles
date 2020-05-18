@@ -182,6 +182,7 @@ Plug 'tpope/vim-eunuch'
 Plug 'tpope/vim-unimpaired'
 Plug 'junegunn/goyo.vim'
 Plug 'junegunn/limelight.vim'
+Plug 'ap/vim-css-color'
 " Plug 'lyokha/vim-xkbswitch'
 
 call plug#end()            " required
