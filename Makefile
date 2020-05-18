@@ -1,8 +1,8 @@
-default: config bat config-files git gnupg htop scripts tmux vim zsh
+default: config bat config-files git gnupg htop scripts tmux vim zsh alacritty
 
-linux: config bat compton config-files dunst git gnupg htop i3 lf mpv pcmanfm pet polybar scripts sxhkd systemd termite tmux vim x11 xfce4 zathura zsh
+linux: config bat compton config-files dunst git gnupg htop i3 lf mpv pcmanfm pet polybar scripts sxhkd systemd termite tmux vim x11 xfce4 zathura zsh alacritty xmonad xmobar
 
-darwin: config bat config-files git gnupg htop karabiner lf mpv pet scripts tmux vim zsh
+darwin: config bat config-files git gnupg htop karabiner lf mpv pet scripts tmux vim zsh alacritty
 
 bat: config
 	stow --no-fold -R bat
@@ -73,8 +73,17 @@ xfce4: config
 zathura: config
 	stow --no-fold -R zathura
 
+alacritty: config
+	stow --no-fold -R alacritty
+
 zsh: config
 	stow --no-fold -R zsh
+
+xmonad: config
+	stow --no-fold -R xmonad
+
+xmobar: config
+	stow --no-fold -R xmobar
 
 config: .stowrc
 
