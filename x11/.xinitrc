@@ -39,5 +39,6 @@ compton & # window decorator for transperancy etc.
 redsihft &> /dev/null & # change color temperature at sunset
 nm-applet & # network manager applet
 xbanish & # hide cursor when mouse pressed
+xsetroot -cursor_name left_ptr # set the cursor style to left ptr from an 'X'
 
 exec xmonad
