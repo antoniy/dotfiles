@@ -19,4 +19,5 @@ PCManFM File Manager     ~/.config/pcmanfm/default/pcmanfm.conf
 Termite    ~/.config/termite/config
 MPV Player    ~/.config/mpv/input.conf
 XMonad    ~/.xmonad/xmonad.hs
-XMobar    ~/.config/xmobar/xmobarrc
+XMobar0    ~/.config/xmobar/xmobarrc0
+XMobar1    ~/.config/xmobar/xmobarrc1
