@@ -175,6 +175,7 @@ Plug 'junegunn/fzf.vim'
 Plug 'junegunn/gv.vim'
 Plug 'preservim/nerdtree'
 Plug 'glacambre/firenvim', { 'do': { _ -> firenvim#install(0) } }
+Plug 'mcchrish/nnn.vim'
 
 " Misc
 Plug 'christoomey/vim-tmux-navigator'
@@ -182,7 +183,7 @@ Plug 'tpope/vim-eunuch'
 Plug 'tpope/vim-unimpaired'
 Plug 'junegunn/goyo.vim'
 Plug 'junegunn/limelight.vim'
-Plug 'ap/vim-css-color'
+Plug 'skammer/vim-css-color'
 " Plug 'lyokha/vim-xkbswitch'
 
 call plug#end()            " required
