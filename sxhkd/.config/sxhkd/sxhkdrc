@@ -29,8 +29,8 @@ super + shift + x
   prompt "Shutdown computer?" "sudo -A shutdown -h now"
 
 # Reboot
-super + shift + BackSpace
-  prompt "Reboot computer?" "sudo -A reboot"
+#super + shift + BackSpace
+#  prompt "Reboot computer?" "sudo -A reboot"
 
 # Kill Xorg
 super + shift + Escape
