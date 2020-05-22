@@ -788,6 +788,13 @@ if (( $+commands[systemctl] )); then
   ealias scu='systemctl --user'
 fi
 
+if (( $+commands[docker] )); then
+  ealias dk='docker'
+  ealias dkp='docker ps'
+  ealias dc='docker-compose'
+  ealias dcp='docker-compose pull'
+fi
+
 # Journalctl
 (( $+commands[journalctl] )) && ealias -g jou='sudo journalctl -b -n 200 -f'
 
