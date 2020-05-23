@@ -8,16 +8,6 @@ import qualified Data.Map        as M
 
 import XMonad.Config.Desktop
 
-import XMonad.Hooks.ManageDocks
-import XMonad.Hooks.DynamicLog
-import XMonad.Hooks.EwmhDesktops
-import XMonad.Hooks.ManageHelpers (isFullscreen, isDialog,  doFullFloat, doCenterFloat) 
-
-import XMonad.Util.Run(spawnPipe, hPutStrLn)
-import XMonad.Util.SpawnOnce(spawnOnce)
-import XMonad.Util.NamedScratchpad
-import XMonad.Util.EZConfig (additionalKeysP, mkKeymap)  
-
 import XMonad.Layout
 import XMonad.Layout.LimitWindows
 import XMonad.Layout.NoBorders (noBorders, smartBorders)
@@ -32,11 +22,24 @@ import XMonad.Layout.GridVariants (Grid(Grid))
 import XMonad.Layout.ToggleLayouts (toggleLayouts)
 import XMonad.Layout.PerWorkspace
 import XMonad.Layout.OneBig
+import XMonad.Layout.Reflect (reflectVert, reflectHoriz, REFLECTX(..), REFLECTY(..))
+
+import XMonad.Hooks.ManageDocks
+import XMonad.Hooks.DynamicLog
+import XMonad.Hooks.EwmhDesktops
+import XMonad.Hooks.ManageHelpers (isFullscreen, isDialog,  doFullFloat, doCenterFloat) 
+import XMonad.Hooks.InsertPosition
+
+import XMonad.Util.Run(spawnPipe, hPutStrLn)
+import XMonad.Util.SpawnOnce(spawnOnce)
+import XMonad.Util.NamedScratchpad
+import XMonad.Util.EZConfig (additionalKeysP, mkKeymap)  
+import XMonad.Util.Themes
 
 import XMonad.Actions.CopyWindow (kill1, killAllOtherCopies, copyToAll)
 import XMonad.Actions.WithAll (killAll, sinkAll)
 import XMonad.Actions.CycleWS (moveTo, shiftTo, WSType(..), nextScreen, prevScreen, shiftNextScreen, shiftPrevScreen)
-import XMonad.Actions.RotSlaves (rotSlavesDown, rotAllDown)
+import XMonad.Actions.RotSlaves (rotSlavesDown, rotSlavesUp, rotAllDown, rotAllUp)
 import XMonad.Actions.Promote (promote)
 
 -- -------- Main {{{1
@@ -49,7 +52,6 @@ main = do
 -- -------- Config {{{1
 
 myTerm = "alacritty"
-windowCount = gets $ Just . show . length . W.integrate' . W.stack . W.workspace . W.current . windowset
 
 myConfig bar0 bar1 = desktopConfig 
   { terminal           = myTerm
@@ -62,13 +64,15 @@ myConfig bar0 bar1 = desktopConfig
   , focusedBorderColor = "#bbc5ff"
   , mouseBindings      = myMouseBindings
   , layoutHook         = myLayoutHook
-  , manageHook         = (isFullscreen --> doFullFloat) <+> myManageHook <+> manageHook desktopConfig <+> manageDocks <+> namedScratchpadManageHook scratchpads
+  , manageHook         = insertPosition End Newer <+> myManageHook <+> manageHook desktopConfig <+> manageDocks <+> namedScratchpadManageHook scratchpads
   , handleEventHook    = myEventHook <+> fullscreenEventHook
   , logHook            = dynamicLogWithPP $ namedScratchpadFilterOutWorkspacePP $ myPP bar0 bar1
   , startupHook        = myStartupHook
   } 
 
 -- -------- Xmobar pretty prints {{{1
+
+windowCount = gets $ Just . show . length . W.integrate' . W.stack . W.workspace . W.current . windowset
 
 myPP bar0 bar1 = xmobarPP 
   { ppOutput          = \x -> hPutStrLn bar0 x  >> hPutStrLn bar1 x
@@ -108,14 +112,16 @@ myKeys =
   , ("M-m"          , windows W.focusMaster)       -- Move focus to the master window
   , ("M-j"          , windows W.focusDown)         -- Move focus to the next window
   , ("M-k"          , windows W.focusUp)           -- Move focus to the prev window
-  , ("M-S-m"        , windows W.swapMaster)        -- Swap the focused window and the master window
+  -- , ("M-S-m"        , windows W.swapMaster)        -- Swap the focused window and the master window
   , ("M-S-j"        , windows W.swapDown)          -- Swap the focused window with the next window
   , ("M-S-k"        , windows W.swapUp)            -- Swap the focused window with the prev window
   , ("M-<Backspace>", promote)                     -- Moves focused window to master, all others maintain order
   , ("M1-<Tab>"     , moveTo Next nonEmptyNonNSP)  -- (Alt-Shift-Tab) Rotate all windows except master and keep focus in place
   , ("M1-S-<Tab>"   , moveTo Prev nonEmptyNonNSP)  -- (Alt-Shift-Tab) Rotate all windows except master and keep focus in place
-  , ("M1-S-<Tab>"   , rotSlavesDown)               -- (Alt-Shift-Tab) Rotate all windows except master and keep focus in place
-  , ("M1-C-<Tab>"   , rotAllDown)                  -- (Alt-Ctrl-Tab) Rotate all the windows in the current stack
+  , ("M-<Page_Up>"  , rotSlavesUp)                 -- (Alt-Shift-Tab) Rotate all windows except master and keep focus in place
+  , ("M-<Page_Down>", rotSlavesDown)               -- (Alt-Shift-Tab) Rotate all windows except master and keep focus in place
+  , ("M-<Home>"     , rotAllUp)                    -- (Alt-Ctrl-Tab) Rotate all the windows in the current stack
+  , ("M-<End>"      , rotAllDown)                  -- (Alt-Ctrl-Tab) Rotate all the windows in the current stack
   , ("M-S-s"        , windows copyToAll)           -- Copy focused window to all workspaces
   , ("M-S-z"        , killAllOtherCopies)          -- Remove all other copies of the focused window
   
@@ -124,15 +130,17 @@ myKeys =
   , ("M-S-<Space>"    , sendMessage ToggleStruts)       -- Toggles struts
   , ("M-S-n"          , sendMessage $ Toggle NOBORDERS) -- Toggles noborder
   , ("M-z"            , zoom)                           -- Toggles noborder/full
-  , ("M-M1-m"         , sendMessage $ Toggle MIRROR)    -- Toggles mirror to the layout
+  , ("M-S-m"          , sendMessage $ Toggle MIRROR)    -- Toggles mirror to the layout
+  , ("M-\\"           , sendMessage $ Toggle REFLECTX)
+  , ("M-S-\\"         , sendMessage $ Toggle REFLECTY)
   , ("M-<KP_Multiply>", sendMessage (IncMasterN 1))     -- Increase number of clients in the master pane
   , ("M-<KP_Divide>"  , sendMessage (IncMasterN (-1)))  -- Decrease number of clients in the master pane
 
   -- Resize tile with meta+alt+{h,j,k,l}
-  , ("M-h",   sendMessage Shrink)
-  , ("M-l",   sendMessage Expand)
-  , ("M-S-j", sendMessage MirrorShrink)
-  , ("M-S-k", sendMessage MirrorExpand)
+  , ("M-M1-h", sendMessage Shrink)
+  , ("M-M1-l", sendMessage Expand)
+  , ("M-M1-j", sendMessage MirrorShrink)
+  , ("M-M1-k", sendMessage MirrorExpand)
 
   -- Workspaces
   , ("M-."  , nextScreen)      -- Switch focus to next monitor
@@ -164,13 +172,14 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
 -- specify per-workspace layouts
 wsLayouts idx layouts = onWorkspace (myWorkspaces !! idx) layouts
 
-myLayoutHook = avoidStruts $ smartBorders $ mySpacing $ toggleLayouts floats $ mkToggle (NBFULL ?? NOBORDERS ?? EOT) $ 
+myLayoutHook = avoidStruts $ smartBorders $ toggleLayouts floats $ mkToggle (NBFULL ?? NOBORDERS ?? EOT) $ 
+  mkToggle (single REFLECTX) $ mkToggle (single REFLECTY) $
   wsLayouts 0 wwwLayouts $
   wsLayouts 1 chatLayouts $
   wsLayouts 2 devLayouts $
   myDefaultLayout 
   where 
-    wwwLayouts = monocle ||| tall ||| tab ||| grid
+    wwwLayouts = monocle ||| tall ||| tab
     chatLayouts = oneBig ||| grid ||| monocle ||| tab
     devLayouts = monocle ||| tall
     myDefaultLayout = tall ||| oneBig ||| grid ||| monocle ||| tab ||| floats
@@ -182,12 +191,12 @@ mySpacing = spacingRaw
   (Border 5 5 5 5) -- window borders
   True             -- window borders enabled
 
-tall    = renamed [Replace "tall"]    $ limitWindows 6  $ mkToggle (single MIRROR) $ ResizableTall 1 (3/100) (1/2) []
-grid    = renamed [Replace "grid"]    $ limitWindows 12 $ mkToggle (single MIRROR) $ Grid (16/10)
+tall    = renamed [Replace "tall"]    $ limitWindows 6  $ mySpacing $ mkToggle (single MIRROR) $ ResizableTall 1 (3/100) (1/2) []
+grid    = renamed [Replace "grid"]    $ limitWindows 12 $ mySpacing $ mkToggle (single MIRROR) $ Grid (16/10)
+oneBig  = renamed [Replace "oneBig"]  $ limitWindows 6  $ mySpacing $ mkToggle (single MIRROR) $ OneBig (5/9) (8/12)
 monocle = renamed [Replace "monocle"] $ limitWindows 20 $ noBorders $ Full
-tab     = renamed [Replace "tabbed"]  $ limitWindows 20 $ noBorders simpleTabbed -- TODO: add styling to tabbed layout
+tab     = renamed [Replace "tabbed"]  $ limitWindows 20 $ noBorders $ tabbed shrinkText (theme adwaitaDarkTheme)
 floats  = renamed [Replace "floats"]  $ limitWindows 20 $ simplestFloat
-oneBig  = renamed [Replace "oneBig"]  $ limitWindows 6  $ mkToggle (single MIRROR) $ OneBig (5/9) (8/12)
 
 -- -------- Workspaces {{{1
 
@@ -276,3 +285,4 @@ scratchpads = [ NS "scratchpad_tmux" spawnTerm findTerm manageTerm
         w = 0.9
         t = 0.95 -h
         l = 0.95 -w
+
