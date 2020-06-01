@@ -21,3 +21,4 @@ MPV Player    ~/.config/mpv/input.conf
 XMonad    ~/.xmonad/xmonad.hs
 XMobar0    ~/.config/xmobar/xmobarrc0
 XMobar1    ~/.config/xmobar/xmobarrc1
+Alacritty    ~/.dotfiles/alacritty/.config/alacritty/alacritty.yml
