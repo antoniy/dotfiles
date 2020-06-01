@@ -2,8 +2,7 @@
 -- http://projects.haskell.org/xmobar/
 -- install xmobar with these flags: --flags="with_alsa" --flags="with_mpd" --flags="with_xft"  OR --flags="all_extensions"
 -- you can find weather location codes here: http://weather.noaa.gov/index.html
-
-Config { font            = "xft:InconsolataLGC Nerd Font:pixelsize=12:antialias=true:hinting=true"
+Config { font            = "xft:FiraMono Nerd Font:pixelsize=12:antialias=true:hinting=true"
        , additionalFonts = []
        , bgColor         = "#282A36"
        , fgColor         = "#B45BCF"
