@@ -50,6 +50,7 @@ import XMonad.Actions.CycleWS (moveTo, shiftTo, WSType(..), nextScreen, prevScre
 import XMonad.Actions.RotSlaves (rotSlavesDown, rotSlavesUp, rotAllDown, rotAllUp)
 import XMonad.Actions.Promote (promote)
 import XMonad.Actions.Navigation2D
+import XMonad.Actions.UpdatePointer
 
 -- -------- Main {{{1
 
@@ -91,7 +92,8 @@ myNav2DConfig = def
 
 windowCount = gets $ Just . show . length . W.integrate' . W.stack . W.workspace . W.current . windowset
 
-myLogHook bar0 bar1 = dynamicLogWithPP 
+myLogHook bar0 bar1 = 
+  ( dynamicLogWithPP 
   $ namedScratchpadFilterOutWorkspacePP 
   $ xmobarPP 
     { ppOutput          = (\x -> hPutStrLn bar0 x >> hPutStrLn bar1 x)
@@ -105,6 +107,7 @@ myLogHook bar0 bar1 = dynamicLogWithPP
     , ppExtras          = [windowCount]                           -- # of windows current workspace
     , ppOrder           = \(ws:l:t:ex) -> [ws,l]++ex++[t]
     }
+  ) >> updatePointer (0.5, 0.5) (1, 1) -- move the mouse on window/screen focus change in the center of the focused window
 
 -- -------- Keybindings {{{1
 
