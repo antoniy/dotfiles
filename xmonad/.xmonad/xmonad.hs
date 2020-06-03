@@ -33,7 +33,7 @@ import XMonad.Layout.IM
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.EwmhDesktops
-import XMonad.Hooks.ManageHelpers (isFullscreen, isDialog,  doFullFloat, doCenterFloat) 
+import XMonad.Hooks.ManageHelpers (isFullscreen, isDialog,  doFullFloat, doCenterFloat, composeOne, (-?>), transience') 
 import XMonad.Hooks.InsertPosition
 import XMonad.Hooks.SetWMName
 import XMonad.Hooks.RefocusLast
@@ -107,7 +107,7 @@ myLogHook bar0 bar1 =
     , ppExtras          = [windowCount]                           -- # of windows current workspace
     , ppOrder           = \(ws:l:t:ex) -> [ws,l]++ex++[t]
     }
-  ) >> updatePointer (0.5, 0.5) (1, 1) -- move the mouse on window/screen focus change in the center of the focused window
+  ) >> updatePointer (0.5, 0.5) (0, 0) -- move the mouse on window/screen focus change in the center of the focused window
 
 -- -------- Keybindings {{{1
 
@@ -270,7 +270,10 @@ myLayoutHook = avoidStruts
     tab     = rename "Tabbed"  $ ifMax 1 monocle $ limitWindows 20 $ noBorders $ tabbed shrinkText $ theme adwaitaDarkTheme
     floats  = rename "Floats"  $ limitWindows 20 $ simplestFloat
     ide     = rename "IDE"     $ ifMax 1 monocle $ resizableTall' 0 2 (3/4) [1.66]
-    im      = rename "IM"      $ ifMax 3 tall oneBig
+    -- Default chat layout which uses Monocle when there is a single window, switch to Tall layout 
+    -- for 2 and 3 windows and switch to OneBig when we have more than 3 windows. Also it adds magnifier 
+    -- capability for all slave windows (the prime function) with a zoom factor of 1.2. It's disabled by default.
+    im      = rename "IM"      $ ifMax 3 tall $ ifMax 4 grid oneBig
     steam   = rename "Steam"   $ withIM (1%7) (Title "Friends List") tall ||| monocle
 
 
@@ -297,42 +300,43 @@ myWorkspaces = clickable . (map xmobarEscape) $
 
 -- -------- Manage Hook {{{1
 
--- match window by class name, title or app name (resource)
-matchApp c = className =? c <||> title =? c <||> resource =? c
-
--- move window to workspace (idx)
-moveToWs idx = doShift (myWorkspaces !! idx)
-
 -- myManageHook ::  ManageHook
-myManageHook = insertPosition End Newer 
-  <+> manageHook desktopConfig 
+myManageHook = manageHook desktopConfig 
   <+> manageDocks 
   <+> namedScratchpadManageHook scratchpads
+  <+> transience'
   <+> appsManageHook
 
-appsManageHook = composeAll . concat $
-  [ [ isDialog     --> doCenterFloat               ]
-  , [ isFullscreen --> doFullFloat                 ]
-  , [ matchApp c   --> doIgnore      | c <- bars   ]
-  , [ matchApp c   --> doFloat       | c <- float  ]
-  , [ matchApp c   --> doCenterFloat | c <- cfloat ]
-  , [ matchApp c   --> moveToWs 0    | c <- www    ]
-  , [ matchApp c   --> moveToWs 1    | c <- chat   ]
-  , [ matchApp c   --> moveToWs 2    | c <- dev    ]
-  , [ matchApp c   --> moveToWs 3    | c <- game   ]
-  , [ matchApp c   --> moveToWs 4    | c <- media  ]
-  , [ role =?  "browser"   --> moveToWs 0    | c <- www    ]
+appsManageHook = composeOne . concat $
+  [ [ isDialog     -?> floatInsert <+> doCenterFloat               ]
+  , [ isFullscreen -?> floatInsert <+> doFullFloat                 ]
+  , [ matchApp c   -?> floatInsert <+> doCenterFloat | c <- float  ]
+  , [ matchApp c   -?> doIgnore                      | c <- bars   ]
+  , [ matchApp c   -?> moveToWs 0                    | c <- www    ]
+  , [ matchApp c   -?> moveToWs 1                    | c <- chat   ]
+  , [ matchApp c   -?> moveToWs 2                    | c <- dev    ]
+  , [ matchApp c   -?> moveToWs 3                    | c <- game   ]
+  , [ matchApp c   -?> moveToWs 4                    | c <- media  ]
+  , [ pure True -?> normInsert                                     ]
   ]
   where    
       bars   = ["xmobar", "trayer"]
-      float  = ["nm-connection-editor", "jetbrains-toolbox", "Xmessage"]
-      cfloat = ["mpv", "Gimp-2.10"]
+      float  = ["nm-connection-editor", "jetbrains-toolbox", "Xmessage", "SimpleScreenRecorder", "mpv", "Gimp-2.10"]
       www    = ["Chromium", "Brave-browser", "Mozilla Firefox"]
-      chat   = ["ViberPC", "TelegramDesktop", "Slack", "discord", "Skype", "Keybase", "Microsoft Teams - Preview"]
+      chat   = ["ViberPC", "TelegramDesktop", "Slack", "discord", "Skype", "Keybase", "Microsoft Teams - Preview", "Signal"]
       dev    = ["jetbrains-idea", "JetBrains Toolbox"]
       game   = ["Steam"]
       media  = ["mpv", "vlc", "plexmediaplayer", "Audacity"]
       role   = stringProperty "WM_WINDOW_ROLE"
+
+      -- move window to workspace (idx)
+      moveToWs idx = normInsert <+> doShift (myWorkspaces !! idx)
+
+      -- match window by class name, title or app name (resource)
+      matchApp c = className =? c <||> title =? c <||> resource =? c
+
+      floatInsert = insertPosition Above Newer
+      normInsert  = insertPosition End Newer
 
 -- -------- Event Hook {{{1
 
