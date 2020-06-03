@@ -88,41 +88,55 @@ scrolling:
   #multiplier: 3
 
 # Font configuration
-# font:
+font:
   # Normal (roman) font face
-  # normal:
+  normal:
     # Font family
     #
     # Default:
     #   - (macOS) Menlo
     #   - (Linux/BSD) monospace
     #   - (Windows) Consolas
-    # family: monospace
+    # family: InconsolataLGC Nerd Font
+    # family: JetBrains Mono
+    # family: SauceCodePro Nerd Font
+    # family: CodeNewRoman Nerd Font
+    # family: RobotoMono Nerd Font
+    # family: UbuntuMono Nerd Font
+    # family: Monofur Nerd Font
+    # family: TerminessTTF Nerd Font
+    # family: Hack Nerd Font Mono
+    family: FiraCode Nerd Font
 
     # The `style` can be specified to pick a specific face.
-    #style: Regular
+    style: Regular
 
   # Bold font face
-  #bold:
+  bold:
     # Font family
     #
     # If the bold family is not specified, it will fall back to the
     # value specified for the normal font.
-    #family: monospace
+    # family: InconsolataLGC Nerd Font
+    # family: JetBrains Mono
+    # family: Hack Nerd Font Mono
+    family: FiraCode Nerd Font
 
     # The `style` can be specified to pick a specific face.
-    #style: Bold
+    style: Bold
 
   # Italic font face
-  #italic:
+  italic:
     # Font family
     #
     # If the italic family is not specified, it will fall back to the
     # value specified for the normal font.
-    #family: monospace
+    # family: InconsolataLGC Nerd Font
+    # family: Hack Nerd Font Mono
+    family: FiraCode Nerd Font
 
     # The `style` can be specified to pick a specific face.
-    #style: Italic
+    style: Italic
 
   # Bold italic font face
   #bold_italic:
@@ -130,47 +144,50 @@ scrolling:
     #
     # If the bold italic family is not specified, it will fall back to the
     # value specified for the normal font.
-    #family: monospace
+    # family: InconsolataLGC Nerd Font
+    # family: JetBrains Mono
+    # family: Hack Nerd Font Mono
+    family: FiraCode Nerd Font
 
-    # The `style` can be specified to pick a specific face.
-    #style: Bold Italic
+    # the `style` can be specified to pick a specific face.
+    style: bold italic
 
-  # Point size
-  #size: 11.0
+  # point size
+  size: 10.0
 
-  # Offset is the extra space around each character. `offset.y` can be thought of
+  # offset is the extra space around each character. `offset.y` can be thought of
   # as modifying the line spacing, and `offset.x` as modifying the letter spacing.
   #offset:
   #  x: 0
   #  y: 0
 
-  # Glyph offset determines the locations of the glyphs within their cells with
-  # the default being at the bottom. Increasing `x` moves the glyph to the right,
+  # glyph offset determines the locations of the glyphs within their cells with
+  # the default being at the bottom. increasing `x` moves the glyph to the right,
   # increasing `y` moves the glyph upwards.
   #glyph_offset:
   #  x: 0
   #  y: 0
 
-  # Thin stroke font rendering (macOS only)
+  # thin stroke font rendering (macos only)
   #
-  # Thin strokes are suitable for retina displays, but for non-retina screens
+  # thin strokes are suitable for retina displays, but for non-retina screens
   # it is recommended to set `use_thin_strokes` to `false`
   #
-  # macOS >= 10.14.x:
+  # macos >= 10.14.x:
   #
-  # If the font quality on non-retina display looks bad then set
+  # if the font quality on non-retina display looks bad then set
   # `use_thin_strokes` to `true` and enable font smoothing by running the
   # following command:
-  #   `defaults write -g CGFontRenderingFontSmoothingDisabled -bool NO`
+  #   `defaults write -g cgfontrenderingfontsmoothingdisabled -bool no`
   #
-  # This is a global setting and will require a log out or restart to take
+  # this is a global setting and will require a log out or restart to take
   # effect.
   #use_thin_strokes: true
 
-# If `true`, bold text is drawn using the bright color variants.
+# if `true`, bold text is drawn using the bright color variants.
 #draw_bold_text_with_bright_colors: false
 
-# Schemas {{{
+# schemas {{{
 schemes:
 
   afterglow: &afterglow
@@ -214,52 +231,52 @@ schemes:
 
   argonaut: &argonaut
     primary:
-      background: '0x292C3E'
-      foreground: '0xEBEBEB'
+      background: '0x292c3e'
+      foreground: '0xebebeb'
     cursor:
-      text: '0xFF261E'
-      cursor: '0xFF261E'
+      text: '0xff261e'
+      cursor: '0xff261e'
     normal:
       black:   '0x0d0d0d'
-      red:     '0xFF301B'
-      green:   '0xA0E521'
-      yellow:  '0xFFC620'
-      blue:    '0x1BA6FA'
-      magenta: '0x8763B8'
-      cyan:    '0x21DEEF'
-      white:   '0xEBEBEB'
+      red:     '0xff301b'
+      green:   '0xa0e521'
+      yellow:  '0xffc620'
+      blue:    '0x1ba6fa'
+      magenta: '0x8763b8'
+      cyan:    '0x21deef'
+      white:   '0xebebeb'
     bright:
-      black:   '0x6D7070'
-      red:     '0xFF4352'
-      green:   '0xB8E466'
-      yellow:  '0xFFD750'
-      blue:    '0x1BA6FA'
-      magenta: '0xA578EA'
-      cyan:    '0x73FBF1'
-      white:   '0xFEFEF8'
+      black:   '0x6d7070'
+      red:     '0xff4352'
+      green:   '0xb8e466'
+      yellow:  '0xffd750'
+      blue:    '0x1ba6fa'
+      magenta: '0xa578ea'
+      cyan:    '0x73fbf1'
+      white:   '0xfefef8'
 
   ayu_dark: &ayu_dark
     primary:
-      background: '0x0A0E14'
-      foreground: '0xB3B1AD'
+      background: '0x0a0e14'
+      foreground: '0xb3b1ad'
     normal:
-      black:   '0x01060E'
-      red:     '0xEA6C73'
-      green:   '0x91B362'
-      yellow:  '0xF9AF4F'
-      blue:    '0x53BDFA'
-      magenta: '0xFAE994'
-      cyan:    '0x90E1C6'
-      white:   '0xC7C7C7'
+      black:   '0x01060e'
+      red:     '0xea6c73'
+      green:   '0x91b362'
+      yellow:  '0xf9af4f'
+      blue:    '0x53bdfa'
+      magenta: '0xfae994'
+      cyan:    '0x90e1c6'
+      white:   '0xc7c7c7'
     bright:
       black:   '0x686868'
-      red:     '0xF07178'
-      green:   '0xC2D94C'
-      yellow:  '0xFFB454'
-      blue:    '0x59C2FF'
-      magenta: '0xFFEE99'
-      cyan:    '0x95E6CB'
-      white:   '0xFFFFFF'
+      red:     '0xf07178'
+      green:   '0xc2d94c'
+      yellow:  '0xffb454'
+      blue:    '0x59c2ff'
+      magenta: '0xffee99'
+      cyan:    '0x95e6cb'
+      white:   '0xffffff'
 
   base16_dark: &base16_dark
     primary:
