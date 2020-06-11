@@ -437,9 +437,8 @@ appsManageHook = composeOne . concat $
 --   when working with IDEs and their dialogs. Otherwise we loose focus for the IDE.
 --
 -- * 
-myEventHook = refocusLastWhen myPred <+> fullscreenEventHook
-  where
-    myPred = refocusingIsActive <||> isFloat
+-- myEventHook = refocusLastWhen myPred <+> fullscreenEventHook
+myEventHook = fullscreenEventHook
 
 -- -------- Startup {{{1
 
