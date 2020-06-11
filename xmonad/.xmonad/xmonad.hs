@@ -44,7 +44,7 @@ import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.ManageHelpers (isFullscreen, isDialog,  doFullFloat, doCenterFloat, composeOne, (-?>), transience') 
 import XMonad.Hooks.InsertPosition
 import XMonad.Hooks.SetWMName
-import XMonad.Hooks.RefocusLast
+-- import XMonad.Hooks.RefocusLast
 
 import XMonad.Util.Run(spawnPipe, hPutStrLn)
 import XMonad.Util.SpawnOnce(spawnOnce)
@@ -107,7 +107,6 @@ tabTheme = def
 -- -------- Log Hook and PP {{{1
 
 windowCount = gets $ Just . xmobarColor "#fe8019" "" . show . length . W.integrate' . W.stack . W.workspace . W.current . windowset
--- windowCount = show . length . W.integrate' . W.stack . W.workspace . W.current . windowset
 
 myLogHook bar0 bar1 = 
   ( dynamicLogWithPP 
@@ -130,68 +129,84 @@ myLogHook bar0 bar1 =
 
 -- -------- Keybindings {{{1
 
-titleSection c title keys = (subtitle title :) $ mkNamedKeymap c keys
-
 myKeys c =
   -- -------- General {{{2
   titleSection c "General"
-    [ ("M-S-r"     , addName "Recompile & restart" $ spawn "xmonad --recompile; xmonad --restart")
-    , ("M-S-q"     , addName "Quit" $ io exitSuccess)
-    , ("M-<Return>", addName "Start terminal" $ spawn myTerm)
-    , ("M-S-c"     , addName "Close window" $ kill1)
-    , ("M-S-a"     , addName "Close all windows on ws" $ killAll)
+    [ ("M-S-r"          , addName "Recompile & restart"    $ spawn "xmonad --recompile; xmonad --restart")
+    , ("M-S-q"          , addName "Quit"                   $ io exitSuccess)
+    , ("M-<Return>"     , addName "Start terminal"         $ spawn myTerm)
+    , ("M-S-c"          , addName "Close window"           $ kill1)
+    , ("M-S-a"          , addName "Close all"              $ killAll)
     ]
 
   -- -------- Floating windows {{{2
 
   ^++^ titleSection c "Floating windows"
-    [ ("M-<Delete>"  , addName "Push floating window back to tile" $ withFocused $ windows . W.sink)
-    , ("M-S-<Delete>", addName "Push ALL floating windows back to tile" $ sinkAll)
-    , ("M-<Space>"   , addName "Switch between layers" $ switchLayer)
+    [ ("M-<Delete>"     , addName "Floating to tile"       $ withFocused $ windows . W.sink)
+    , ("M-S-<Delete>"   , addName "ALL floating to tile"   $ sinkAll)
+    , ("M-<Space>"      , addName "Switch between layers"  $ switchLayer)
     ]
 
   -- -------- Windows navigation {{{2
 
   ^++^ titleSection c "Window navigation"
-    [ ("M-m"            , addName "Focus master" $ windows W.focusMaster)
-    , ("M-j"            , addName "Focus down" $ windows W.focusDown)
-    , ("M-k"            , addName "Focus up" $ windows W.focusUp)
-    , ("M1-<Tab>"       , addName "Focus down" $ windows W.focusDown)
-    , ("M1-S-<Tab>"     , addName "Focus up" $ windows W.focusUp)
+    [ ("M-m"            , addName "Focus master"           $ windows W.focusMaster)
+    , ("M-j"            , addName "Focus down"             $ windows W.focusDown)
+    , ("M-k"            , addName "Focus up"               $ windows W.focusUp)
+    , ("M1-<Tab>"       , addName "Focus down"             $ windows W.focusDown)
+    , ("M1-S-<Tab>"     , addName "Focus up"               $ windows W.focusUp)
     -- , ("M-S-m"         , windows W.swapMaster)
-    , ("M-S-j"          , addName "Swap down" $ windows W.swapDown)
-    , ("M-S-k"          , addName "Swap up" $ windows W.swapUp)
-    , ("M-<Backspace>"  , addName "Promote to master" $ promote)
-    , ("M-<Page_Up>"    , addName "Rotate slaves up" $ rotSlavesUp)
-    , ("M-<Page_Down>"  , addName "Rotate slaves down" $ rotSlavesDown)
-    , ("M-S-<Page_Up>"  , addName "Rotate ALL up" $ rotAllUp)
-    , ("M-S-<Page_Down>", addName "Rotate ALL down" $ rotAllDown)
-    , ("M-S-s"          , addName "Copy focused window to all workspaces" $ windows copyToAll)
-    , ("M-S-z"          , addName "Remove all copies of the focused window" $ killAllOtherCopies)
+    , ("M-S-j"          , addName "Swap down"              $ windows W.swapDown)
+    , ("M-S-k"          , addName "Swap up"                $ windows W.swapUp)
+    , ("M-<Backspace>"  , addName "Promote to master"      $ promote)
+    , ("M-<Page_Up>"    , addName "Rotate slaves up"       $ rotSlavesUp)
+    , ("M-<Page_Down>"  , addName "Rotate slaves down"     $ rotSlavesDown)
+    , ("M-S-<Page_Up>"  , addName "Rotate ALL up"          $ rotAllUp)
+    , ("M-S-<Page_Down>", addName "Rotate ALL down"        $ rotAllDown)
+    , ("M-S-s"          , addName "Copy to all workspaces" $ windows copyToAll)
+    , ("M-S-z"          , addName "Remove all copies"      $ killAllOtherCopies)
     ]
 
   -- -------- Layouts {{{2
 
   ^++^ titleSection c "Layouts"
-    [ ("M-<Tab>"        , sendMessage' NextLayout)
-    , ("M-S-<Space>"    , sendMessage' ToggleStruts)
-    , ("M-S-n"          , addName "Toggle NOBORDERS" $ sendMessage $ Toggle NOBORDERS)
+    [ ("M-<Tab>"        , addName "Go to next layout"      $ sendMessage NextLayout)
+    , ("M-S-<Space>"    , addName "Toggle struts"          $ sendMessage ToggleStruts)
+    , ("M-S-n"          , addName "Toggle NOBORDERS"       $ sendMessage $ Toggle NOBORDERS)
 
-    , ("M-z"            , zoom)
-    , ("M-S-m"          , addName "Toggle MIRROR" $ sendMessage $ Toggle MIRROR)
-    , ("M-\\"           , addName "Toggle ReflectX" $ sendMessage $ Toggle REFLECTX)
-    , ("M-S-\\"         , addName "Toggle ReflectY" $ sendMessage $ Toggle REFLECTY)
-    , ("M-S-g"          , addName "Toggle Spacing" $ toggleScreenSpacingEnabled >> toggleWindowSpacingEnabled)
+    , ("M-z"            , addName "Toggle Zoom"            $ toggleZoom)
+    , ("M-S-m"          , addName "Toggle MIRROR"          $ sendMessage $ Toggle MIRROR)
+    , ("M-\\"           , addName "Toggle ReflectX"        $ sendMessage $ Toggle REFLECTX)
+    , ("M-S-\\"         , addName "Toggle ReflectY"        $ sendMessage $ Toggle REFLECTY)
+    , ("M-S-g"          , addName "Toggle Spacing"         $ toggleScreenSpacingEnabled >> toggleWindowSpacingEnabled)
 
-    , ("M-<KP_Multiply>", sendMessage' (IncMasterN 1))
-    , ("M-<KP_Divide>"  , sendMessage' (IncMasterN (-1)))
+    , ("M-<KP_Multiply>", addName "Inc master windows cnt" $ sendMessage (IncMasterN 1))
+    , ("M-<KP_Divide>"  , addName "Dec master windows cnt" $ sendMessage (IncMasterN (-1)))
 
     -- Resize tile with meta+alt+{h,j,k,l}
-    , ("M-M1-h", addName "Shrink" $ sendMessage Shrink)
-    , ("M-M1-l", addName "Expand" $ sendMessage Expand)
-    , ("M-M1-j", addName "Mirror Shrink" $ sendMessage MirrorShrink)
-    , ("M-M1-k", addName "Mirror Expand" $ sendMessage MirrorExpand)
+    , ("M-M1-h"         , addName "Shrink"                 $ sendMessage Shrink)
+    , ("M-M1-l"         , addName "Expand"                 $ sendMessage Expand)
+    , ("M-M1-j"         , addName "Mirror Shrink"          $ sendMessage MirrorShrink)
+    , ("M-M1-k"         , addName "Mirror Expand"          $ sendMessage MirrorExpand)
     ]
+
+  -- -------- Screens {{{2
+  ^++^ titleSection c "Screen"
+    [ ("M-."            , addName "Focus next screen"      $ nextScreen)
+    , ("M-,"            , addName "Focus prev screen"      $ prevScreen)
+    , ("M-S-."          , addName "Move to next screen"    $ shiftNextScreen)
+    , ("M-S-,"          , addName "Move to prev screen"    $ shiftPrevScreen)
+    ]
+
+  -- -------- Scratchpads{{{2
+  ^++^ titleSection c "Scratchpads"
+    [ ("<F12>"          , addName "Toggle Tmux"            $ toggleNSP "tmux")
+    , ("M-<F11>"        , addName "Toggle Notes"           $ toggleNSP "note")
+    , ("M-<F10>"        , addName "Toggle bitwarden"       $ toggleNSP "bitwarden")
+    , ("M-<F9>"         , addName "Toggle Pavucontrol"     $ toggleNSP "pavucontrol")
+    , ("M-<F8>"         , addName "Toggle calculator"      $ toggleNSP "calculator")
+    , ("M-<F7>"         , addName "Toggle htop"            $ toggleNSP "htop")
+    ] 
 
   -- -------- Workspaces {{{2
   ^++^ titleSection c "Workspaces"
@@ -209,28 +224,14 @@ myKeys c =
       ]
     )
 
-  -- -------- Screens {{{2
-  ^++^ titleSection c "Screen"
-    [ ("M-."  , addName "Focus next screen" $ nextScreen)
-    , ("M-,"  , addName "Focus prev screen" $ prevScreen)
-    , ("M-S-.", addName "Move focused window to next screen" $ shiftNextScreen)
-    , ("M-S-,", addName "Move focused window to prev screen" $ shiftPrevScreen)
-    ]
-
-  -- -------- Scratchpads{{{2
-  ^++^ titleSection c "Scratchpads"
-    [ ("<F12>"  , addName "Toggle Tmux scratchpad"  $ toggleNSP "tmux")
-    , ("M-<F11>", addName "Toggle Notes scratchpad" $ toggleNSP "note")
-    , ("M-<F10>", addName "Toggle bitwarden"        $ toggleNSP "bitwarden")
-    , ("M-<F9>" , addName "Toggle Pavucontrol"      $ toggleNSP "pavucontrol")
-    , ("M-<F8>" , addName "Toggle calculator"       $ toggleNSP "calculator")
-    , ("M-<F7>" , addName "Toggle htop scratchpad"  $ toggleNSP "htop")
-    ] 
   -- }}}
+
+-- utility function for defining a named section for NamedActions
+titleSection c title keys = (subtitle title :) $ mkNamedKeymap c keys
 
 nonNSP          = WSIs (return (\ws -> W.tag ws /= "nsp"))
 nonEmptyNonNSP  = WSIs (return (\ws -> isJust (W.stack ws) && W.tag ws /= "nsp"))
-zoom            = addName "Toggle Zoom" $ sendMessage (Toggle NBFULL) >> sendMessage ToggleStruts
+toggleZoom      = sendMessage (Toggle NBFULL) >> sendMessage ToggleStruts
 toggleNSP n     = namedScratchpadAction scratchpads n
 
 showKeybindings :: [((KeyMask, KeySym), NamedAction)] -> NamedAction
@@ -256,7 +257,7 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
 
 myLayoutHook = avoidStruts 
   $ smartBorders             -- don't use borders on single window (on a single screen) and also if the window covers the entier screen (mpv)
-  $ refocusLastLayoutHook    -- refocus to last focused window when current window looses focus or is closed (default focuses the newest window)
+  -- $ refocusLastLayoutHook    -- refocus to last focused window when current window looses focus or is closed (default focuses the newest window)
   $ toggleLayouts floats     -- add ability to toggle floats on all layouts
   $ fullScreenToggle         -- adds the ability to toggle fullscreen for all layouts/windows
   $ reflectXToggle           -- add toggle for reflect on X on all layouts
@@ -304,7 +305,6 @@ myLayoutHook = avoidStruts
     tall    = rename "Tall"    $ ifMax 1 monocle resizableTile
     grid    = rename "Grid"    $ ifMax 1 monocle $ limitWindows 12 $ mySpacing $ mkToggle (single MIRROR) $ Grid (16/10)
     oneBig  = rename "OneBig"  $ ifMax 1 monocle $ limitWindows 8  $ mySpacing $ mkToggle (single MIRROR) $ OneBig (5/9) (8/12)
-    -- tab     = rename "Tabbed"  $ ifMax 1 monocle $ limitWindows 20 $ noBorders $ tabbed shrinkText $ theme adwaitaDarkTheme
     tab     = rename "Tabbed"  $ limitWindows 20 $ noBorders $ tabbed shrinkText tabTheme
     floats  = rename "Floats"  $ limitWindows 20 $ simplestFloat
 
@@ -407,7 +407,7 @@ appsManageHook = composeOne . concat $
   , [ matchApp c   -?> toWs 2                        | c <- dev    ]
   , [ matchApp c   -?> toWs 3                        | c <- game   ]
   , [ matchApp c   -?> toWs 4                        | c <- media  ]
-  , [ pure True -?> normInsert                                     ]
+  , [ pure True    -?> normInsert                                  ]
   ]
   where    
       bars   = ["xmobar", "trayer"]
@@ -453,68 +453,39 @@ myStartupHook = do
   
 -- -------- Scratchpads {{{1
 
-nsFloat l t w h = customFloating $ W.RationalRect l t w h
+scratchpads = 
+  [ NS "tmux"
+      (myTerm ++ " -t scratchpad_tmux -e 'tmuxdd'")
+      (title =? "scratchpad_tmux")
+      nsBigCenterFloat
 
-scratchpads = [ NS "tmux"        spawnTerm findTerm manageTerm 
-              , NS "note"        spawnNote findNote manageNote 
-              , NS "pavucontrol" spawnVol  findVol  manageVol
-              , NS "htop"        spawnTop  findTop  manageTop
-              , NS "calculator"  spawnCalc findCalc manageCalc
-              , NS "bitwarden"   spawnPass findPass managePass
+  , NS "note"
+      "code-oss"
+      (className =? "code-oss")
+      nsBigCenterFloat 
 
-              ] 
+  , NS "pavucontrol"
+      "pavucontrol"
+      (className =? "Pavucontrol")
+      $ nsCenterFloat 0.5 0.7
+
+  , NS "htop"
+      (myTerm ++ " -t scratchpad_htop -e htop")
+      (title =? "scratchpad_htop")
+      nsBigCenterFloat
+
+  , NS "calculator"
+      "qalculate-gtk"
+      (className =? "Qalculate-gtk")
+      $ nsCenterFloat 0.5 0.4
+
+  , NS "bitwarden"
+    "bitwarden-desktop"
+    (className =? "Bitwarden")
+    $ nsCenterFloat 0.5 0.6
+  ] 
   where
-    spawnTerm  = myTerm ++ " -t scratchpad_tmux -e 'tmuxdd'"
-    findTerm   = title =? "scratchpad_tmux"
-    manageTerm = customFloating $ W.RationalRect l t w h 
-      where
-        h = 0.9
-        w = 0.9
-        t = 0.95 -h
-        l = 0.95 -w
-
-    spawnNote  = "code-oss"
-    findNote   = className =? "code-oss"
-    manageNote = customFloating $ W.RationalRect l t w h 
-      where
-        h = 0.9
-        w = 0.9
-        t = 0.95 -h
-        l = 0.95 -w
-
-    spawnVol  = "pavucontrol"
-    findVol   = className =? "Pavucontrol"
-    manageVol = customFloating $ W.RationalRect l t w h 
-      where
-        h = 0.7
-        w = 0.5
-        t = (0.95 -h) / 2
-        l = (0.95 -w) / 2
-
-    spawnTop  = myTerm ++ " -t scratchpad_htop -e htop"
-    findTop   = title =? "scratchpad_htop"
-    manageTop = customFloating $ W.RationalRect l t w h 
-      where
-        h = 0.9
-        w = 0.9
-        t = 0.95 -h
-        l = 0.95 -w
-
-    spawnCalc  = "qalculate-gtk"
-    findCalc   = className =? "Qalculate-gtk"
-    manageCalc = customFloating $ W.RationalRect l t w h 
-      where
-        h = 0.4
-        w = 0.5
-        t = (0.95 -h) / 2
-        l = (0.95 -w) / 2
-
-    spawnPass = "bitwarden-desktop"
-    findPass   = className =? "Bitwarden"
-    managePass = customFloating $ W.RationalRect l t w h 
-      where
-        h = 0.4
-        w = 0.5
-        t = (0.95 -h) / 2
-        l = (0.95 -w) / 2
+    nsFloat w h l t   = customFloating $ W.RationalRect l t w h
+    nsCenterFloat w h = nsFloat w h ((0.95 -h) / 2) ((0.95 -w) / 2)
+    nsBigCenterFloat  = nsCenterFloat 0.9 0.9
 
