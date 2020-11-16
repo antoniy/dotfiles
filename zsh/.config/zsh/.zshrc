@@ -823,6 +823,10 @@ fi
 
 (( $+commands[beet] )) && ealias bei="beet import "
 
+# (( $+commands[mpv] && $+commands[devour] )) && alias mpv="devour mpv"
+
+(( $+commands[emacsclient] )) && alias emacs="emacsclient -c -a ''"
+
 # -------- Pacman Trap {{{1
 # from https://wiki.archlinux.org/index.php/Zsh#On-demand_rehash
 # This will solve the problem of zsh automatically rehashes after package installation
