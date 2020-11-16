@@ -33,7 +33,7 @@ feh --bg-scale $HOME/.config/wall.jpg
 # Start common tools
 sxhkd -m 1 & # bind keys with sxhkd
 dunst & # notification daemon
-compton & # window decorator for transperancy etc.
+picom & # compositor for transperancy etc.
 /usr/lib/geoclue-2.0/demos/agent & # geoclue agent to know current location for redshift sunset check
 # $HOME/.config/polybar/launch.sh & # launch polybar
 redsihft &> /dev/null & # change color temperature at sunset
