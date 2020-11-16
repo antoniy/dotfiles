@@ -209,7 +209,8 @@ myKeys c =
   -- -------- Krasi Songs{{{2
   ^++^ titleSection c "Songs shortcuts"
     [ ("M-M1-1"         , addName "Play 'Aram zam zam'"    $ spawn "mpv --loop=5 ~/Music/krasi/aram-zam-zam.mp3")
-    , ("M-M1-2"         , addName "Play All"               $ spawn "mpv --loop-playlist=5 ~/Music/krasi/*.mp3")
+    , ("M-M1-2"         , addName "Play 'Ako si vesel'"    $ spawn "mpv --loop=5 ~/Music/krasi/ako-si-vesel-i-shtastliv.mp3")
+    , ("M-M1-9"         , addName "Play All"               $ spawn "mpv --loop-playlist=5 ~/Music/krasi/*.mp3")
     , ("M-M1-0"         , addName "Stop all playback"      $ spawn "pkill mpv")
     ]
 
