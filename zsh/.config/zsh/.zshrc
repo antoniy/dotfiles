@@ -26,6 +26,11 @@ export EDITOR='nvim'
 
 export GPG_TTY=$(tty)
 
+# if [[ "$OSTYPE" == "darwin"* ]]; then # for MacOSX
+#   export PINENTRY_USER_DATA="USE_CURSES=1"
+# fi
+export PINENTRY_USER_DATA="USE_CURSES=1"
+
 # -------- ZSH Config {{{1
 
 setopt no_bg_nice
@@ -268,11 +273,6 @@ FZF_MARKS_JUMP='^O'
 zinit ice wait lucid
 zinit load urbainvaes/fzf-marks
 
-# -------- Plugin: zsh-thefuck {{{2
-zinit ice wait'1' lucid trackbinds bindmap'\e\e -> ^F'
-zinit light laggardkernel/zsh-thefuck
-
-# }}}
 # -------- Completions {{{1
 
 # If there are no completions, try to correct minor typos in the input.
@@ -826,6 +826,15 @@ fi
 # (( $+commands[mpv] && $+commands[devour] )) && alias mpv="devour mpv"
 
 (( $+commands[emacsclient] )) && alias emacs="emacsclient -c -a ''"
+
+if (( $+commands[brew] )); then
+  ealias br="brew "
+  ealias brs="brew search "
+  ealias bri="brew install "
+  ealias brci="brew cask install "
+fi
+
+(( $+commands[mpv] )) && ealias horizont="mpv http://stream.bnr.bg:8011/horizont.aac"
 
 # -------- Pacman Trap {{{1
 # from https://wiki.archlinux.org/index.php/Zsh#On-demand_rehash
