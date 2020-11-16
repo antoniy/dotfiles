@@ -59,7 +59,6 @@ import XMonad.Actions.CycleWS (moveTo, shiftTo, WSType(..), nextScreen, prevScre
 import XMonad.Actions.RotSlaves (rotSlavesDown, rotSlavesUp, rotAllDown, rotAllUp)
 import XMonad.Actions.Promote (promote)
 import XMonad.Actions.Navigation2D
-import XMonad.Actions.UpdatePointer
 
 -- -------- Main {{{1
 
@@ -125,7 +124,7 @@ myLogHook bar0 bar1 =
     , ppExtras          = [windowCount]                           -- # of windows current workspace
     , ppOrder           = \(ws:l:t:ex) -> [ws,l]++ex++[t]
     }
-  ) >> updatePointer (0.5, 0.5) (0, 0) -- move the mouse on window/screen focus change in the center of the focused window
+  )
 
 -- -------- Keybindings {{{1
 
@@ -207,6 +206,12 @@ myKeys c =
     , ("M-<F8>"         , addName "Toggle calculator"      $ toggleNSP "calculator")
     , ("M-<F7>"         , addName "Toggle htop"            $ toggleNSP "htop")
     ] 
+  -- -------- Krasi Songs{{{2
+  ^++^ titleSection c "Songs shortcuts"
+    [ ("M-M1-1"         , addName "Play 'Aram zam zam'"    $ spawn "mpv --loop=5 ~/Music/krasi/aram-zam-zam.mp3")
+    , ("M-M1-2"         , addName "Play All"               $ spawn "mpv --loop-playlist=5 ~/Music/krasi/*.mp3")
+    , ("M-M1-0"         , addName "Stop all playback"      $ spawn "pkill mpv")
+    ]
 
   -- -------- Workspaces {{{2
   ^++^ titleSection c "Workspaces"
@@ -385,7 +390,7 @@ myWorkspaces = clickable . (map xmobarEscape) $
   ,"6:\xf013 " -- auxiliary
   ] ++ (map show [7..9])
   where 
-    clickable l = [ "<action=xdotool key super+" ++ show (n) ++ ">" ++ ws ++ "</action>" |
+    clickable l = [ "<action=xdotool key super+" ++ show n ++ ">" ++ ws ++ "</action>" |
                     (i, ws) <- zip [1..9] l,                                        
                     let n = i ] 
 
@@ -413,7 +418,7 @@ appsManageHook = composeOne . concat $
       bars   = ["xmobar", "trayer"]
       float  = ["nm-connection-editor", "jetbrains-toolbox", "Xmessage", "SimpleScreenRecorder", "mpv", "Gimp-2.10", "Steam - News", "Qalculate-gtk"]
       www    = ["Chromium", "Brave-browser", "Mozilla Firefox"]
-      chat   = ["ViberPC", "TelegramDesktop", "Slack", "discord", "Skype", "Keybase", "Microsoft Teams - Preview", "Signal"]
+      chat   = ["ViberPC", "TelegramDesktop", "Slack", "discord", "Skype", "Keybase", "Microsoft Teams - Preview", "Signal", "Hexchat"]
       dev    = ["jetbrains-idea", "JetBrains Toolbox"]
       game   = ["Steam", "csgo_linux64"]
       media  = ["mpv", "vlc", "plexmediaplayer", "Audacity"]
@@ -449,6 +454,8 @@ myStartupHook = do
   spawnOnce "telegram-desktop &"
   spawnOnce "viber &"
   spawnOnce "slack &"
+  spawnOnce "hexchat &"
+  spawnOnce "emacs --daemon &"
   
 -- -------- Scratchpads {{{1
 
@@ -456,12 +463,19 @@ scratchpads =
   [ NS "tmux"
       (myTerm ++ " -t scratchpad_tmux -e 'tmuxdd'")
       (title =? "scratchpad_tmux")
-      nsBigCenterFloat
+      $ nsBigCenterFloat
 
   , NS "note"
-      "code-oss"
-      (className =? "code-oss")
-      nsBigCenterFloat 
+      "emacsclient -a '' -nc -F '(quote (name . \"scratchpad_emacs\"))'"
+      -- "emacsclient -a '' -e \"(setq frame-title-format \\\"scratchpad_emacs\\\")\""
+      -- "emacsclient -c -F '((name . \"scratchpad_emacs\"))'"
+      (title =? "scratchpad_emacs")
+      $ nsBigCenterFloat 
+
+  -- , NS "note"
+  --     "code-oss"
+  --     (className =? "code-oss")
+  --     $ nsBigCenterFloat 
 
   , NS "pavucontrol"
       "pavucontrol"
@@ -471,7 +485,7 @@ scratchpads =
   , NS "htop"
       (myTerm ++ " -t scratchpad_htop -e htop")
       (title =? "scratchpad_htop")
-      nsBigCenterFloat
+      $ nsBigCenterFloat
 
   , NS "calculator"
       "qalculate-gtk"
@@ -479,12 +493,12 @@ scratchpads =
       $ nsCenterFloat 0.5 0.4
 
   , NS "bitwarden"
-    "bitwarden-desktop"
-    (className =? "Bitwarden")
-    $ nsCenterFloat 0.5 0.6
+      "bitwarden-desktop"
+      (className =? "Bitwarden")
+      $ nsCenterFloat 0.5 0.6
   ] 
   where
     nsFloat w h l t   = customFloating $ W.RationalRect l t w h
-    nsCenterFloat w h = nsFloat w h ((0.95 -h) / 2) ((0.95 -w) / 2)
+    nsCenterFloat w h = nsFloat w h ((1 - w) / 2) ((1 - h) / 2)
     nsBigCenterFloat  = nsCenterFloat 0.9 0.9
 
