@@ -704,7 +704,7 @@ if (( $+commands[git] )); then
   ealias gst='git status'
   ealias gs='git status'
   ealias gl='git ln'
-  ealias gr='git remotes'
+  ealias gre='git remotes'
   ealias gco='git checkout'
   ealias gcob='git checkout -b'
   ealias gc='git commit'
@@ -718,6 +718,8 @@ if (( $+commands[git] )); then
   ealias gp='git push'
   ealias gf='git fetch'
   ealias gm='git merge'
+  ealias gr='git restore'
+  ealias grs='git restore --staged'
 
   if (( $+commands[fzf] )); then
     gmm() {
@@ -793,6 +795,7 @@ if (( $+commands[docker] )); then
   ealias dk='docker'
   ealias dkp='docker ps'
   ealias dc='docker-compose'
+  ealias dcu='docker-compose up -d'
   ealias dcp='docker-compose pull'
 fi
 
@@ -803,12 +806,13 @@ fi
 if (( $+commands[mvn] )); then
   ealias mdeps="mvn dependency:tree"
   ealias mcp="mvn clean package"
+  ealias mbe="mvn -Dbuild.env=local-prod"
 fi
 
 if (( $+commands[wg] && $+commands[wg-quick] )); then
-  ealias vpnu="sudo wg-quick up wg0"
-  ealias vpnd="sudo wg-quick down wg0"
-  ealias vpns="sudo wg"
+  ealias wgu="sudo wg-quick up wg0"
+  ealias wgd="sudo wg-quick down wg0"
+  ealias wgs="sudo wg"
 fi
 
 (( $+commands[reflector] )) && 
