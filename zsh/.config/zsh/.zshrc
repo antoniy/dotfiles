@@ -713,6 +713,7 @@ if (( $+commands[git] )); then
   ealias gcam='git commit -am'
   ealias gdi='git diff'
   ealias gdic='git diff --cached'
+  ealias ga='git add'
 
   if (( $+commands[fzf] )); then
     gm() {
@@ -821,7 +822,7 @@ fi
 
 # (( $+commands[mpv] && $+commands[devour] )) && alias mpv="devour mpv"
 
-(( $+commands[emacsclient] )) && alias emacs="emacsclient -c -a ''"
+# (( $+commands[emacsclient] )) && alias emacs="emacsclient -c -a ''"
 
 if (( $+commands[brew] )); then
   ealias br="brew "
