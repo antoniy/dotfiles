@@ -714,9 +714,13 @@ if (( $+commands[git] )); then
   ealias gdi='git diff'
   ealias gdic='git diff --cached'
   ealias ga='git add'
+  ealias gaa='git add -A'
+  ealias gp='git push'
+  ealias gf='git fetch'
+  ealias gm='git merge'
 
   if (( $+commands[fzf] )); then
-    gm() {
+    gmm() {
       local query="${@:-}"
       local preview_highlighter=""
       (( $+commands[diff-so-fancy] )) && preview_highlighter=" | diff-so-fancy | less -RX"
@@ -725,12 +729,12 @@ if (( $+commands[git] )); then
       git branch -a | grep -v "^*" | fzf -1 -q "$query" --preview="$preview_cmd | head -300" --preview-window=right:70% --bind "alt-e:execute($preview_cmd >/dev/tty </dev/tty)" | cli-prompt "Merge ${BIRed}{}${Color_Off} into ${BIGreen}$(git_branch)${Color_Off}?" | xargs -I% git merge % $(git_branch)
     }
 
-    gf() {
+    gff() {
       local query="${@:-}"
       git remote | fzf -1 -q "$query" -m --preview='git ls-remote --get-url {}' --preview-window=down:2:wrap | xargs -I% git fetch %
     }
 
-    gp() {
+    gpp() {
       local query="${@:-}"
       git remote | fzf -1 -q "$query" -m --preview='git ls-remote --get-url {}' --preview-window=down:2:wrap | xargs -I% git push % $(git_branch)
     }
