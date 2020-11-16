@@ -255,10 +255,6 @@ bindkey '^[j' history-substring-search-down
 bindkey -M vicmd '^[k' history-substring-search-up
 bindkey -M vicmd '^[j' history-substring-search-down
 
-# -------- Plugin: forgit {{{2
-zinit ice wait'2' lucid
-zinit light wfxr/forgit
-
 # -------- Plugin: fast-syntax-highlighting {{{2
 zinit ice wait lucid atinit"zpcompinit; zpcdreplay"
 zinit light zdharma/fast-syntax-highlighting
