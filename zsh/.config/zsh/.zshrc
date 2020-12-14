@@ -195,12 +195,7 @@ autoload -Uz add-zsh-hook
 add-zsh-hook precmd set_prompt
 
 # -------- Plugins {{{1
-# -------- Initialize TPM (tmux plugin manager) {{{2
-# Install tmux tpm plugin manager
-if [[ $commands[tmux] && ! -d ~/.tmux/plugins/tpm ]]; then
-  git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-fi
-
+# -------- Install and initialize FZF {{{2
 # Load fzf
 if [ ! -d ~/.fzf ]; then
   git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
@@ -562,6 +557,7 @@ ealias ..='cd ..'
 ealias ...='cd ../..'
 ealias ....="cd ../../.."
 ealias .....="cd ../../../.."
+ealias ......="cd ../../../../.."
 alias cd.='cd ..'
 alias cd..='cd ..'
 
