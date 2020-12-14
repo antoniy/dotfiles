@@ -137,3 +137,5 @@
   path = .gitconfig.local
 
 ; vim: set filetype=gitconfig:
+[pull]
+	rebase = false
