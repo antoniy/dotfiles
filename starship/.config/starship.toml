@@ -1,0 +1,17 @@
+# Don't print a new line at the start of the prompt
+add_newline = false
+
+# Custom prompt format - only modules I want to use.
+format = """
+$username\
+$hostname\
+$directory\
+$git_branch\
+$cmd_duration\
+$time\
+$status\
+$character"""
+
+[time]
+disabled = false
+
