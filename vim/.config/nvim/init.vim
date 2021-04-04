@@ -168,6 +168,7 @@ Plug 'alvan/vim-closetag'
 Plug 'vim-scripts/ReplaceWithRegister'
 Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-speeddating'
+Plug 'zainin/vim-mikrotik'
 
 " File finders
 Plug 'junegunn/fzf', { 'dir': '~/.fzf' }
@@ -315,7 +316,7 @@ nnoremap <leader>W :w<CR>
 " nnoremap S :%s//g<Left><Left>
 
 " Vertically center document when entering insert mode
-autocmd InsertEnter * norm zz
+" autocmd InsertEnter * norm zz
 
 " -------- Motions and Moves {{{1
 
