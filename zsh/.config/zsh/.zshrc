@@ -159,41 +159,6 @@ echo -ne '\e[6 q'
 preexec() { echo -ne '\e[6 q' ;}
 
 # }}}
-# -------- Prompt {{{1
-
-# Reference for colors: http://stackoverflow.com/questions/689765/how-can-i-change-the-color-of-my-prompt-in-zsh-different-from-normal-text
-
-_is_ssh() {
-  [[ -n "${SSH_CONNECTION-}${SSH_CLIENT-}${SSH_TTY-}" ]]
-}
-
-set_prompt() {
-  # [
-  # PS1="%{$fg[white]%}%{$reset_color%}"
-
-  local host=''
-  _is_ssh && host=" at %F{yellow}%m%{$reset_color%}"
-
-  # Path: http://stevelosh.com/blog/2010/02/my-extravagant-zsh-prompt/
-  PS1="%{$fg_bold[cyan]%}${PWD/#$HOME/~}%{$reset_color%}"
-
-  # Git
-  # Note: don't show git prompt when we're are in $HOME dotfiles repo. 
-  # The git repo there is our dotfiles so let's not make a prompt mess in our $HOME.
-  if [[ $(git rev-parse --absolute-git-dir 2> /dev/null) ]]; then
-    PS1+=" %{$fg[green]%} $(git rev-parse --abbrev-ref HEAD 2> /dev/null)%{$reset_color%}"
-  fi
-
-  # ]:
-  local symbol="❯"
-  [[ $EUID == 0 ]] && symbol="#"
-  PS1+="$host%{$fg[magenta]%} $symbol %{$reset_color%}% "
-}
-
-# add prompt generator function to precmd hooks
-autoload -Uz add-zsh-hook
-add-zsh-hook precmd set_prompt
-
 # -------- Plugins {{{1
 # -------- Install and initialize FZF {{{2
 # Load fzf
@@ -817,7 +782,7 @@ fi
 
 (( $+commands[speedtest-cli] )) && ealias spt="speedtest-cli --bytes --simple"
 
-(( $+commands[nnn] )) && alias n="nnn"
+(( $+commands[nnn] )) && alias n="nnn -e"
 
 (( $+commands[beet] )) && ealias bei="beet import "
 
@@ -858,3 +823,40 @@ catch_signal_usr1() {
   rehash
 }
 trap catch_signal_usr1 USR1
+# -------- Prompt {{{1
+if (( $+commands[starship] )); then
+  eval "$(starship init zsh)"
+else
+  # Reference for colors: http://stackoverflow.com/questions/689765/how-can-i-change-the-color-of-my-prompt-in-zsh-different-from-normal-text
+
+  _is_ssh() {
+    [[ -n "${SSH_CONNECTION-}${SSH_CLIENT-}${SSH_TTY-}" ]]
+  }
+
+  set_prompt() {
+    # [
+    # PS1="%{$fg[white]%}%{$reset_color%}"
+
+    local host=''
+    _is_ssh && host=" at %F{yellow}%m%{$reset_color%}"
+
+    # Path: http://stevelosh.com/blog/2010/02/my-extravagant-zsh-prompt/
+    PS1="%{$fg_bold[cyan]%}${PWD/#$HOME/~}%{$reset_color%}"
+
+    # Git
+    # Note: don't show git prompt when we're are in $HOME dotfiles repo. 
+    # The git repo there is our dotfiles so let's not make a prompt mess in our $HOME.
+    if [[ $(git rev-parse --absolute-git-dir 2> /dev/null) ]]; then
+      PS1+=" %{$fg[green]%} $(git rev-parse --abbrev-ref HEAD 2> /dev/null)%{$reset_color%}"
+    fi
+
+    # ]:
+    local symbol="❯"
+    [[ $EUID == 0 ]] && symbol="#"
+    PS1+="$host%{$fg[magenta]%} $symbol %{$reset_color%}% "
+  }
+
+  # add prompt generator function to precmd hooks
+  autoload -Uz add-zsh-hook
+  add-zsh-hook precmd set_prompt
+fi

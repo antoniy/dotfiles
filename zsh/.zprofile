@@ -3,6 +3,7 @@
 # Adds `~/.local/bin` to $PATH
 export PATH="$PATH:$(du "$HOME/.local/bin/" | cut -f2 | tr '\n' ':' | sed 's/:*$//')"
 export PATH="$PATH:$HOME/.emacs.d/bin"
+export PATH="$PATH:/usr/local/bin"
 
 # Default programs:
 export EDITOR="nvim"
