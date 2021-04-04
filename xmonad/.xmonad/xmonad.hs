@@ -19,7 +19,13 @@ import Control.Exception (bracket)
 
 import XMonad.Config.Desktop
 
+
 import XMonad.Layout
+
+import XMonad.Layout.Simplest
+import XMonad.Layout.SubLayouts
+import XMonad.Layout.WindowNavigation
+
 import XMonad.Layout.LimitWindows
 import XMonad.Layout.NoBorders (noBorders, smartBorders)
 import XMonad.Layout.SimplestFloat
@@ -42,7 +48,7 @@ import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.ManageHelpers (isFullscreen, isDialog,  doFullFloat, doCenterFloat, composeOne, (-?>), transience') 
-import XMonad.Hooks.InsertPosition
+-- import XMonad.Hooks.InsertPosition
 import XMonad.Hooks.SetWMName
 -- import XMonad.Hooks.RefocusLast
 
@@ -138,6 +144,15 @@ myKeys c =
     , ("M-S-a"          , addName "Close all"              $ killAll)
     ]
 
+  -- -------- System {{{2
+  ^++^ titleSection c "System"
+    -- [ ("S-<Print>"      , addName "Screenshot region copy" $ spawn "maim -s | xclip -selection clipboard -t image/png")
+    [ ("M-S-<Print>"    , addName "Screenshot region copy" $ spawn "~/.local/bin/screenshot copy-region")
+    , ("C-M1-<Delete>"  , addName "Lock Screen"            $ spawn "i3lock -c 000000")
+    , ("M1-q"           , addName "Application launcher"   $ spawn "j4-dmenu-desktop")
+    , ("M1-S-q"         , addName "Command launcher"       $ spawn "dmenu_run")
+    , ("M-S-<Escape>"   , addName "Leave Xorg"             $ spawn "prompt 'Leave Xorg?' 'killall Xorg'")
+    ]
   -- -------- Floating windows {{{2
 
   ^++^ titleSection c "Floating windows"
@@ -187,6 +202,15 @@ myKeys c =
     , ("M-M1-l"         , addName "Expand"                 $ sendMessage Expand)
     , ("M-M1-j"         , addName "Mirror Shrink"          $ sendMessage MirrorShrink)
     , ("M-M1-k"         , addName "Mirror Expand"          $ sendMessage MirrorExpand)
+
+    , ("M-C-h"          , addName "Pull group L"           $ sendMessage $ pullGroup L)
+    , ("M-C-l"          , addName "Pull group R"           $ sendMessage $ pullGroup R)
+    , ("M-C-k"          , addName "Pull group U"           $ sendMessage $ pullGroup U)
+    , ("M-C-j"          , addName "Pull group D"           $ sendMessage $ pullGroup D)
+    , ("M-C-m"          , addName "Merge All"              $ withFocused (sendMessage . MergeAll))
+    , ("M-C-u"          , addName "UnMerge"                $ withFocused (sendMessage . UnMerge))
+    , ("M-C-,"          , addName "Focus Up"               $ onGroup W.focusUp')
+    , ("M-C-."          , addName "Focus Down"             $ onGroup W.focusDown')
     ]
 
   -- -------- Screens {{{2
@@ -203,6 +227,7 @@ myKeys c =
     , ("M-<F11>"        , addName "Toggle Notes"           $ toggleNSP "note")
     , ("M-<F10>"        , addName "Toggle bitwarden"       $ toggleNSP "bitwarden")
     , ("M-<F9>"         , addName "Toggle Pavucontrol"     $ toggleNSP "pavucontrol")
+    , ("M-S-<F9>"       , addName "Toggle XAir"            $ toggleNSP "xair")
     , ("M-<F8>"         , addName "Toggle calculator"      $ toggleNSP "calculator")
     , ("M-<F7>"         , addName "Toggle htop"            $ toggleNSP "htop")
     ] 
@@ -263,6 +288,9 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
 -- -------- Layouts {{{1
 
 myLayoutHook = avoidStruts 
+  $ windowNavigation
+  -- $ subTabbed
+  $ addTabs shrinkText tabTheme
   $ smartBorders             -- don't use borders on single window (on a single screen) and also if the window covers the entier screen (mpv)
   -- $ refocusLastLayoutHook    -- refocus to last focused window when current window looses focus or is closed (default focuses the newest window)
   $ toggleLayouts floats     -- add ability to toggle floats on all layouts
@@ -284,8 +312,8 @@ myLayoutHook = avoidStruts
     wsLayouts idx layouts = onWorkspace (myWorkspaces !! idx) layouts
 
     -- Define individual layout sets for specific workspaces and a default one
-    wwwLayouts      = tab   ||| tall    ||| monocle 
-    chatLayouts     = im    ||| grid    ||| tab     ||| monocle
+    wwwLayouts      = tab   ||| tall    ||| dtall   ||| monocle 
+    chatLayouts     = im    ||| grid    ||| tall    ||| tab     ||| monocle
     devLayouts      = ide   ||| tall    ||| tab     ||| monocle
     gameLayouts     = steam ||| monocle ||| tall    
     mediaLayouts    = tall  ||| grid    ||| tab     ||| monocle
@@ -310,6 +338,7 @@ myLayoutHook = avoidStruts
     -- Configure each individual layout - apply renaming, limiting windows, spacing, toggles, size/resize ratios, theming, etc.
     monocle = rename "Monocle" $ limitWindows 20 $ noBorders $ Full
     tall    = rename "Tall"    $ ifMax 1 monocle resizableTile
+    dtall   = rename "dTall"   $ ifMax 1 monocle $ subLayout [] Simplest resizableTile 
     grid    = rename "Grid"    $ ifMax 1 monocle $ limitWindows 12 $ mySpacing $ mkToggle (single MIRROR) $ Grid (16/10)
     oneBig  = rename "OneBig"  $ ifMax 1 monocle $ limitWindows 8  $ mySpacing $ mkToggle (single MIRROR) $ OneBig (5/9) (8/12)
     tab     = rename "Tabbed"  $ limitWindows 20 $ noBorders $ tabbed shrinkText tabTheme
@@ -405,16 +434,19 @@ myManageHook = manageDocks
   <+> appsManageHook
 
 appsManageHook = composeOne . concat $
-  [ [ isDialog     -?> floatInsert <+> doCenterFloat               ]
-  , [ isFullscreen -?> floatInsert <+> doFullFloat                 ]
-  , [ matchApp c   -?> floatInsert <+> doCenterFloat | c <- float  ]
-  , [ matchApp c   -?> doIgnore                      | c <- bars   ]
-  , [ matchApp c   -?> toWs 0                        | c <- www    ]
-  , [ matchApp c   -?> toWs 1                        | c <- chat   ]
-  , [ matchApp c   -?> toWs 2                        | c <- dev    ]
-  , [ matchApp c   -?> toWs 3                        | c <- game   ]
-  , [ matchApp c   -?> toWs 4                        | c <- media  ]
-  , [ pure True    -?> normInsert                                  ]
+  -- [ [ isDialog     -?> floatInsert <+> doCenterFloat               ]
+  -- , [ isFullscreen -?> floatInsert <+> doFullFloat                 ]
+  -- , [ matchApp c   -?> floatInsert <+> doCenterFloat | c <- float  ]
+  [ [ isDialog     -?> doCenterFloat               ]
+  , [ isFullscreen -?> doFullFloat                 ]
+  , [ matchApp c   -?> doCenterFloat | c <- float  ]
+  , [ matchApp c   -?> doIgnore      | c <- bars   ]
+  , [ matchApp c   -?> toWs 0        | c <- www    ]
+  , [ matchApp c   -?> toWs 1        | c <- chat   ]
+  , [ matchApp c   -?> toWs 2        | c <- dev    ]
+  , [ matchApp c   -?> toWs 3        | c <- game   ]
+  , [ matchApp c   -?> toWs 4        | c <- media  ]
+  -- , [ pure True    -?> normInsert                                  ]
   ]
   where    
       bars   = ["xmobar", "trayer"]
@@ -427,13 +459,14 @@ appsManageHook = composeOne . concat $
       role   = stringProperty "WM_WINDOW_ROLE"
 
       -- move window to workspace (idx)
-      toWs idx = normInsert <+> doShift (myWorkspaces !! idx)
+      -- toWs idx = normInsert <+> doShift (myWorkspaces !! idx)
+      toWs idx = doShift (myWorkspaces !! idx)
 
       -- match window by class name, title or app name (resource)
       matchApp c = className =? c <||> title =? c <||> resource =? c
 
-      floatInsert = insertPosition Above Newer
-      normInsert  = insertPosition End Newer
+      -- floatInsert = insertPosition Above Newer
+      -- normInsert  = insertPosition End Newer
 
 -- -------- Event Hook {{{1
 
@@ -456,8 +489,8 @@ myStartupHook = do
   spawnOnce "telegram-desktop &"
   spawnOnce "viber &"
   spawnOnce "slack &"
-  spawnOnce "hexchat &"
-  spawnOnce "emacs --daemon &"
+  -- spawnOnce "hexchat &"
+  -- spawnOnce "emacs --daemon &"
   
 -- -------- Scratchpads {{{1
 
@@ -465,7 +498,8 @@ scratchpads =
   [ NS "tmux"
       (myTerm ++ " -t scratchpad_tmux -e 'tmuxdd'")
       (title =? "scratchpad_tmux")
-      $ nsBigCenterFloat
+      $ customFloating $ W.RationalRect 0 0 1 0.6
+      -- $ nsBigCenterFloat
 
   , NS "note"
       "emacsclient -a '' -nc -F '(quote (name . \"scratchpad_emacs\"))'"
@@ -498,6 +532,11 @@ scratchpads =
       "bitwarden-desktop"
       (className =? "Bitwarden")
       $ nsCenterFloat 0.5 0.6
+
+  , NS "xair"
+      "/home/antoniy/software/xair/X-AIR-Edit"
+      (title =? "X AIR Edit [XR16, IP: 10.10.0.99]")
+      $ nsCenterFloat 0.8 0.8
   ] 
   where
     nsFloat w h l t   = customFloating $ W.RationalRect l t w h
