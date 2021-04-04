@@ -539,6 +539,7 @@ alias grep='grep --color=auto'
 alias df='df -h' # disk free, in Gigabytes, not bytes
 alias du='du -h -c' # calculate disk usage for a folder
 ealias rmf="rm -rf"
+ealias pss="ps aux | grep "
 
 ealias ka="killall"
 ealias sdn="sudo shutdown -h now"
@@ -613,20 +614,13 @@ alias diff="diff --color=auto"
 
 # Set grc alias for available commands.
 if (( $+commands[grc] )); then
-  [[ -f /etc/grc.conf ]]           && grc_conf='/etc/grc.conf'
-  [[ -f /usr/local/etc/grc.conf ]] && grc_conf='/usr/local/etc/grc.conf'
-  if [ ! -z "$grc_conf" ]; then
-    for cmd in $(grep '^# ' "$grc_conf" | cut -f 2 -d ' '); do
-      if (( $+commands[$cmd] )) && [ "$cmd" != "ls" ]; then
-        if (( $+aliases[$cmd] )); then
-          alias $cmd="grc --colour=auto $aliases[$cmd]"
-        else
-          alias $cmd="grc --colour=auto $cmd"
-        fi
-      fi
-    done
-  fi
-  unset grc_conf cmd
+  for cmd in g++ gas head make ld ping6 tail traceroute6 $( ls /usr/share/grc/ ); do
+    cmd="${cmd##*conf.}"
+    if [[ "$cmd" = "ls" ]]; then # don't highlight 'ls' - exa already does that
+      continue
+    fi
+    type "${cmd}" >/dev/null 2>&1 && alias "${cmd}"="$( which grc ) --colour=auto ${cmd}"
+  done
 fi
 
 (( $+commands[bat] )) && alias cat="bat --plain --wrap character"
@@ -775,8 +769,11 @@ fi
 [[ $+commands[fd] && $+commands[fzf] && -d $HOME/.local/bin ]] && 
   se() { fd -t f . ~/.local/bin | fzf | xargs $EDITOR ;}
 
-# Pacman/Yay aliases
-if (( $+commands[yay] )); then
+# Pacman/Yay/Paru aliases
+if (( $+commands[paru] )); then
+  alias paru="paru --bottomup"
+  # ealias yay="paru"
+elif (( $+commands[yay] )); then
   ealias yau="yay -Syua"
   ealias yar="yay -Rns"
 fi
@@ -836,6 +833,8 @@ if (( $+commands[brew] )); then
 fi
 
 (( $+commands[mpv] )) && ealias horizont="mpv http://stream.bnr.bg:8011/horizont.aac"
+
+(( $+commands[picocom] )) && ealias hpswitch="sudo picocom -b 9600 -f h --omap delbs /dev/ttyUSB0"
 
 # -------- Pacman Trap {{{1
 # from https://wiki.archlinux.org/index.php/Zsh#On-demand_rehash
