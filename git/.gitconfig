@@ -139,3 +139,5 @@
 ; vim: set filetype=gitconfig:
 [pull]
 	rebase = false
+[init]
+	defaultBranch = master
