@@ -3,26 +3,26 @@
 #  $TERMINAL
 
 # Launcher
-alt + {_,shift +} q 
-  { j4-dmenu-desktop, dmenu_run }
+#alt + {_,shift +} q 
+#  { j4-dmenu-desktop, dmenu_run }
 
-ctrl + alt + Delete
-  i3lock -c 000000
+#ctrl + alt + Delete
+#  i3lock -c 000000
 # Kill active window
 #super + shift + q
 #  xdo close
 
 # Open default personal wiki
-super + shift + w
-	$TERMINAL -e nvim -c $HOME/.wiki/index.md
+#super + shift + w
+#	$TERMINAL -e nvim -c $HOME/.wiki/index.md
 
 # Open default browser in normal or private mode
 #super + b ; { b, p }
 #	$BROWSER {_, --private-window }
 
 # Pick screenchot type
-shift + Print
-  dmenu-screenshot
+#shift + Print
+#  dmenu-screenshot
 
 # Shutdown computer
 #super + shift + x
@@ -33,8 +33,8 @@ shift + Print
 #  prompt "Reboot computer?" "sudo -A reboot"
 
 # Kill Xorg
-super + shift + Escape
-  prompt 'Leave Xorg?' 'killall Xorg'
+#super + shift + Escape
+#  prompt 'Leave Xorg?' 'killall Xorg'
 
 # Super + mouse wheel up/down will control the PulseAudio volume
 super + {button4, button5}
