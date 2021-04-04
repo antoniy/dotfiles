@@ -27,6 +27,10 @@ killall xcape 2>/dev/null ; xcape -e 'Caps_Lock=Escape' &
 # Set key repeat delay and interval
 xset r rate 300 50 &
 
+# set trackball accel speed
+# hint: check all available devices and IDs with `xinput list`. Check all props with `xinput list-props 17`
+xinput --set-prop "Logitech ERGO M575" "libinput Accel Speed" -0.7 &
+
 # Set wallpaper
 feh --bg-scale $HOME/.config/wall.jpg
 
@@ -36,7 +40,7 @@ dunst & # notification daemon
 picom & # compositor for transperancy etc.
 /usr/lib/geoclue-2.0/demos/agent & # geoclue agent to know current location for redshift sunset check
 # $HOME/.config/polybar/launch.sh & # launch polybar
-redsihft &> /dev/null & # change color temperature at sunset
+redshift &> /dev/null & # change color temperature at sunset
 nm-applet & # network manager applet
 xbanish & # hide cursor when mouse pressed
 xsetroot -cursor_name left_ptr # set the cursor style to left ptr from an 'X'
