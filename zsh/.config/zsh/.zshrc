@@ -670,9 +670,13 @@ if (( $+commands[git] )); then
   ealias gdic='git diff --cached'
   ealias ga='git add'
   ealias gaa='git add -A'
+  ealias gau='git add -u'
   ealias gp='git push'
   ealias gf='git fetch'
+  ealias gfo='git fetch origin'
   ealias gm='git merge'
+  ealias gmo='git merge origin/'
+  ealias gmom='git merge origin/master'
   ealias gr='git restore'
   ealias grs='git restore --staged'
 
