@@ -1,8 +1,8 @@
-default: config bat config-files git gnupg htop scripts tmux vim zsh alacritty
+default: config bat config-files git gnupg htop scripts tmux vim zsh alacritty starship doom
 
-linux: config bat compton config-files dunst git gnupg htop i3 lf mpv pcmanfm pet polybar scripts sxhkd systemd termite tmux vim x11 xfce4 zathura zsh alacritty xmonad xmobar starship
+linux: config bat compton config-files dunst git gnupg htop i3 lf mpv pcmanfm pet polybar scripts sxhkd systemd termite tmux vim x11 xfce4 zathura zsh alacritty xmonad xmobar starship doom
 
-darwin: config bat config-files git gnupg htop karabiner lf mpv pet scripts tmux vim zsh alacritty
+darwin: config bat config-files git gnupg htop karabiner lf mpv pet scripts tmux vim zsh alacritty doom
 
 bat: config
 	stow --no-fold -R bat
@@ -87,6 +87,9 @@ xmobar: config
 
 starship: config
 	stow --no-fold -R starship
+
+doom: config
+	stow --no-fold -R doom
 
 config: .stowrc
 
