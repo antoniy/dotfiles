@@ -579,7 +579,12 @@ alias diff="diff --color=auto"
 
 # Set grc alias for available commands.
 if (( $+commands[grc] )); then
-  for cmd in g++ gas head make ld ping6 tail traceroute6 $( ls /usr/share/grc/ ); do
+  if [[ "$OSTYPE" == "darwin"* ]]; then # for MacOSX
+    GRC_PATH="/usr/local/share/grc/"
+  else
+    GRC_PATH="/usr/share/grc/"
+  fi
+  for cmd in g++ gas head make ld ping6 tail traceroute6 $( ls $GRC_PATH ); do
     cmd="${cmd##*conf.}"
     if [[ "$cmd" = "ls" ]]; then # don't highlight 'ls' - exa already does that
       continue
