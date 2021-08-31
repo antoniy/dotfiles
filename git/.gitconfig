@@ -135,9 +135,9 @@
   verbose = true
 [include]
   path = .gitconfig.local
-
-; vim: set filetype=gitconfig:
 [pull]
 	rebase = false
 [init]
 	defaultBranch = master
+
+; vim: set filetype=gitconfig:
