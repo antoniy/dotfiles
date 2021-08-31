@@ -31,6 +31,9 @@ export GPG_TTY=$(tty)
 # fi
 export PINENTRY_USER_DATA="USE_CURSES=1"
 
+# Hide Docker legacy commands
+export DOCKER_HIDE_LEGACY_COMMANDS=true
+
 # -------- ZSH Config {{{1
 
 setopt no_bg_nice
@@ -677,6 +680,8 @@ if (( $+commands[git] )); then
   ealias gaa='git add -A'
   ealias gau='git add -u'
   ealias gp='git push'
+  ealias gpom='git push origin master'
+  ealias gpo='git push origin'
   ealias gf='git fetch'
   ealias gfo='git fetch origin'
   ealias gm='git merge'
