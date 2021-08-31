@@ -28,7 +28,7 @@
 ;; available. You can either set `doom-theme' or manually load a theme with the
 ;; `load-theme' function. This is the default:
 (setq
- doom-theme 'doom-one)
+ doom-theme 'doom-one
 
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
@@ -37,9 +37,7 @@
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
  display-line-numbers-type 'visual
-
- ;; Set the search directory for auto-project indexing
- projectile-project-search-path '("~/projects/")
+)
 
 ;; Here are some additional functions/macros that could help you configure Doom:
 ;;
@@ -66,3 +64,21 @@
 
 (setq evil-snipe-scope 'buffer)
 (evil-snipe-override-mode 1)
+
+(defun read-system-path ()
+  (with-temp-buffer
+    (insert-file-contents "/etc/paths")
+    (goto-char (point-min))
+    (replace-regexp "\n" ":")
+    (thing-at-point 'line)))
+
+(setenv "PATH" (read-system-path))
+
+
+(after! projectile
+  (setq projectile-project-search-path '("~/projects/")
+        projectile-globally-ignored-directories '("*target" "*.terraform" "flow-typed" "node_modules" "~/.emacs.d/.local/" ".idea" ".vscode" ".ensime_cache" ".eunit" ".git" ".hg" ".fslckout" "_FOSSIL_" ".bzr" "_darcs" ".tox" ".svn" ".stack-work" ".ccls-cache" ".cache" ".clangd"))
+        projectile-globally-ignored-file-suffixes '("class" ".elc" ".pyc" ".o"))
+
+(setq lsp-java-vmargs '("-noverify" "-Xmx1G" "-javaagent:/Users/antoniy/.m2/repository/org/projectlombok/lombok/1.18.12/lombok-1.18.12.jar" "-Xbootclasspath/a:/Users/antoniy/.m2/repository/org/projectlombok/lombok/1.18.12/lombok-1.18.12.jar"))
+
