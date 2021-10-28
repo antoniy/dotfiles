@@ -798,7 +798,10 @@ fi
 
 (( $+commands[nnn] )) && alias n="nnn -e"
 
-(( $+commands[beet] )) && ealias bei="beet import "
+if (( $+commands[beet] )); then
+  ealias bei="beet import "
+  alias imp="beet -c ~/.config/beets/collection-config.yaml import -s "
+fi
 
 # (( $+commands[mpv] && $+commands[devour] )) && alias mpv="devour mpv"
 
@@ -814,6 +817,8 @@ fi
 (( $+commands[mpv] )) && ealias horizont="mpv http://stream.bnr.bg:8011/horizont.aac"
 
 (( $+commands[picocom] )) && ealias hpswitch="sudo picocom -b 9600 -f h --omap delbs /dev/ttyUSB0"
+
+(( $+commands[rg] )) && alias ff="rg --files | rg -S "
 
 # -------- Pacman Trap {{{1
 # from https://wiki.archlinux.org/index.php/Zsh#On-demand_rehash
