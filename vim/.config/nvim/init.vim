@@ -186,7 +186,7 @@ Plug 'junegunn/goyo.vim'
 Plug 'junegunn/limelight.vim'
 Plug 'skammer/vim-css-color'
 Plug 'xolox/vim-misc'
-Plug 'xolox/vim-notes'
+" Plug 'xolox/vim-notes'
 " Plug 'lyokha/vim-xkbswitch'
 
 call plug#end()            " required
@@ -448,7 +448,7 @@ nmap <F8> :TagbarToggle<CR>
 
 " -------- Notes {{{1
 
-:let g:notes_directories = ['~/notes']
+" :let g:notes_directories = ['~/notes']
 
 " -------- Closetag {{{1
 
