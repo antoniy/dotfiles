@@ -1,0 +1,50 @@
+-- vim: ft=haskell
+-- http://projects.haskell.org/xmobar/
+-- install xmobar with these flags: --flags="with_alsa" --flags="with_mpd" --flags="with_xft"  OR --flags="all_extensions"
+-- you can find weather location codes here: http://weather.noaa.gov/index.html
+
+Config { font            = "xft:FiraCode Nerd Font:pixelsize=14:antialias=true:hinting=true"
+       , additionalFonts = []
+       , bgColor         = "#282828"
+       , fgColor         = "#928374"
+       , position        = Top
+       , lowerOnStart    = True
+       , hideOnStart     = False
+       , allDesktops     = True
+       , persistent      = True
+       , iconRoot = ".xmonad/xpm/"  -- default: "."
+       , commands = [ Run Date "\xf133  %a, %b %d %Y %H:%M" "date" 50 -- Time and date
+                    -- Network up and down
+                    -- , Run Network "wlp2s0" ["-t", "\xf0aa <rx>kb  \xf0ab <tx>kb"] 20
+                    -- Cpu usage in percent
+                    -- , Run Cpu ["-t", "\xf108  cpu: <total>%","-H","50","--high","red"] 20
+                    , Run Cpu ["-t", "\xf108  <total>%","-H","50","--high","red"] 20
+                    -- Ram used number and percent
+                    -- , Run Memory ["-t", "\xf233  mem: <usedratio>%"] 20
+                    -- , Run Memory ["-t", "\xf233  <usedratio>%"] 20
+                    , Run Volume "default" "Master" ["-t", "<status> <volume>%", "--", "--on", "", "--off", "婢"] 10
+                    -- Disk space free
+                    -- , Run DiskU [("/", "\xf0c7 (root) <free> free")] [] 60
+                    -- , Run BatteryP ["BAT0"] ["-t", "<acstatus><watts> (<left>%)", "-L", "10", "-H", "80", "-p", "3", "--", "-O", "<fc=green>On</fc> - ", "-i", "", "-L", "-15", "-H", "-5", "-l", "red", "-m", "blue", "-h", "green", "-a", "notify-send -u critical 'Battery running out!!'", "-A", "3"] 600
+                    , Run BatteryP ["AC", "BAT0"] [ "-t" , "<acstatus>", "--", "-L", "15", "-H", "60", "--highs" , "  <left>%" , "--mediums" , "  <left>%" , "--lows" , "  <left>%", "-O", "ﮣ AC", "-o" , "" , "-a" , "notify-send -u critical 'Battery running out!!'" , "-A" , "5"] 30
+                    , Run Brightness ["-t", " <percent>", "--", "-D", "intel_backlight"] 30
+                    -- Runs custom script to check for avg system load. This script is in my dotfiles repo in .local/bin.
+                    , Run ComX "loadavg" [] "" "load" 20
+                    -- Show current keyboard layout
+                    , Run Kbd [("us", "US"), ("bg(phonetic)", "BG")]
+                    -- Runs a standard shell command 'uname -r' to get kernel version
+                    -- , Run Com "uname" ["-r"] "" 36000
+                    -- Script that dynamically adjusts xmobar padding depending on number of trayer icons.
+                    , Run Com ".config/xmobar/trayer-padding-icon.sh" [] "trayerpad" 20
+                    , Run Com "vpn-status" [] "vpn" 20
+
+                    -- Prints out the left side items such as workspaces, layout, etc.
+                    -- The workspaces are 'clickable' in my configs.
+                    , Run UnsafeStdinReader
+                    ]
+       , sepChar  = "%"
+       , alignSep = "}{"
+       -- , template =  " <icon=haskell_20.xpm/> <fc=#928374>|</fc> %UnsafeStdinReader% }{ <fc=#a89984> %uname% </fc><fc=#928374> | </fc><fc=#d3869b>%cpu% %load% </fc><fc=#928374> | </fc><fc=#d79921>%default:Master% </fc><fc=#928374>| </fc><fc=#458588>%battery% </fc><fc=#928374>| </fc><fc=#fe8019>%kbd%</fc><fc=#928374> | </fc><fc=#ebdbb2>%date%</fc> %trayerpad%"
+       , template =  " <icon=haskell_20.xpm/> <fc=#928374>|</fc> %UnsafeStdinReader% }{ <fc=#d3869b>%cpu% %load% </fc><fc=#928374> | </fc><fc=#d79921>%default:Master% </fc><fc=#928374>| </fc><fc=#458588>%battery% </fc><fc=#928374>| </fc><fc=#689d6a>%bright% </fc><fc=#928374>| </fc>%vpn%<fc=#928374> | </fc><fc=#fe8019>%kbd%</fc><fc=#928374> | </fc><fc=#ebdbb2>%date%</fc> %trayerpad%"
+       }
+
