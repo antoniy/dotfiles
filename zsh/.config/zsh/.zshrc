@@ -497,6 +497,8 @@ alias rm="rm -v"
 alias mkdir="mkdir -pv"
 alias dh='dirs -v'
 
+(( $+commands[sudo] )) && ealias s="sudo"
+
 # Create a new directory and enter it
 function md() {
     mkdir -pv "$@" && cd "$@"
@@ -666,6 +668,7 @@ if (( $+commands[git] )); then
   ealias g="git"
   ealias gst='git status'
   ealias gs='git status'
+  ealias gb='git branch'
   ealias gl='git ln'
   ealias gre='git remotes'
   ealias gco='git checkout'
@@ -769,6 +772,10 @@ if (( $+commands[docker] )); then
   ealias dc='docker-compose'
   ealias dcu='docker-compose up -d'
   ealias dcp='docker-compose pull'
+
+  if (( $+commands[fzf] && $+commands[xargs] )); then
+    alias dke="docker ps --format '{{.Names}}' | fzf | xargs -I{} -o docker exec -it {} /bin/sh"
+  fi
 fi
 
 # Journalctl
