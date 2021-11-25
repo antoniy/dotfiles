@@ -10,12 +10,14 @@
 import XMonad
 import Data.Monoid
 import Data.Maybe (isJust)
+import qualified Data.List as L
 import System.Exit
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
 import Data.Ratio ((%)) -- needed for IM layout
 import System.IO (hClose, hPutStr)
 import Control.Exception (bracket)
+import Control.Monad (when, forM_)
 
 import XMonad.Config.Desktop
 
@@ -23,8 +25,6 @@ import XMonad.Config.Desktop
 import XMonad.Layout
 
 import XMonad.Layout.Simplest
-import XMonad.Layout.SubLayouts
-import XMonad.Layout.WindowNavigation
 
 import XMonad.Layout.LimitWindows
 import XMonad.Layout.NoBorders (noBorders, smartBorders)
@@ -43,14 +43,14 @@ import XMonad.Layout.Reflect (reflectVert, reflectHoriz, REFLECTX(..), REFLECTY(
 import XMonad.Layout.IfMax
 import XMonad.Layout.ResizeScreen
 import XMonad.Layout.IM
+import XMonad.Layout.BinarySpacePartition
+import XMonad.Layout.LayoutCombinators hiding ( (|||) )
 
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.EwmhDesktops
-import XMonad.Hooks.ManageHelpers (isFullscreen, isDialog,  doFullFloat, doCenterFloat, composeOne, (-?>), transience') 
--- import XMonad.Hooks.InsertPosition
+import XMonad.Hooks.ManageHelpers (isFullscreen, isDialog,  doFullFloat, doCenterFloat, composeOne, (-?>), transience', MaybeManageHook) 
 import XMonad.Hooks.SetWMName
--- import XMonad.Hooks.RefocusLast
 
 import XMonad.Util.Run(spawnPipe, hPutStrLn)
 import XMonad.Util.SpawnOnce(spawnOnce)
@@ -58,6 +58,7 @@ import XMonad.Util.NamedScratchpad
 import XMonad.Util.EZConfig (additionalKeysP, mkKeymap, mkNamedKeymap, removeKeysP)  
 import XMonad.Util.Themes
 import XMonad.Util.NamedActions
+import XMonad.Util.Dmenu
 
 import XMonad.Actions.CopyWindow (kill1, killAllOtherCopies, copyToAll)
 import XMonad.Actions.WithAll (killAll, sinkAll)
@@ -65,33 +66,60 @@ import XMonad.Actions.CycleWS (moveTo, shiftTo, WSType(..), nextScreen, prevScre
 import XMonad.Actions.RotSlaves (rotSlavesDown, rotSlavesUp, rotAllDown, rotAllUp)
 import XMonad.Actions.Promote (promote)
 import XMonad.Actions.Navigation2D
+import XMonad.Actions.UpdatePointer
+
+import System.Posix.Unistd
 
 -- -------- Main {{{1
 
 main = do
-  bar0 <- spawnPipe "xmobar -x 0 ~/.config/xmobar/xmobarrc0"
-  bar1 <- spawnPipe "xmobar -x 1 ~/.config/xmobar/xmobarrc1"
-  xmonad $ ewmh $ docks $ addDescrKeys' ((mod4Mask, xK_F1), showKeybindings) myKeys $ myConfig bar0 bar1
+  host <- fmap nodeName getSystemID
+  bars <- loadBars host
+  xmonad $ ewmh $ docks $ addDescrKeys' ((mod4Mask, xK_F1), showKeybindings) (myKeys host) $ myConfig host bars
+  -- xmonad $ ewmh $ docks $ addDescrKeys' ((mod4Mask, xK_F1), rofiBindings) (myKeys host) $ myConfig host bar0
+
+loadBars :: String -> IO (String -> IO ())
+loadBars "europa" = do
+  bar <- spawnPipe "xmobar -x 0 ~/.config/xmobar/xmobarrc0"
+  return (\x -> hPutStrLn bar x)
+loadBars "pulsar" = do
+  bar0 <- spawnPipe "xmobar -x 0 ~/.config/xmobar/xmobarrc0" 
+  bar1 <- spawnPipe "xmobar -x 1 ~/.config/xmobar/xmobarrc0"
+  return (\x -> hPutStrLn bar0 x >> hPutStrLn bar1 x)
+
+-- rofiBindings :: [((KeyMask, KeySym), NamedAction)] -> X ()
+-- rofiBindings bindings = do
+--   handle <- spawnPipe "rofi -dmenu -i"
+--   liftIO $ hPutStrLn handle (unlines $ showKm bindings)
+
+confirm :: String -> X () -> X ()
+confirm msg action = do
+  response <- menuArgs "rofi" ["-dmenu", "-i", "-p", msg] ["No", "Yes"]
+  when ("Yes" `L.isPrefixOf` response) action
+
+showNotification title text = spawn ("notify-send \"" ++ title ++ "\" \"" ++ text ++ "\"")
 
 -- -------- Config {{{1
 
 myTerm = "alacritty"
 
-myConfig bar0 bar1 = def
+myConfig host bars = def
   { terminal           = myTerm
   , focusFollowsMouse  = True
   , clickJustFocuses   = False
-  , borderWidth        = 1
+  , borderWidth        = 3
   , modMask            = mod4Mask
   , workspaces         = myWorkspaces
-  , normalBorderColor  = "#292d3e"
-  , focusedBorderColor = "#bbc5ff"
+  -- , normalBorderColor  = "#292d3e"
+  -- , focusedBorderColor = "#bbc5ff"
+  , normalBorderColor  = "#401545"
+  , focusedBorderColor = "#c345d1"
   , mouseBindings      = myMouseBindings
   , layoutHook         = myLayoutHook
-  , manageHook         = myManageHook 
+  , manageHook         = myManageHook host
   , handleEventHook    = myEventHook
-  , logHook            = myLogHook bar0 bar1
-  , startupHook        = myStartupHook
+  , logHook            = myLogHook bars
+  , startupHook        = myStartupHook host
   -- , keys               = return ()
   } 
 -- -------- Theme {{{1
@@ -113,13 +141,17 @@ tabTheme = def
 
 windowCount = gets $ Just . xmobarColor "#fe8019" "" . show . length . W.integrate' . W.stack . W.workspace . W.current . windowset
 
-myLogHook bar0 bar1 = 
+myLogHook bars = 
   ( dynamicLogWithPP 
   $ namedScratchpadFilterOutWorkspacePP 
   $ xmobarPP 
-    { ppOutput          = (\x -> hPutStrLn bar0 x >> hPutStrLn bar1 x)
-    , ppCurrent         = xmobarColor "#8ec07c" "" . wrap "[" "]" -- Current workspace in xmobar
-    , ppVisible         = xmobarColor "#8ec07c" ""                -- Visible but not current workspace
+    { ppOutput          = bars
+    -- { ppOutput          = (\x -> forM_ bars (\b -> hPutStrLn b x))
+    -- { ppOutput          = (\x -> hPutStrLn bar0 x >> hPutStrLn bar1 x)
+    -- { ppOutput          = (\x -> hPutStrLn bar0 x)
+    -- , ppCurrent         = xmobarColor "#8ec07c" "" . wrap "[" "]" -- Current workspace in xmobar
+    , ppCurrent         = xmobarColor "#c345d1" "" . wrap "[" "]" -- Current workspace in xmobar
+    , ppVisible         = xmobarColor "#c345d1" ""                -- Visible but not current workspace
     , ppHidden          = xmobarColor "#d5c4a1" "" . wrap "*" ""  -- Hidden workspaces in xmobar
     , ppHiddenNoWindows = xmobarColor "#928374" ""                -- Hidden workspaces (no windows)
     , ppTitle           = xmobarColor "#ebdbb2" "" . shorten 80   -- Title of active window in xmobar
@@ -130,30 +162,27 @@ myLogHook bar0 bar1 =
     , ppExtras          = [windowCount]                           -- # of windows current workspace
     , ppOrder           = \(ws:l:t:ex) -> [ws,l]++ex++[t]
     }
-  )
+  ) >> updatePointer (0.5, 0.5) (0.5, 0.5)
 
 -- -------- Keybindings {{{1
 
-myKeys c =
-  -- -------- General {{{2
+myKeys host c =  
+
   titleSection c "General"
     [ ("M-S-r"          , addName "Recompile & restart"    $ spawn "xmonad --recompile; xmonad --restart")
-    , ("M-S-q"          , addName "Quit"                   $ io exitSuccess)
+    , ("M-S-q"          , addName "Quit"                   $ confirm "Really Quit?" $ io exitSuccess)
     , ("M-<Return>"     , addName "Start terminal"         $ spawn myTerm)
     , ("M-S-c"          , addName "Close window"           $ kill1)
-    , ("M-S-a"          , addName "Close all"              $ killAll)
+    , ("M-S-a"          , addName "Close all"              $ confirm "Close All?" $ killAll)
     ]
 
-  -- -------- System {{{2
   ^++^ titleSection c "System"
-    -- [ ("S-<Print>"      , addName "Screenshot region copy" $ spawn "maim -s | xclip -selection clipboard -t image/png")
     [ ("M-S-<Print>"    , addName "Screenshot region copy" $ spawn "~/.local/bin/screenshot copy-region")
-    , ("C-M1-<Delete>"  , addName "Lock Screen"            $ spawn "i3lock -c 000000")
-    , ("M1-q"           , addName "Application launcher"   $ spawn "j4-dmenu-desktop")
-    , ("M1-S-q"         , addName "Command launcher"       $ spawn "dmenu_run")
-    , ("M-S-<Escape>"   , addName "Leave Xorg"             $ spawn "prompt 'Leave Xorg?' 'killall Xorg'")
+    , ("M-<Print>"      , addName "Screenshot menu"        $ spawn "~/.local/bin/dmenu-screenshot")
+    , ("M1-q"           , addName "Application launcher"   $ spawn "rofi -show drun -show-icons")
+    , ("M1-S-q"         , addName "Command launcher"       $ spawn "rofi -show combi -combi-modi run,drun")
+    , ("M-S-<Escape>"   , addName "Leave Xorg"             $ confirm "Leave Xorg?" $ spawn "killall Xorg") 
     ]
-  -- -------- Floating windows {{{2
 
   ^++^ titleSection c "Floating windows"
     [ ("M-<Delete>"     , addName "Floating to tile"       $ withFocused $ windows . W.sink)
@@ -161,15 +190,13 @@ myKeys c =
     , ("M-<Space>"      , addName "Switch between layers"  $ switchLayer)
     ]
 
-  -- -------- Windows navigation {{{2
-
   ^++^ titleSection c "Window navigation"
     [ ("M-m"            , addName "Focus master"           $ windows W.focusMaster)
     , ("M-j"            , addName "Focus down"             $ windows W.focusDown)
     , ("M-k"            , addName "Focus up"               $ windows W.focusUp)
     , ("M1-<Tab>"       , addName "Focus down"             $ windows W.focusDown)
     , ("M1-S-<Tab>"     , addName "Focus up"               $ windows W.focusUp)
-    -- , ("M-S-m"         , windows W.swapMaster)
+    , ("M-S-m"          , addName "Swap master"            $ windows W.swapMaster)
     , ("M-S-j"          , addName "Swap down"              $ windows W.swapDown)
     , ("M-S-k"          , addName "Swap up"                $ windows W.swapUp)
     , ("M-<Backspace>"  , addName "Promote to master"      $ promote)
@@ -180,8 +207,6 @@ myKeys c =
     , ("M-S-s"          , addName "Copy to all workspaces" $ windows copyToAll)
     , ("M-S-z"          , addName "Remove all copies"      $ killAllOtherCopies)
     ]
-
-  -- -------- Layouts {{{2
 
   ^++^ titleSection c "Layouts"
     [ ("M-<Tab>"        , addName "Go to next layout"      $ sendMessage NextLayout)
@@ -194,26 +219,16 @@ myKeys c =
     , ("M-S-\\"         , addName "Toggle ReflectY"        $ sendMessage $ Toggle REFLECTY)
     , ("M-S-g"          , addName "Toggle Spacing"         $ toggleScreenSpacingEnabled >> toggleWindowSpacingEnabled)
 
-    , ("M-<KP_Multiply>", addName "Inc master windows cnt" $ sendMessage (IncMasterN 1))
-    , ("M-<KP_Divide>"  , addName "Dec master windows cnt" $ sendMessage (IncMasterN (-1)))
+    -- , ("M-<KP_Multiply>", addName "Inc master windows cnt" $ sendMessage (IncMasterN 1))
+    -- , ("M-<KP_Divide>"  , addName "Dec master windows cnt" $ sendMessage (IncMasterN (-1)))
 
     -- Resize tile with meta+alt+{h,j,k,l}
     , ("M-M1-h"         , addName "Shrink"                 $ sendMessage Shrink)
     , ("M-M1-l"         , addName "Expand"                 $ sendMessage Expand)
     , ("M-M1-j"         , addName "Mirror Shrink"          $ sendMessage MirrorShrink)
     , ("M-M1-k"         , addName "Mirror Expand"          $ sendMessage MirrorExpand)
-
-    , ("M-C-h"          , addName "Pull group L"           $ sendMessage $ pullGroup L)
-    , ("M-C-l"          , addName "Pull group R"           $ sendMessage $ pullGroup R)
-    , ("M-C-k"          , addName "Pull group U"           $ sendMessage $ pullGroup U)
-    , ("M-C-j"          , addName "Pull group D"           $ sendMessage $ pullGroup D)
-    , ("M-C-m"          , addName "Merge All"              $ withFocused (sendMessage . MergeAll))
-    , ("M-C-u"          , addName "UnMerge"                $ withFocused (sendMessage . UnMerge))
-    , ("M-C-,"          , addName "Focus Up"               $ onGroup W.focusUp')
-    , ("M-C-."          , addName "Focus Down"             $ onGroup W.focusDown')
     ]
 
-  -- -------- Screens {{{2
   ^++^ titleSection c "Screen"
     [ ("M-."            , addName "Focus next screen"      $ nextScreen)
     , ("M-,"            , addName "Focus prev screen"      $ prevScreen)
@@ -221,28 +236,57 @@ myKeys c =
     , ("M-S-,"          , addName "Move to prev screen"    $ shiftPrevScreen)
     ]
 
-  -- -------- Scratchpads{{{2
   ^++^ titleSection c "Scratchpads"
-    [ ("<F12>"          , addName "Toggle Tmux"            $ toggleNSP "tmux")
-    , ("M-<F11>"        , addName "Toggle Notes"           $ toggleNSP "note")
-    , ("M-<F10>"        , addName "Toggle bitwarden"       $ toggleNSP "bitwarden")
-    , ("M-<F9>"         , addName "Toggle Pavucontrol"     $ toggleNSP "pavucontrol")
-    , ("M-S-<F9>"       , addName "Toggle XAir"            $ toggleNSP "xair")
-    , ("M-<F8>"         , addName "Toggle calculator"      $ toggleNSP "calculator")
-    , ("M-<F7>"         , addName "Toggle htop"            $ toggleNSP "htop")
-    ] 
-  -- -------- Krasi Songs{{{2
-  ^++^ titleSection c "Songs shortcuts"
-    [ ("M-M1-1"         , addName "Play 'Aram zam zam'"    $ spawn "mpv --loop=5 ~/Music/krasi/aram-zam-zam.mp3")
-    , ("M-M1-2"         , addName "Play 'Ako si vesel'"    $ spawn "mpv --loop=5 ~/Music/krasi/ako-si-vesel-i-shtastliv.mp3")
-    , ("M-M1-3"         , addName "Play 'Bram bram bram'"  $ spawn "mpv --loop=5 ~/Music/krasi/bram-bram-bram.mp3")
-    , ("M-M1-9"         , addName "Play All"               $ spawn "mpv --loop-playlist=5 ~/Music/krasi/*.mp3")
-    , ("M-M1-0"         , addName "Stop all playback"      $ spawn "pkill mpv")
+    -- Default scratchpad bindings
+    ( [ ("<F12>"        , addName "Toggle Tmux"            $ toggleNSP host "tmux")
+      , ("M-p M-p"      , addName "Toggle player"          $ toggleNSP host "music")
+      , ("M-p <Space>"  , addName "Play/Pause"             $ spawn "playerctl play-pause")
+      , ("M-p n"        , addName "Next"                   $ spawn "playerctl next")
+      , ("M-p p"        , addName "Previous"               $ spawn "playerctl previous")
+      , ("M-<F9>"       , addName "Toggle Pavucontrol"     $ toggleNSP host "pavucontrol")
+      , ("M-c"          , addName "Toggle calculator"      $ toggleNSP host "calculator")
+      , ("M-t"          , addName "Toggle translate"       $ toggleNSP host "translate")
+      ] 
+      ++
+      case host of
+        "europa" ->
+          [ ("M-n"      , addName "Toggle Notes"           $ toggleNSP host "notes")
+          , ("M-<F10>"  , addName "Toggle pwd manager"     $ toggleNSP host "pwd")
+          , ("M-g"      , addName "Toggle mermaid-live"    $ toggleNSP host "mermaid-live")
+          ] 
+        "pulsar" ->
+          [ ("M-n"      , addName "Toggle Notes"           $ toggleNSP host "notes")
+          , ("M-S-<F9>" , addName "Toggle XAir"            $ toggleNSP host "xair")
+          ] 
+        _ -> []
+    )
+
+  ^++^ titleSection c "Media Keys"
+    [ ("<XF86MonBrightnessUp>"  , addName "Brightness +10%" $ spawn "xbacklight -inc 10")
+    , ("<XF86MonBrightnessDown>", addName "Brightness -10%" $ spawn "xbacklight -dec 10")
+    , ("<XF86AudioRaiseVolume>" , addName "Volume +5%"      $ spawn "pactl set-sink-volume @DEFAULT_SINK@ +5%")
+    , ("<XF86AudioLowerVolume>" , addName "Volume -5%"      $ spawn "pactl set-sink-volume @DEFAULT_SINK@ -5%")
+    , ("<XF86AudioMute>"        , addName "Volume mute"     $ spawn "pactl set-sink-mute @DEFAULT_SINK@ toggle")
+    , ("<XF86AudioMicMute>"     , addName "Volume mic mute" $ spawn "pactl set-source-mute @DEFAULT_SOURCE@ toggle")
+    , ("M-S-<Up>"               , addName "Brightness +10%" $ spawn "xbacklight -inc 10")
+    , ("M-S-<Down>"             , addName "Brightness -10%" $ spawn "xbacklight -dec 10")
+    , ("M-<Up>"                 , addName "Volume +5%"      $ spawn "pactl set-sink-volume @DEFAULT_SINK@ +5%")
+    , ("M-<Down>"               , addName "Volume -5%"      $ spawn "pactl set-sink-volume @DEFAULT_SINK@ -5%")
     ]
 
-  -- -------- Workspaces {{{2
+  ^++^ titleSection c "Custom Prefix" 
+    [ ("M-a v u"        , addName "VPN enable"              $ spawn "nmcli con up Smule")
+    , ("M-a v d"        , addName "VPN disable"             $ spawn "nmcli con down Smule")
+    , ("M-a t"          , addName "Change term theme"       $ spawn "~/.local/bin/alacritty-change-theme")
+    -- , ("M-a h"          , addName "Hibernate"               $ confirm "Hibernate?"  $ spawn "systemctl hibernate")
+    -- , ("M-a s"          , addName "Suspend"                 $ confirm "Suspend?"    $ spawn "systemctl suspend")
+    , ("M-a l"          , addName "Lock Screen"             $ spawn "i3lock -c 000000")
+    ] 
+
   ^++^ titleSection c "Workspaces"
-    ( [ ("M-x", addName "Cycle through not visible workspaces" $ moveTo Next HiddenNonEmptyWS) ]
+    ( [ ("M-l", addName "Cycle through not visible workspaces" $ moveTo Next nonEmptyWS) 
+      , ("M-h", addName "Cycle through not visible workspaces" $ moveTo Prev nonEmptyWS) 
+      ]
       ++ 
       [ ("M-" ++ m ++ k, addName (desc ++ k) $ f i)
         | (i, k) <- zip myWorkspaces (map show [1..9])
@@ -256,15 +300,15 @@ myKeys c =
       ]
     )
 
-  -- }}}
 
 -- utility function for defining a named section for NamedActions
 titleSection c title keys = (subtitle title :) $ mkNamedKeymap c keys
 
-nonNSP          = WSIs (return (\ws -> W.tag ws /= "nsp"))
-nonEmptyNonNSP  = WSIs (return (\ws -> isJust (W.stack ws) && W.tag ws /= "nsp"))
-toggleZoom      = sendMessage (Toggle NBFULL) >> sendMessage ToggleStruts
-toggleNSP n     = namedScratchpadAction scratchpads n
+nonEmptyWS = WSIs $ return (\w -> nonNSP w && nonEmpty w)
+  where nonNSP (W.Workspace tag _ _) = tag /= "NSP"
+        nonEmpty = isJust . W.stack
+toggleZoom       = sendMessage (Toggle NBFULL) >> sendMessage ToggleStruts
+toggleNSP host n = namedScratchpadAction (scratchpads host) n
 
 showKeybindings :: [((KeyMask, KeySym), NamedAction)] -> NamedAction
 showKeybindings x = addName "Show Keybindings" $ io $ bracket
@@ -288,36 +332,32 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
 -- -------- Layouts {{{1
 
 myLayoutHook = avoidStruts 
-  $ windowNavigation
-  -- $ subTabbed
-  $ addTabs shrinkText tabTheme
   $ smartBorders             -- don't use borders on single window (on a single screen) and also if the window covers the entier screen (mpv)
-  -- $ refocusLastLayoutHook    -- refocus to last focused window when current window looses focus or is closed (default focuses the newest window)
   $ toggleLayouts floats     -- add ability to toggle floats on all layouts
   $ fullScreenToggle         -- adds the ability to toggle fullscreen for all layouts/windows
   $ reflectXToggle           -- add toggle for reflect on X on all layouts
   $ reflectYToggle           -- add toggle for reflect on Y on all layouts
-  $ wsLayouts 0 wwwLayouts   -- set layout set for 'www' workspace
-  $ wsLayouts 1 chatLayouts  -- set layout set for 'chat' workspace
-  $ wsLayouts 2 devLayouts   -- set layout set for 'development' workspace
-  $ wsLayouts 3 gameLayouts  -- set layout set for 'gaming' workspace
+  $ mirrorToggle             -- add toggle for mirror (rotate 90 degrees) 
+  $ perWsLayouts 2 chatLayouts     -- set layout set for 'chat' workspace
+  $ perWsLayouts 3 devLayouts      -- set layout set for 'development' workspace
+  $ perWsLayouts 4 meetingLayouts  -- set layout set for 'gaming' workspace
   $ myDefaultLayout          -- set the default layout set
   where 
+
     -- toggle aliases
     fullScreenToggle = mkToggle (NBFULL ?? NOBORDERS ?? EOT) -- alias for fullscreen toggle config
-    reflectXToggle = mkToggle (single REFLECTX)              -- alias for reflect X toggle config
-    reflectYToggle = mkToggle (single REFLECTY)              -- alias for reflect Y toggle config
+    reflectXToggle   = mkToggle (single REFLECTX)            -- alias for reflect X toggle config
+    reflectYToggle   = mkToggle (single REFLECTY)            -- alias for reflect Y toggle config
+    mirrorToggle     = mkToggle (single MIRROR)              -- alias for reflect Y toggle config
 
     -- alias function to specify per-workspace layouts
-    wsLayouts idx layouts = onWorkspace (myWorkspaces !! idx) layouts
+    perWsLayouts n layouts = onWorkspace (myWorkspaces !! (n - 1)) layouts
 
     -- Define individual layout sets for specific workspaces and a default one
-    wwwLayouts      = tab   ||| tall    ||| dtall   ||| monocle 
-    chatLayouts     = im    ||| grid    ||| tall    ||| tab     ||| monocle
-    devLayouts      = ide   ||| tall    ||| tab     ||| monocle
-    gameLayouts     = steam ||| monocle ||| tall    
-    mediaLayouts    = tall  ||| grid    ||| tab     ||| monocle
-    myDefaultLayout = tall  ||| oneBig  ||| grid    ||| tab      ||| monocle ||| floats
+    chatLayouts     = im    ||| myDefaultLayout
+    devLayouts      = ide   ||| myDefaultLayout
+    meetingLayouts  = zoom  ||| myDefaultLayout
+    myDefaultLayout = tall  ||| oneBig  ||| grid ||| bsp ||| tab ||| monocle ||| floats
 
     -- Define default spacing configuration used by the layouts
     mySpacing    = mySpacing' 3 
@@ -331,78 +371,54 @@ myLayoutHook = avoidStruts
     -- alias function for rename
     rename n = renamed [Replace n]
 
-    -- configure reusable ResizableTile layout with common modifiers and an alternative with some parameters
-    resizableTile = resizableTile' 3 1 (1/2) []
-    resizableTile' sp nmaster ratio slaves = limitWindows 8 $ mySpacing' sp $ mkToggle (single MIRROR) $ ResizableTall nmaster (3/100) ratio slaves
+    -- Configure each individual layout:
+    -- apply renaming, limiting windows, spacing, toggles, size/resize ratios, theming, etc.
+    monocle = rename "Monocle" 
+      $ limitWindows 20 
+      $ noBorders 
+      $ Full
 
-    -- Configure each individual layout - apply renaming, limiting windows, spacing, toggles, size/resize ratios, theming, etc.
-    monocle = rename "Monocle" $ limitWindows 20 $ noBorders $ Full
-    tall    = rename "Tall"    $ ifMax 1 monocle resizableTile
-    dtall   = rename "dTall"   $ ifMax 1 monocle $ subLayout [] Simplest resizableTile 
-    grid    = rename "Grid"    $ ifMax 1 monocle $ limitWindows 12 $ mySpacing $ mkToggle (single MIRROR) $ Grid (16/10)
-    oneBig  = rename "OneBig"  $ ifMax 1 monocle $ limitWindows 8  $ mySpacing $ mkToggle (single MIRROR) $ OneBig (5/9) (8/12)
-    tab     = rename "Tabbed"  $ limitWindows 20 $ noBorders $ tabbed shrinkText tabTheme
-    floats  = rename "Floats"  $ limitWindows 20 $ simplestFloat
+    tall = rename "Tall"
+      $ limitWindows 8 
+      $ mySpacing
+      $ ifMax 1 (ResizableTall 1 (3/100) (1/2) [])
+      $ ResizableTall 1 (3/100) (1/2) []
 
-    -- Default IDE layout depends on number of windows visible on the workspace. The aim was to create 
-    -- dynamically scalable layout based on development workflow with a simple layout configuration.
-    --  * if 1 window - switch to Monocle layout to have fullscreen + bars but no spacing or borders
-    --
-    -- +-------------------------------+
-    -- |                               |
-    -- |                               |
-    -- |                               |
-    -- |                               |
-    -- |           Master              |
-    -- |                               |
-    -- |                               |
-    -- |                               |
-    -- |                               |
-    -- +-------------------------------+
-    --
-    --  * if 2 or more windows - switch to ResizableTile configured in a specific way - 2 master windows 
-    --    with the first one being way taller (1.66), all slave windows are on the right and have 1/4 of 
-    --    the horizontal space (look at the second graph below).
-    --
-    -- +-------------------------------+
-    -- |                               |
-    -- |                               |
-    -- |                               |
-    -- |           Master              |
-    -- |                               |
-    -- |                               |
-    -- |                               |
-    -- +-------------------------------+
-    -- |           Slave 1             |
-    -- +-------------------------------+
-    --
-    --  * if 3 or more windows are opened, the layout looks as follows:
-    --
-    -- +--------------------+----------+
-    -- |                    |          |
-    -- |                    |  Slave 2 |
-    -- |                    |          |
-    -- |       Master       +----------+
-    -- |                    |          |
-    -- |                    |  Slave 3 |
-    -- |                    |          |
-    -- +--------------------+----------+
-    -- |     Slave 1        |  Slave 4 |
-    -- +--------------------+----------+
-    ide     = rename "IDE"     $ ifMax 1 monocle $ resizableTile' 0 2 (3/4) [1.66]
+    grid = rename "Grid" 
+      $ limitWindows 12 
+      $ mySpacing 
+      $ Grid (16/10)
 
-    -- Default chat layout which uses 
-    --   * Monocle when there is a single window
-    --   * Tall for 2 and 3 windows 
-    --   * Grid for 4 windows 
-    --   * OneBig for 5 and more windows
-    im      = rename "IM"      $ ifMax 3 tall $ ifMax 4 grid oneBig
+    oneBig = rename "OneBig"  
+      $ limitWindows 8  
+      $ mySpacing 
+      $ OneBig (5/9) (8/12)
 
-    -- Steam layout is used for gaming. For Steam client specifically we want to position the friend list on the 
-    -- left vertically, taking 1/7 of the space and use the remaining space with some common layout - 'tall' in 
-    -- our case. If no friend list has opened, the layout is just a normal 'tall'
-    steam   = rename "Steam"   $ withIM (1%7) (Title "Friends List") tall ||| monocle
+    tab = rename "Tabbed" 
+      $ limitWindows 20 
+      $ noBorders 
+      $ addTabs shrinkText tabTheme
+      $ tabbed shrinkText tabTheme
 
+    floats = rename "Floats"
+      $ limitWindows 20 
+      $ simplestFloat
+
+    bsp = rename "BSP"
+      $ limitWindows 20 
+      $ mySpacing 
+      $ emptyBSP
+
+    ide = rename "IDE"
+      $ limitWindows 8 
+      $ mySpacing' 0 
+      $ OneBig (6/8) (6/8)
+
+    im = rename "IM"      
+      $ ifMax 4 grid oneBig
+
+    zoom = rename "Zoom"
+      $ withIM (1%7) (Title "Zoom - Free Account") tall ||| monocle
 
 -- -------- Workspaces {{{1
 
@@ -413,60 +429,93 @@ xmobarEscape = concatMap el
         
 myWorkspaces :: [String]   
 myWorkspaces = clickable . (map xmobarEscape) $ 
-  ["1:\xfa9e " -- browser
-  ,"2:\xf860 " -- IMs
-  ,"3:\xf66b " -- development
-  ,"4:\xf1b7 " -- gaming
-  ,"5:\xf04b " -- media
-  ,"6:\xf013 " -- auxiliary
-  ] ++ (map show [7..9])
+  [ "\xfa9e "      -- 1: browser
+  , "\xf860 "      -- 2: IMs
+  , "\xf66b "      -- 3: development
+  , "\xf8f5 "      -- 4: meetings
+  -- ,"4:\xf1b7 "  -- gaming
+  -- ,"5:\xf04b "  -- media
+  -- ,"6:\xf013 "  -- auxiliary
+  ] ++ (map show [5..8]) -- Unallocated wss
+    ++ [ "\xf415 " -- 9: personal
+       ]
   where 
     clickable l = [ "<action=xdotool key super+" ++ show n ++ ">" ++ ws ++ "</action>" |
                     (i, ws) <- zip [1..9] l,                                        
                     let n = i ] 
 
+-- move window to workspace (idx)
+toWs :: Int -> ManageHook
+toWs n = doShift (myWorkspaces !! (n - 1))
+
 -- -------- Manage Hook {{{1
 
--- myManageHook ::  ManageHook
-myManageHook = manageDocks 
-  <+> namedScratchpadManageHook scratchpads
+-- NOTE: Window properties (can verify with xprop utility):
+-- className - second argument of WM_CLASS
+-- resource / appName - first argument of WM_CLASS
+-- title - WM_NAME
+-- role - custom definition - WM_WINDOW_ROLE
+myManageHook :: String -> ManageHook
+myManageHook host = manageDocks 
+  <+> namedScratchpadManageHook (scratchpads host)
   <+> transience'
-  <+> appsManageHook
+  <+> appsManageHook host
 
-appsManageHook = composeOne . concat $
-  -- [ [ isDialog     -?> floatInsert <+> doCenterFloat               ]
-  -- , [ isFullscreen -?> floatInsert <+> doFullFloat                 ]
-  -- , [ matchApp c   -?> floatInsert <+> doCenterFloat | c <- float  ]
-  [ [ isDialog     -?> doCenterFloat               ]
-  , [ isFullscreen -?> doFullFloat                 ]
-  , [ matchApp c   -?> doCenterFloat | c <- float  ]
-  , [ matchApp c   -?> doIgnore      | c <- bars   ]
-  , [ matchApp c   -?> toWs 0        | c <- www    ]
-  , [ matchApp c   -?> toWs 1        | c <- chat   ]
-  , [ matchApp c   -?> toWs 2        | c <- dev    ]
-  , [ matchApp c   -?> toWs 3        | c <- game   ]
-  , [ matchApp c   -?> toWs 4        | c <- media  ]
-  -- , [ pure True    -?> normInsert                                  ]
-  ]
-  where    
-      bars   = ["xmobar", "trayer"]
-      float  = ["nm-connection-editor", "jetbrains-toolbox", "Xmessage", "SimpleScreenRecorder", "mpv", "Gimp-2.10", "Steam - News", "Qalculate-gtk"]
-      www    = ["Chromium", "Brave-browser", "Mozilla Firefox"]
-      chat   = ["ViberPC", "TelegramDesktop", "Slack", "discord", "Skype", "Keybase", "Microsoft Teams - Preview", "Signal", "Hexchat"]
-      dev    = ["jetbrains-idea", "JetBrains Toolbox"]
-      game   = ["Steam", "csgo_linux64"]
-      media  = ["mpv", "vlc", "plexmediaplayer", "Audacity"]
-      role   = stringProperty "WM_WINDOW_ROLE"
+appsManageHook :: String -> ManageHook
+appsManageHook host = composeOne . concat $ 
+  [ commonManageHook
+  , perHostManageHook host
+  ] 
+    where
 
-      -- move window to workspace (idx)
-      -- toWs idx = normInsert <+> doShift (myWorkspaces !! idx)
-      toWs idx = doShift (myWorkspaces !! idx)
+      commonManageHook :: [MaybeManageHook]
+      commonManageHook = 
+        [ isDialog                                -?> doCenterFloat
+        , isFullscreen                            -?> doFullFloat
+        , resource     =?  "xmobar"               -?> doIgnore
+        , className    =?  "trayer"               -?> doIgnore
+        , resource     =?  "localhost"            -?> doCenterFloat
+        , resource     =?  "nm-connection-editor" -?> doCenterFloat
+        , resource     =?  "yad"                  -?> doCenterFloat
+        , resource     =?  "xmessage"             -?> doCenterFloat
+        , resource     =?  "mpv"                  -?> doCenterFloat
+        , resource     =?  "gimp-2.10"            -?> doCenterFloat
+        , resource     =?  "plexamp"              -?> doCenterFloat
+        , title        =?  "JetBrains Toolbox"    -?> doCenterFloat <+> toWs 3
+        , className    =?  "jetbrains-idea"       -?> toWs 3
+        ] 
 
+      perHostManageHook :: String -> [MaybeManageHook]
+      perHostManageHook "europa" = 
+        [ className    =?  "Slack"                -?> toWs 2
+        , resource     =?  "gmail.com"            -?> toWs 2
+        , resource     =?  "calendar.google.com"  -?> toWs 2
+        , resource     =?  "Viber"                -?> toWs 9
+        , resource     =?  "zoom"                 -?> toWs 4
+        , className    =?  "Brave-browser"        -?> toWs 1
+        , className    =?  "Google-chrome"        -?> toWs 1
+        ]
+      perHostManageHook "pulsar" = 
+        [ className    =?  "Slack"                -?> toWs 2
+        , className    =?  "viber"                -?> toWs 2
+        , resource     =?  "telegram-desktop"     -?> toWs 2
+        , className    =?  "Brave-browser"        -?> toWs 1
+        , className    =?  "Google-chrome"        -?> toWs 1
+        ]
+      perHostManageHook _ = []
+      
+      role = stringProperty "WM_WINDOW_ROLE"
+      
+      -- | Match against start of Query
+      (=?^) :: Eq a => Query [a] -> [a] -> Query Bool
+      (=?^) q x = L.isPrefixOf x <$> q
+      
+      -- | Match against end of Query
+      (=?$) :: Eq a => Query [a] -> [a] -> Query Bool
+      (=?$) q x = L.isSuffixOf x <$> q
+      
       -- match window by class name, title or app name (resource)
-      matchApp c = className =? c <||> title =? c <||> resource =? c
-
-      -- floatInsert = insertPosition Above Newer
-      -- normInsert  = insertPosition End Newer
+      -- matchApp c = className =? c <||> title =? c <||> resource =? c
 
 -- -------- Event Hook {{{1
 
@@ -482,64 +531,125 @@ myEventHook = fullscreenEventHook
 
 -- -------- Startup {{{1
 
-myStartupHook = do
+myStartupHook :: String -> X()
+myStartupHook "europa" = do
+  setWMName "LG3D"
+  spawnOnce "trayer --edge top --align right --widthtype request --SetDockType true --SetPartialStrut true --expand true --transparent true --alpha 0 --tint 0x282A36 --height 20 --monitor 0 --iconspacing 2 --padding 5 &"
+  spawnOnce "brave-browser --new-window &"
+  spawnOnce "brave-browser --new-window --app=\"https://gmail.com\" &"
+  spawnOnce "brave-browser --new-window --app=\"https://calendar.google.com\" &"
+  spawnOnce "zoom &"
+  spawnOnce "slack &"
+  spawnOnce "/opt/viber/Viber &"
+  spawnOnce "~/.local/share/JetBrains/Toolbox/bin/jetbrains-toolbox &"
+  spawnOnce "udiskie --notify --tray --no-automount &"
+
+myStartupHook "pulsar" = do
   setWMName "LG3D"
   spawnOnce "trayer --edge top --align right --widthtype request --SetDockType true --SetPartialStrut true --expand true --transparent true --alpha 0 --tint 0x282A36 --height 20 --monitor 0 --iconspacing 2 --padding 5 &"
   spawnOnce "brave &"
   spawnOnce "telegram-desktop &"
   spawnOnce "viber &"
   spawnOnce "slack &"
-  -- spawnOnce "hexchat &"
-  -- spawnOnce "emacs --daemon &"
+  spawnOnce "udiskie --notify --tray --no-automount &"
+myStartupHook _ = return ()
   
 -- -------- Scratchpads {{{1
 
-scratchpads = 
+scratchpads :: String -> [NamedScratchpad]
+scratchpads "europa" = 
   [ NS "tmux"
       (myTerm ++ " -t scratchpad_tmux -e 'tmuxdd'")
       (title =? "scratchpad_tmux")
-      $ customFloating $ W.RationalRect 0 0 1 0.6
-      -- $ nsBigCenterFloat
+      $ nsFloat 1 0.6 0 0
 
-  , NS "note"
-      "emacsclient -a '' -nc -F '(quote (name . \"scratchpad_emacs\"))'"
-      -- "emacsclient -a '' -e \"(setq frame-title-format \\\"scratchpad_emacs\\\")\""
-      -- "emacsclient -c -F '((name . \"scratchpad_emacs\"))'"
-      (title =? "scratchpad_emacs")
-      $ nsBigCenterFloat 
-
-  -- , NS "note"
-  --     "code-oss"
-  --     (className =? "code-oss")
-  --     $ nsBigCenterFloat 
+  , NS "notes"
+      "~/software/Obsidian-0.12.19.AppImage"
+      (resource =? "obsidian")
+      $ nsCenterFloat 0.7 0.9
 
   , NS "pavucontrol"
       "pavucontrol"
       (className =? "Pavucontrol")
       $ nsCenterFloat 0.5 0.7
 
-  , NS "htop"
-      (myTerm ++ " -t scratchpad_htop -e htop")
-      (title =? "scratchpad_htop")
-      $ nsBigCenterFloat
+ , NS "calculator"
+     "speedcrunch"
+     (resource =? "speedcrunch")
+     $ nsCenterFloat 0.2 0.3
 
-  , NS "calculator"
-      "qalculate-gtk"
-      (className =? "Qalculate-gtk")
-      $ nsCenterFloat 0.5 0.4
-
-  , NS "bitwarden"
-      "bitwarden-desktop"
-      (className =? "Bitwarden")
+  , NS "pwd"
+      "keepassxc"
+      (className =? "KeePassXC")
       $ nsCenterFloat 0.5 0.6
 
-  , NS "xair"
+  , NS "music"
+      "~/AppImages/Plexamp.AppImage"
+      (className =? "Plexamp")
+      $ nsCenterFloat 0.17 0.6
+
+  , NS "translate"
+      "brave-browser --new-window --app=\"https://translate.google.com/?sl=en&tl=bg&op=translate\" &"
+      (resource =? "translate.google.com")
+      $ nsCenterFloat 0.5 0.7
+
+  , NS "mermaid-live"
+      "brave-browser --new-window --app=\"http://localhost:8878\" &"
+      (resource =? "localhost")
+      $ nsBigCenterFloat
+
+  ] 
+
+scratchpads "pulsar" = 
+  [ NS "tmux"
+      (myTerm ++ " -t scratchpad_tmux -e 'tmuxdd'")
+      (title =? "scratchpad_tmux")
+      $ nsFloat 1 0.6 0 0
+
+  -- , NS "note"
+  --     "emacsclient -a '' -nc -F '(quote (name . \"scratchpad_emacs\"))'"
+  --     -- "emacsclient -a '' -e \"(setq frame-title-format \\\"scratchpad_emacs\\\")\""
+  --     -- "emacsclient -c -F '((name . \"scratchpad_emacs\"))'"
+  --     (title =? "scratchpad_emacs")
+  --     $ nsBigCenterFloat 
+
+  -- , NS "note"
+  --     "code-oss"
+  --     (className =? "code-oss")
+  --     $ nsBigCenterFloat 
+
+  , NS "notes"
+      "obsidian"
+      (resource =? "obsidian")
+      $ nsCenterFloat 0.7 0.9
+
+  , NS "pavucontrol"
+      "pavucontrol"
+      (className =? "Pavucontrol")
+      $ nsCenterFloat 0.5 0.7
+
+ , NS "calculator" 
+      "speedcrunch"
+      (resource =? "speedcrunch")
+      $ nsCenterFloat 0.2 0.3
+
+  , NS "music"
+      "Plexamp.AppImage"
+      (className =? "Plexamp")
+      $ nsCenterFloat 0.17 0.6
+
+  , NS "translate"
+      "brave --new-window --app=\"https://translate.google.com/?sl=en&tl=bg&op=translate\" &"
+      (resource =? "translate.google.com")
+      $ nsCenterFloat 0.5 0.7
+
+ , NS "xair"
       "/home/antoniy/software/xair/X-AIR-Edit"
       (title =? "X AIR Edit [XR16, IP: 10.10.0.99]")
       $ nsCenterFloat 0.8 0.8
   ] 
-  where
-    nsFloat w h l t   = customFloating $ W.RationalRect l t w h
-    nsCenterFloat w h = nsFloat w h ((1 - w) / 2) ((1 - h) / 2)
-    nsBigCenterFloat  = nsCenterFloat 0.9 0.9
+
+nsFloat w h l t   = customFloating $ W.RationalRect l t w h
+nsCenterFloat w h = nsFloat w h ((1 - w) / 2) ((1 - h) / 2)
+nsBigCenterFloat  = nsCenterFloat 0.9 0.9
 
