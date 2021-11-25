@@ -29,7 +29,7 @@ xset r rate 300 50 &
 
 # set trackball accel speed
 # hint: check all available devices and IDs with `xinput list`. Check all props with `xinput list-props 17`
-xinput --set-prop "Logitech ERGO M575" "libinput Accel Speed" -0.7 &
+#xinput --set-prop "Logitech ERGO M575" "libinput Accel Speed" -0.7 &
 
 # Set wallpaper
 feh --bg-scale $HOME/.config/wall.jpg
@@ -38,13 +38,16 @@ feh --bg-scale $HOME/.config/wall.jpg
 # sxhkd -m 1 & # bind keys with sxhkd
 dunst & # notification daemon
 picom & # compositor for transperancy etc.
-/usr/lib/geoclue-2.0/demos/agent & # geoclue agent to know current location for redshift sunset check
+#/usr/lib/geoclue-2.0/demos/agent & # geoclue agent to know current location for redshift sunset check
 # $HOME/.config/polybar/launch.sh & # launch polybar
 redshift &> /dev/null & # change color temperature at sunset
 nm-applet & # network manager applet
 #xbanish & # hide cursor when mouse pressed
 xsetroot -cursor_name left_ptr # set the cursor style to left ptr from an 'X'
 
+# Need that due to very slow loading of some apps. 
+# Ref: https://github.com/flatpak/xdg-desktop-portal-gtk/issues/72
+dbus-update-activation-environment --systemd DBUS_SESSION_BUS_ADDRESS DISPLAY XAUTHORITY
+
 # exec dbus-launch --sh-syntax --exit-with-session xmonad
-# exec dbus-launch --autolaunch=$(cat /var/lib/dbus/machine-id) xmonad
-exec xmonad
+exec dbus-launch --autolaunch=$(cat /var/lib/dbus/machine-id) xmonad
