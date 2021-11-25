@@ -83,8 +83,8 @@ loadBars "europa" = do
   bar <- spawnPipe "xmobar -x 0 ~/.config/xmobar/xmobarrc0"
   return (\x -> hPutStrLn bar x)
 loadBars "pulsar" = do
-  bar0 <- spawnPipe "xmobar -x 0 ~/.config/xmobar/xmobarrc0" 
-  bar1 <- spawnPipe "xmobar -x 1 ~/.config/xmobar/xmobarrc0"
+  bar0 <- spawnPipe "xmobar -x 0 ~/.config/xmobar/xmobarrc-pulsar" 
+  bar1 <- spawnPipe "xmobar -x 1 ~/.config/xmobar/xmobarrc-pulsar"
   return (\x -> hPutStrLn bar0 x >> hPutStrLn bar1 x)
 
 -- rofiBindings :: [((KeyMask, KeySym), NamedAction)] -> X ()
