@@ -4,14 +4,14 @@
 #
 # Executed by startx (run your window manager from here)
 
-if [ -d /etc/X11/xinit/xinitrc.d ]; then
-  for f in /etc/X11/xinit/xinitrc.d/*; do
-    [ -x "$f" ] && . "$f"
-  done
-  unset f
-fi
-
 [[ -f ~/.Xresources ]] && xrdb -merge ~/.Xresources &
+
+## test for an existing bus daemon, just to be safe
+# if test -z "$DBUS_SESSION_BUS_ADDRESS" ; then
+#     ## if not found, launch a new one
+#     eval `dbus-launch --sh-syntax`
+#     echo "D-Bus per-session daemon address is: $DBUS_SESSION_BUS_ADDRESS"
+# fi
 
 # 1. Set default keyboard leyout
 # 2. Set both caps lock keys to toggle caps behavior
@@ -35,14 +35,16 @@ xinput --set-prop "Logitech ERGO M575" "libinput Accel Speed" -0.7 &
 feh --bg-scale $HOME/.config/wall.jpg
 
 # Start common tools
-sxhkd -m 1 & # bind keys with sxhkd
+# sxhkd -m 1 & # bind keys with sxhkd
 dunst & # notification daemon
 picom & # compositor for transperancy etc.
 /usr/lib/geoclue-2.0/demos/agent & # geoclue agent to know current location for redshift sunset check
 # $HOME/.config/polybar/launch.sh & # launch polybar
 redshift &> /dev/null & # change color temperature at sunset
 nm-applet & # network manager applet
-xbanish & # hide cursor when mouse pressed
+#xbanish & # hide cursor when mouse pressed
 xsetroot -cursor_name left_ptr # set the cursor style to left ptr from an 'X'
 
+# exec dbus-launch --sh-syntax --exit-with-session xmonad
+# exec dbus-launch --autolaunch=$(cat /var/lib/dbus/machine-id) xmonad
 exec xmonad
