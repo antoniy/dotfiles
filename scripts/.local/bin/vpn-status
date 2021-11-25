@@ -1,0 +1,9 @@
+#!/bin/bash
+
+STATUS=$(nmcli con show --active | grep -i vpn)
+
+if [[ -z $STATUS ]]; then
+  echo -e "<fc=#96a0b0>廬 OFF</fc>"
+else
+  echo -e "<fc=#2adecc>廬 ON</fc>"
+fi
