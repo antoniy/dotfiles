@@ -80,8 +80,10 @@ main = do
 
 loadBars :: String -> IO (String -> IO ())
 loadBars "europa" = do
-  bar <- spawnPipe "xmobar -x 0 ~/.config/xmobar/xmobarrc0"
-  return (\x -> hPutStrLn bar x)
+  bar0 <- spawnPipe "xmobar -x 0 ~/.config/xmobar/xmobarrc-europa"
+  bar1 <- spawnPipe "xmobar -x 1 ~/.config/xmobar/xmobarrc-europa"
+  -- return (\x -> hPutStrLn bar x)
+  return (\x -> hPutStrLn bar0 x >> hPutStrLn bar1 x)
 loadBars "pulsar" = do
   bar0 <- spawnPipe "xmobar -x 0 ~/.config/xmobar/xmobarrc-pulsar" 
   bar1 <- spawnPipe "xmobar -x 1 ~/.config/xmobar/xmobarrc-pulsar"
@@ -234,6 +236,15 @@ myKeys host c =
     , ("M-,"            , addName "Focus prev screen"      $ prevScreen)
     , ("M-S-."          , addName "Move to next screen"    $ shiftNextScreen)
     , ("M-S-,"          , addName "Move to prev screen"    $ shiftPrevScreen)
+
+    , ("M-M1-<Left>"    , addName "" $ sendMessage $ ExpandTowards L)
+    , ("M-M1-<Right>"   , addName "" $ sendMessage $ ShrinkFrom L)
+    , ("M-M1-<Up>"      , addName "" $ sendMessage $ ExpandTowards U)
+    , ("M-M1-<Down>"    , addName "" $ sendMessage $ ShrinkFrom U)
+    , ("M-M1-C-<Left>"  , addName "" $ sendMessage $ ShrinkFrom R)
+    , ("M-M1-C-<Right>" , addName "" $ sendMessage $ ExpandTowards R)
+    , ("M-M1-C-<Up>"    , addName "" $ sendMessage $ ShrinkFrom D)
+    , ("M-M1-C-<Down>"  , addName "" $ sendMessage $ ExpandTowards D)
     ]
 
   ^++^ titleSection c "Scratchpads"
@@ -250,12 +261,12 @@ myKeys host c =
       ++
       case host of
         "europa" ->
-          [ ("M-n"      , addName "Toggle Notes"           $ toggleNSP host "notes")
+          [ ("M-`"      , addName "Toggle Notes"           $ toggleNSP host "notes")
           , ("M-<F10>"  , addName "Toggle pwd manager"     $ toggleNSP host "pwd")
           , ("M-g"      , addName "Toggle mermaid-live"    $ toggleNSP host "mermaid-live")
           ] 
         "pulsar" ->
-          [ ("M-n"      , addName "Toggle Notes"           $ toggleNSP host "notes")
+          [ ("M-`"      , addName "Toggle Notes"           $ toggleNSP host "notes")
           , ("M-S-<F9>" , addName "Toggle XAir"            $ toggleNSP host "xair")
           ] 
         _ -> []
@@ -381,7 +392,6 @@ myLayoutHook = avoidStruts
     tall = rename "Tall"
       $ limitWindows 8 
       $ mySpacing
-      $ ifMax 1 (ResizableTall 1 (3/100) (1/2) [])
       $ ResizableTall 1 (3/100) (1/2) []
 
     grid = rename "Grid" 
@@ -483,6 +493,7 @@ appsManageHook host = composeOne . concat $
         , resource     =?  "plexamp"              -?> doCenterFloat
         , title        =?  "JetBrains Toolbox"    -?> doCenterFloat <+> toWs 3
         , className    =?  "jetbrains-idea"       -?> toWs 3
+        , className    =?  "Peek"                 -?> doCenterFloat
         ] 
 
       perHostManageHook :: String -> [MaybeManageHook]
@@ -541,7 +552,8 @@ myStartupHook "europa" = do
   spawnOnce "zoom &"
   spawnOnce "slack &"
   spawnOnce "/opt/viber/Viber &"
-  spawnOnce "~/.local/share/JetBrains/Toolbox/bin/jetbrains-toolbox &"
+  spawnOnce "espanso start"
+  -- spawnOnce "~/.local/share/JetBrains/Toolbox/bin/jetbrains-toolbox &"
   spawnOnce "udiskie --notify --tray --no-automount &"
 
 myStartupHook "pulsar" = do
