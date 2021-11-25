@@ -820,6 +820,14 @@ fi
 
 (( $+commands[rg] )) && alias ff="rg --files | rg -S "
 
+if (( $+commands[apt] )); then
+  ealias aps="apt search"
+  ealias api="sudo apt install"
+  ealias apu="sudo apt update"
+  ealias apuu="sudo apt upgrade"
+  ealias apr="sudo apt purge"
+fi
+
 # -------- Pacman Trap {{{1
 # from https://wiki.archlinux.org/index.php/Zsh#On-demand_rehash
 # This will solve the problem of zsh automatically rehashes after package installation
@@ -879,3 +887,7 @@ else
   autoload -Uz add-zsh-hook
   add-zsh-hook precmd set_prompt
 fi
+
+#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
