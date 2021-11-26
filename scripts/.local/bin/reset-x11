@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+setxkbmap -model pc104 -layout us,bg -variant ,phonetic \
+    -option grp:lctrl_lwin_toggle \
+    -option shift:both_capslock \
+    -option caps:ctrl_modifier &
+
+# Set caps lock (single key press) behavior to be Escape
+killall xcape 2>/dev/null ; xcape -e 'Caps_Lock=Escape' &
+
+# Set key repeat delay and interval
+xset r rate 300 50 &
+
+xinput --set-prop "Logitech ERGO M575" "libinput Accel Speed" -0.7 &

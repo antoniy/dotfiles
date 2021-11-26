@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+nmcli connection down Infinity-lan && nmcli connection up Infinity-lan
