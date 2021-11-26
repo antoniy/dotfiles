@@ -75,6 +75,8 @@ import System.Posix.Unistd
 main = do
   host <- fmap nodeName getSystemID
   bars <- loadBars host
+  -- bar0 <- spawnPipe "xmobar -x 0 ~/.config/xmobar/xmobarrc-europa"
+  -- bars <- return (\x -> hPutStrLn bar0 x)
   xmonad $ ewmh $ docks $ addDescrKeys' ((mod4Mask, xK_F1), showKeybindings) (myKeys host) $ myConfig host bars
   -- xmonad $ ewmh $ docks $ addDescrKeys' ((mod4Mask, xK_F1), rofiBindings) (myKeys host) $ myConfig host bar0
 
@@ -578,7 +580,7 @@ scratchpads "europa" =
   , NS "notes"
       "~/software/Obsidian-0.12.19.AppImage"
       (resource =? "obsidian")
-      $ nsCenterFloat 0.7 0.9
+      $ nsFullFloat
 
   , NS "pavucontrol"
       "pavucontrol"
@@ -664,4 +666,4 @@ scratchpads "pulsar" =
 nsFloat w h l t   = customFloating $ W.RationalRect l t w h
 nsCenterFloat w h = nsFloat w h ((1 - w) / 2) ((1 - h) / 2)
 nsBigCenterFloat  = nsCenterFloat 0.9 0.9
-
+nsFullFloat       = nsFloat 1 0.98 0 0.02
