@@ -7,7 +7,8 @@
 -- -------- Modules {{{1
 -- For quickly search where a keyword or a function is coming from 
 -- go to https://hoogle.haskell.org/ and search for it.
-import XMonad
+import XMonad hiding ( (|||) )
+import XMonad.Core
 import Data.Monoid
 import Data.Maybe (isJust)
 import qualified Data.List as L
@@ -22,12 +23,12 @@ import Control.Monad (when, forM_)
 import XMonad.Config.Desktop
 
 
-import XMonad.Layout
+import XMonad.Layout hiding ( (|||) )
 
 import XMonad.Layout.Simplest
 
 import XMonad.Layout.LimitWindows
-import XMonad.Layout.NoBorders (noBorders, smartBorders)
+import XMonad.Layout.NoBorders (noBorders, smartBorders, hasBorder)
 import XMonad.Layout.SimplestFloat
 import XMonad.Layout.ResizableTile
 import XMonad.Layout.MultiToggle (mkToggle, single, EOT(EOT), Toggle(..), (??))
@@ -44,21 +45,21 @@ import XMonad.Layout.IfMax
 import XMonad.Layout.ResizeScreen
 import XMonad.Layout.IM
 import XMonad.Layout.BinarySpacePartition
-import XMonad.Layout.LayoutCombinators hiding ( (|||) )
+import XMonad.Layout.LayoutCombinators
 
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.EwmhDesktops
-import XMonad.Hooks.ManageHelpers (isFullscreen, isDialog,  doFullFloat, doCenterFloat, composeOne, (-?>), transience', MaybeManageHook) 
+import XMonad.Hooks.ManageHelpers (isFullscreen, isDialog,  doFullFloat, doCenterFloat, composeOne, (-?>), transience', MaybeManageHook, isInProperty) 
 import XMonad.Hooks.SetWMName
 
-import XMonad.Util.Run(spawnPipe, hPutStrLn)
+import XMonad.Util.Run(spawnPipe, hPutStrLn, runProcessWithInput)
 import XMonad.Util.SpawnOnce(spawnOnce)
 import XMonad.Util.NamedScratchpad
 import XMonad.Util.EZConfig (additionalKeysP, mkKeymap, mkNamedKeymap, removeKeysP)  
 import XMonad.Util.Themes
 import XMonad.Util.NamedActions
-import XMonad.Util.Dmenu
+import XMonad.Util.Dmenu (menuMapArgs)
 
 import XMonad.Actions.CopyWindow (kill1, killAllOtherCopies, copyToAll)
 import XMonad.Actions.WithAll (killAll, sinkAll)
@@ -98,7 +99,7 @@ loadBars "pulsar" = do
 
 confirm :: String -> X () -> X ()
 confirm msg action = do
-  response <- menuArgs "rofi" ["-dmenu", "-i", "-p", msg] ["No", "Yes"]
+  response <- runProcessWithInput "rofi" ["-dmenu", "-i", "-p", msg] "No\nYes"
   when ("Yes" `L.isPrefixOf` response) action
 
 showNotification title text = spawn ("notify-send \"" ++ title ++ "\" \"" ++ text ++ "\"")
@@ -214,6 +215,8 @@ myKeys host c =
 
   ^++^ titleSection c "Layouts"
     [ ("M-<Tab>"        , addName "Go to next layout"      $ sendMessage NextLayout)
+    , ("M-v"      , addName "Layout picker"          $ layoutMenu)
+    -- , ("M-v"      , addName "Layout picker"          $ sendMessage $ JumpToLayout "Tall")
     , ("M-S-<Space>"    , addName "Toggle struts"          $ sendMessage ToggleStruts)
     , ("M-S-n"          , addName "Toggle NOBORDERS"       $ sendMessage $ Toggle NOBORDERS)
 
@@ -266,6 +269,8 @@ myKeys host c =
           [ ("M-`"      , addName "Toggle Notes"           $ toggleNSP host "notes")
           , ("M-<F10>"  , addName "Toggle pwd manager"     $ toggleNSP host "pwd")
           , ("M-g"      , addName "Toggle mermaid-live"    $ toggleNSP host "mermaid-live")
+          , ("M-d"      , addName "Toggle draw.io"         $ toggleNSP host "drawio")
+          , ("M-f"      , addName "Toggle nautilus"        $ toggleNSP host "nautilus")
           ] 
         "pulsar" ->
           [ ("M-`"      , addName "Toggle Notes"           $ toggleNSP host "notes")
@@ -291,9 +296,14 @@ myKeys host c =
     [ ("M-a v u"        , addName "VPN enable"              $ spawn "nmcli con up Smule")
     , ("M-a v d"        , addName "VPN disable"             $ spawn "nmcli con down Smule")
     , ("M-a t"          , addName "Change term theme"       $ spawn "~/.local/bin/alacritty-change-theme")
+    , ("M-a m m"        , addName "XRandR config picker"    $ spawn "~/.local/bin/xrandr-picker")
+    , ("M-a m r"        , addName "Reload X11 config"       $ spawn "~/.local/bin/reset-x11" >> showNotification "Success" "Reloaded X11 config")
     -- , ("M-a h"          , addName "Hibernate"               $ confirm "Hibernate?"  $ spawn "systemctl hibernate")
-    -- , ("M-a s"          , addName "Suspend"                 $ confirm "Suspend?"    $ spawn "systemctl suspend")
+    -- , ("M-a s s"        , addName "Suspend"                 $ confirm "Suspend?"    $ catchIO $ spawn "systemctl suspend")
+    -- , ("M-S-p"        , addName "test"                    $ confirm "test" $ spawn "systemctl suspend") 
+    , ("M-a s s"        , addName "Suspend"                 $ spawn "systemctl suspend")
     , ("M-a l"          , addName "Lock Screen"             $ spawn "i3lock -c 000000")
+    , ("M-a f"          , addName "File manager"            $ spawn "nautilus --new-window")
     ] 
 
   ^++^ titleSection c "Workspaces"
@@ -432,6 +442,32 @@ myLayoutHook = avoidStruts
     zoom = rename "Zoom"
       $ withIM (1%7) (Title "Zoom - Free Account") tall ||| monocle
 
+-- layout names for layout selection dialog
+layoutNames :: M.Map String String
+layoutNames = M.fromList $
+  [ ("0: Monocle - single window"            , "Monocle")
+  , ("1: Master and stack"                   , "Tall")
+  , ("2: Grid windows"                       , "Grid")
+  , ("3: One large framed window"            , "OneBig")
+  , ("4: Tabbed windows"                     , "Tabbed")
+  , ("5: Floating windows"                   , "Floats")
+  , ("6: Binary space partition"             , "BSP")
+  , ("7: IDE custom arrangement"             , "IDE")
+  , ("8: Chat grid"                          , "IM")
+  , ("9: Zoom - One left + master and stack" , "Zoom") 
+  ]
+
+-- layout selection dialog
+layoutMenu :: X ()
+layoutMenu = (askUserForLayout layoutNames) >>= setLayoutByName
+  where
+    setLayoutByName :: (Maybe String) -> X ()
+    setLayoutByName value = case value of
+      Just name -> sendMessage (JumpToLayout name)
+      Nothing   -> return ()
+    askUserForLayout :: M.Map String String -> X (Maybe String)
+    askUserForLayout = menuMapArgs "rofi" [ "-p", "layout", "-dmenu", "-i" ]
+
 -- -------- Workspaces {{{1
 
 xmobarEscape = concatMap el
@@ -496,6 +532,7 @@ appsManageHook host = composeOne . concat $
         , title        =?  "JetBrains Toolbox"    -?> doCenterFloat <+> toWs 3
         , className    =?  "jetbrains-idea"       -?> toWs 3
         , className    =?  "Peek"                 -?> doCenterFloat
+        , className    =?  "obsidian"             -?> doCenterFloat <+> hasBorder False
         ] 
 
       perHostManageHook :: String -> [MaybeManageHook]
@@ -504,6 +541,7 @@ appsManageHook host = composeOne . concat $
         , resource     =?  "gmail.com"            -?> toWs 2
         , resource     =?  "calendar.google.com"  -?> toWs 2
         , resource     =?  "Viber"                -?> toWs 9
+        , resource     =?  "zoom" <&&> isAbove    -?> doCenterFloat <+> toWs 4
         , resource     =?  "zoom"                 -?> toWs 4
         , className    =?  "Brave-browser"        -?> toWs 1
         , className    =?  "Google-chrome"        -?> toWs 1
@@ -526,7 +564,12 @@ appsManageHook host = composeOne . concat $
       -- | Match against end of Query
       (=?$) :: Eq a => Query [a] -> [a] -> Query Bool
       (=?$) q x = L.isSuffixOf x <$> q
-      
+
+      -- The following configuration is due to Zoom's lack of adequate dialog properties
+      -- I found this to work and correctly mark it's dialog windows as floating.
+      isAbove :: Query Bool
+      isAbove = isInProperty "_NET_WM_STATE" "_NET_WM_STATE_ABOVE"     
+
       -- match window by class name, title or app name (resource)
       -- matchApp c = className =? c <||> title =? c <||> resource =? c
 
@@ -580,6 +623,16 @@ scratchpads "europa" =
   , NS "notes"
       "~/software/Obsidian-0.12.19.AppImage"
       (resource =? "obsidian")
+      $ nsFullFloat
+
+  , NS "drawio"
+      "drawio"
+      (resource =? "draw.io")
+      $ nsFullFloat
+
+  , NS "nautilus"
+      "nautilus --class=scratchpad_files"
+      (className =? "scratchpad_files")
       $ nsFullFloat
 
   , NS "pavucontrol"
@@ -666,4 +719,4 @@ scratchpads "pulsar" =
 nsFloat w h l t   = customFloating $ W.RationalRect l t w h
 nsCenterFloat w h = nsFloat w h ((1 - w) / 2) ((1 - h) / 2)
 nsBigCenterFloat  = nsCenterFloat 0.9 0.9
-nsFullFloat       = nsFloat 1 0.98 0 0.02
+nsFullFloat       = nsFloat 1 0.981 0 0.02
