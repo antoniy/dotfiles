@@ -34,6 +34,16 @@ export PINENTRY_USER_DATA="USE_CURSES=1"
 # Hide Docker legacy commands
 export DOCKER_HIDE_LEGACY_COMMANDS=true
 
+# Start ssh-agent if not running
+if ! pgrep -u "$USER" ssh-agent > /dev/null; then
+  ssh-agent -t 1h > "$XDG_RUNTIME_DIR/ssh-agent.env"
+  source "$XDG_RUNTIME_DIR/ssh-agent.env" >/dev/null
+  ssh-add 
+fi
+if [[ ! "$SSH_AUTH_SOCK" ]]; then
+  source "$XDG_RUNTIME_DIR/ssh-agent.env" >/dev/null
+fi
+
 # -------- ZSH Config {{{1
 
 setopt no_bg_nice
@@ -775,6 +785,7 @@ if (( $+commands[docker] )); then
 
   if (( $+commands[fzf] && $+commands[xargs] )); then
     alias dke="docker ps --format '{{.Names}}' | fzf | xargs -I{} -o docker exec -it {} /bin/sh"
+    alias dkl="docker ps --format '{{.Names}}' | fzf | xargs -I{} -o docker logs -f {}"
   fi
 fi
 
