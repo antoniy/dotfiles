@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+CHOICE=$(echo "Single Monitor,Dual Monitors" | tr ',' '\n' | rofi -show -dmenu)
+if [[ "Single Monitor" = "$CHOICE" ]]; then
+  xrandr --output HDMI1 --off --output eDP1 --auto
+  reset-x11
+else
+  xrandr --output HDMI1 --auto --output eDP1 --auto --below HDMI1
+  reset-x11
+fi
