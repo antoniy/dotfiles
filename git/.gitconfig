@@ -133,11 +133,11 @@
 [commit]
 	gpgsign = true
   verbose = true
-[include]
-  path = .gitconfig.local
 [pull]
 	rebase = false
 [init]
 	defaultBranch = master
+[include]
+  path = ~/.gitconfig.local
 
 ; vim: set filetype=gitconfig:
