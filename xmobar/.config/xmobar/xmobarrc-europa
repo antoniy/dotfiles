@@ -13,12 +13,12 @@ Config { font            = "xft:FiraCode Nerd Font:pixelsize=14:antialias=true:h
        , allDesktops     = True
        , persistent      = True
        , iconRoot = ".xmonad/xpm/"  -- default: "."
-       , commands = [ Run Date "\xf133  %a, %b %d %Y %H:%M" "date" 50 -- Time and date
+       , commands = [ Run Date "\xf133  %a, %b %d %H:%M" "date" 50 -- Time and date
                     -- Network up and down
                     -- , Run Network "wlp2s0" ["-t", "\xf0aa <rx>kb  \xf0ab <tx>kb"] 20
                     -- Cpu usage in percent
                     -- , Run Cpu ["-t", "\xf108  cpu: <total>%","-H","50","--high","red"] 20
-                    , Run Cpu ["-t", "\xf108  <total>%","-H","50","--high","red"] 20
+                    -- , Run Cpu ["-t", "\xf108  <total>%","-H","50","--high","red"] 20
                     -- Ram used number and percent
                     -- , Run Memory ["-t", "\xf233  mem: <usedratio>%"] 20
                     -- , Run Memory ["-t", "\xf233  <usedratio>%"] 20
@@ -45,6 +45,7 @@ Config { font            = "xft:FiraCode Nerd Font:pixelsize=14:antialias=true:h
        , sepChar  = "%"
        , alignSep = "}{"
        -- , template =  " <icon=haskell_20.xpm/> <fc=#928374>|</fc> %UnsafeStdinReader% }{ <fc=#a89984> %uname% </fc><fc=#928374> | </fc><fc=#d3869b>%cpu% %load% </fc><fc=#928374> | </fc><fc=#d79921>%default:Master% </fc><fc=#928374>| </fc><fc=#458588>%battery% </fc><fc=#928374>| </fc><fc=#fe8019>%kbd%</fc><fc=#928374> | </fc><fc=#ebdbb2>%date%</fc> %trayerpad%"
-       , template =  " <icon=haskell_20.xpm/> <fc=#928374>|</fc> %UnsafeStdinReader% }{ <fc=#d3869b>%cpu% %load% </fc><fc=#928374> | </fc><fc=#d79921>%default:Master% </fc><fc=#928374>| </fc><fc=#458588>%battery% </fc><fc=#928374>| </fc><fc=#689d6a>%bright% </fc><fc=#928374>| </fc>%vpn%<fc=#928374> | </fc><fc=#fe8019>%kbd%</fc><fc=#928374> | </fc><fc=#ebdbb2>%date%</fc> %trayerpad%"
+       -- , template =  " <icon=haskell_20.xpm/> <fc=#928374>|</fc> %UnsafeStdinReader% }{ <fc=#d3869b>%cpu% %load% </fc><fc=#928374> | </fc><fc=#d79921>%default:Master% </fc><fc=#928374>| </fc><fc=#458588>%battery% </fc><fc=#928374>| </fc><fc=#689d6a>%bright% </fc><fc=#928374>| </fc>%vpn%<fc=#928374> | </fc><fc=#fe8019>%kbd%</fc><fc=#928374> | </fc><fc=#ebdbb2>%date%</fc> %trayerpad%"
+       , template =  " <icon=haskell_20.xpm/> <fc=#928374>|</fc> %UnsafeStdinReader% }{ <fc=#d3869b>%load% </fc><fc=#928374> | </fc><fc=#d79921>%default:Master% </fc><fc=#928374>| </fc><fc=#458588>%battery% </fc><fc=#928374>| </fc><fc=#689d6a>%bright% </fc><fc=#928374>| </fc>%vpn%<fc=#928374> | </fc><fc=#fe8019>%kbd%</fc><fc=#928374> | </fc><fc=#ebdbb2>%date%</fc> %trayerpad%"
        }
 

@@ -34,7 +34,9 @@ EOF
 }
 
 # Width of the trayer window
-width=$(xprop -name panel | grep 'program specified minimum size' | cut -d ' ' -f 5)
+# width=$(xprop -name panel | grep 'program specified minimum size' | cut -d ' ' -f 5)
+calculatedWidth=$(xprop -name panel | grep 'program specified minimum size' | cut -d ' ' -f 5)
+width=$((calculatedWidth+10))
 
 # Icon file name
 iconfile="/tmp/trayer-padding-${width}px.xpm"
