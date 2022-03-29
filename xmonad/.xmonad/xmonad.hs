@@ -688,7 +688,7 @@ scratchpads "pulsar" =
   , NS "notes"
       "obsidian"
       (resource =? "obsidian")
-      $ nsCenterFloat 0.7 0.9
+      $ nsFullFloat
 
   , NS "pavucontrol"
       "pavucontrol"
