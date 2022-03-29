@@ -15,21 +15,21 @@ Config { font            = "xft:FiraCode Nerd Font:pixelsize=12:antialias=true:h
        , iconRoot = "/home/antoniy/.xmonad/xpm/"  -- default: "."
        , commands = [ Run Date "\xf133 %b %d %Y %H:%M" "date" 50 -- Time and date
                     -- Network up and down
-                    , Run Network "eno1" ["-t", "\xf0aa <rx>kb  \xf0ab <tx>kb"] 20
+                    -- , Run Network "eno1" ["-t", "\xf0aa <rx>kb  \xf0ab <tx>kb"] 20
                     -- Cpu usage in percent
                     -- , Run Cpu ["-t", "\xf108  cpu: <total>%","-H","50","--high","red"] 20
                     , Run Cpu ["-t", "\xf108  <total>%","-H","50","--high","red"] 20
                     -- Ram used number and percent
                     -- , Run Memory ["-t", "\xf233  mem: <usedratio>%"] 20
-                    , Run Memory ["-t", "\xf233  <usedratio>%"] 20
+                    -- , Run Memory ["-t", "\xf233  <usedratio>%"] 20
                     -- Disk space free
-                    , Run DiskU [("/", "\xf0c7 (root) <free> free")] [] 60
+                    -- , Run DiskU [("/", "\xf0c7 (root) <free> free")] [] 60
                     -- Runs custom script to check for avg system load. This script is in my dotfiles repo in .local/bin.
                     , Run ComX "loadavg" [] "" "load" 20
                     -- Show current keyboard layout
                     , Run Kbd [("us", "US"), ("bg(phonetic)", "BG")]
                     -- Runs a standard shell command 'uname -r' to get kernel version
-                    , Run Com "uname" ["-r"] "" 36000
+                    -- , Run Com "uname" ["-r"] "" 36000
                     -- Script that dynamically adjusts xmobar padding depending on number of trayer icons.
                     , Run Com "/home/antoniy/.config/xmobar/trayer-padding-icon.sh" [] "trayerpad" 20
 
@@ -39,5 +39,5 @@ Config { font            = "xft:FiraCode Nerd Font:pixelsize=12:antialias=true:h
                     ]
        , sepChar  = "%"
        , alignSep = "}{"
-       , template = " <icon=haskell_20.xpm/> <fc=#928374>|</fc> %UnsafeStdinReader% }{ <fc=#a89984> %uname% </fc><fc=#928374>| </fc><fc=#d3869b>%cpu% %load% </fc><fc=#928374>| </fc><fc=#d79921>%memory% </fc><fc=#928374>| </fc><fc=#458588>%disku% </fc><fc=#928374>| </fc><fc=#689d6a>%eno1% </fc><fc=#928374>| </fc><fc=#fe8019>%kbd%</fc><fc=#928374> | </fc><fc=#ebdbb2>%date%</fc> %trayerpad%"
+       , template = " <icon=haskell_20.xpm/> <fc=#928374>|</fc> %UnsafeStdinReader% }{ <fc=#d3869b>%cpu% %load% </fc><fc=#928374>| </fc><fc=#fe8019>%kbd%</fc><fc=#928374> | </fc><fc=#ebdbb2>%date%</fc> %trayerpad%"
        }
