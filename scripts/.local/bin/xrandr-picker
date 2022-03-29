@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 
-CHOICE=$(echo "Single Monitor,Dual Monitors" | tr ',' '\n' | rofi -show -dmenu)
-if [[ "Single Monitor" = "$CHOICE" ]]; then
+CHOICE=$(echo "Laptop,Dual Monitors,External" | tr ',' '\n' | rofi -show -dmenu -i)
+if [[ "Laptop" = "$CHOICE" ]]; then
   xrandr --output HDMI1 --off --output eDP1 --auto
   reset-x11
-else
+elif [[ "Dual Monitors" = "$CHOICE" ]]; then
   xrandr --output HDMI1 --auto --output eDP1 --auto --below HDMI1
+  reset-x11
+elif [[ "External" = "$CHOICE" ]]; then
+  xrandr --output HDMI1 --auto --output eDP1 --off
   reset-x11
 fi

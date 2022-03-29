@@ -11,4 +11,4 @@ killall xcape 2>/dev/null ; xcape -e 'Caps_Lock=Escape' &
 # Set key repeat delay and interval
 xset r rate 300 50 &
 
-xinput --set-prop "Logitech ERGO M575" "libinput Accel Speed" -0.7 &
+# xinput --set-prop "Logitech ERGO M575" "libinput Accel Speed" -0.7 &
