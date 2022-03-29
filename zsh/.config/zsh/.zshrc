@@ -506,6 +506,7 @@ alias mv="mv -iv"
 alias rm="rm -v"
 alias mkdir="mkdir -pv"
 alias dh='dirs -v'
+ealias p="ps aux | grep"
 
 (( $+commands[sudo] )) && ealias s="sudo"
 
@@ -832,7 +833,8 @@ if (( $+commands[brew] )); then
   ealias brci="brew cask install "
 fi
 
-(( $+commands[mpv] )) && ealias horizont="mpv http://stream.bnr.bg:8011/horizont.aac"
+# (( $+commands[mpv] )) && ealias horizont="mpv http://stream.bnr.bg:8011/horizont.aac"
+(( $+commands[mpv] )) && ealias horizont="mpv https://lb-hls.evpn.bg/2032/fls/Horizont.stream/playlist.m3u8"
 
 (( $+commands[picocom] )) && ealias hpswitch="sudo picocom -b 9600 -f h --omap delbs /dev/ttyUSB0"
 
