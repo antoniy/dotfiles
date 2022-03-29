@@ -26,6 +26,66 @@ matches:
   - trigger: ";rose"
     replace: "🌹"
 
+  # Inserts a markdown code block
+  - trigger: ";mdc"
+    replace: "```\n$|$\n```"
+
+  - trigger: ";cite"
+    replace: "— <cite>$|$</cite>"
+
+  # Easily inputs ASCII emojis from a dropdown
+  - trigger: ":lenny"
+    form: "{{smileys}}"
+    form_fields:
+      smileys:
+        type: list
+        values:
+        - '¯\\_(ツ)_/¯'
+        - '( ͡ಠ ʖ̯ ͡ಠ)'
+        - '☉ ‿ ⚆'
+        - 'ʕ•ᴥ•ʔ'
+        - '|ᵔ‿ᵔ|'
+        - '⤜(*﹏*)⤏'
+        - 'ツ'
+
+  # Kotlin
+  - trigger: ";fun"
+    replace: |
+      fun $|$(): TYPE {
+      }
+
+  # ASC II Icons & Symbols
+  - trigger: ";wtf"
+    replace: "¯\\_(ツ)_/¯"
+  
+  - trigger: ";ye"
+    replace: "ᕙ (ºLº,) ᕗ"
+  
+  - trigger: ";fuck"
+    replace: "(⋟﹏⋞)"
+  
+  - trigger: ";sad"
+    replace: "(╥_╥)"
+  
+  - trigger: ";zen"
+    replace: "⊹╰(⌣ʟ⌣)╯⊹"
+
+  - trigger: ":noo"
+    replace: |
+        N
+          O
+            O
+             o
+              o
+              o
+             o
+            。
+          。
+         .
+         .
+          .
+            .
+
   # Dates
   - trigger: ":date"
     replace: "{{mydate}}"
@@ -46,6 +106,9 @@ matches:
 
   - trigger: ":br"
     replace: "Best Regards,\nAntoniy"
+
+  - trigger: ";shamar"
+    replace: "Изходи се по голяма нужда в ръката си и си удари шамар"
 
   # - trigger: ":greet"
   #   form: |
