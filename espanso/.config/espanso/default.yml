@@ -11,12 +11,6 @@ matches:
   - trigger: ":an"
     replace: "Antoniy"
 
-  - trigger: ":mail"
-    replace: "antoniy.chonkov@smule.com"
-
-  - trigger: ":okta"
-    replace: "ChangeM3??"
-
   - trigger: ";--"
     replace: "—"
 
