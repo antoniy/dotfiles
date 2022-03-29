@@ -50,4 +50,5 @@ xsetroot -cursor_name left_ptr # set the cursor style to left ptr from an 'X'
 dbus-update-activation-environment --systemd DBUS_SESSION_BUS_ADDRESS DISPLAY XAUTHORITY
 
 # exec dbus-launch --sh-syntax --exit-with-session xmonad
-exec dbus-launch --autolaunch=$(cat /var/lib/dbus/machine-id) xmonad
+# exec dbus-launch --autolaunch=$(cat /var/lib/dbus/machine-id) xmonad
+exec xmonad
