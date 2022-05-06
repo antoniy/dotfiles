@@ -34,6 +34,9 @@ export PINENTRY_USER_DATA="USE_CURSES=1"
 # Hide Docker legacy commands
 export DOCKER_HIDE_LEGACY_COMMANDS=true
 
+
+[ -e "/opt/homebrew/bin/brew" ] && eval "$(/opt/homebrew/bin/brew shellenv)"
+
 # Start ssh-agent if not running
 if ! pgrep -u "$USER" ssh-agent > /dev/null; then
   ssh-agent -t 1h > "$XDG_RUNTIME_DIR/ssh-agent.env"
@@ -188,9 +191,9 @@ fi
 
 # -------- Initialize plugin manager {{{2
 if [[ ! -f $ZDOTDIR/.zinit/bin/zinit.zsh ]]; then
-  print -P "%F{33}▓▒░ %F{220}Installing DHARMA Initiative Plugin Manager (zdharma/zinit)…%f"
+  print -P "%F{33}▓▒░ %F{220}Installing DHARMA Initiative Plugin Manager (zdharma-continuum/zinit)…%f"
   command mkdir -p $ZDOTDIR/.zinit
-  command git clone https://github.com/zdharma/zinit $ZDOTDIR/.zinit/bin && \
+  command git clone https://github.com/zdharma-continuum/zinit.git $ZDOTDIR/.zinit/bin && \
     print -P "%F{33}▓▒░ %F{34}Installation successful.%F" || \
     print -P "%F{160}▓▒░ The clone has failed.%F"
 fi
@@ -230,11 +233,11 @@ bindkey -M vicmd '^[j' history-substring-search-down
 
 # -------- Plugin: fast-syntax-highlighting {{{2
 zinit ice wait lucid atinit"zpcompinit; zpcdreplay"
-zinit light zdharma/fast-syntax-highlighting
+zinit light zdharma-continuum/fast-syntax-highlighting
 
 # -------- Plugin: zsh-diff-so-fancy {{{2
 zinit ice wait"2" lucid as"program" pick"bin/git-dsf"
-zinit load zdharma/zsh-diff-so-fancy
+zinit load zdharma-continuum/zsh-diff-so-fancy
 
 # -------- Plugin: fzf-marks {{{2
 FZF_MARKS_COMMAND="fzf --height 40% --reverse --preview-window right:50%:hidden"
