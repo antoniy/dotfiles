@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+case $1 in
+  "inc") 
+    pactl set-sink-volume @DEFAULT_SINK@ +5%
+    volume=$(pactl get-sink-volume @DEFAULT_SINK@ | head -n1 | awk '{print $5}' | sed 's/%//')
+    dunstify -a "changeVolume" -u low -i audio-volume-high -h string:x-dunst-stack-tag:volume-tag -h int:value:"$volume" "Volume: ${volume}%"
+    ;;
+  "dec") 
+    pactl set-sink-volume @DEFAULT_SINK@ -5% 
+    volume=$(pactl get-sink-volume @DEFAULT_SINK@ | head -n1 | awk '{print $5}' | sed 's/%//')
+    dunstify -a "changeVolume" -u low -i audio-volume-high -h string:x-dunst-stack-tag:volume-tag -h int:value:"$volume" "Volume: ${volume}%"
+    ;;
+esac
