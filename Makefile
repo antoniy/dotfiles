@@ -2,7 +2,8 @@ default: config bat config-files git gnupg htop scripts tmux vim zsh alacritty s
 
 linux: config bat compton config-files dunst git gnupg htop lf mpv pcmanfm pet polybar scripts sxhkd systemd termite tmux vim zathura zsh alacritty xmonad xmobar starship doom espanso udiskie
 
-darwin: config bat config-files git gnupg htop karabiner lf mpv pet scripts tmux vim zsh alacritty doom
+#darwin: config bat config-files git gnupg htop karabiner lf mpv pet scripts tmux vim zsh alacritty doom
+darwin: config bat config-files git gnupg htop mpv scripts tmux vim zsh 
 
 bat: config
 	stow --no-fold -R bat
