@@ -282,14 +282,18 @@ myKeys host c =
   ^++^ titleSection c "Media Keys"
     [ ("<XF86MonBrightnessUp>"  , addName "Brightness +10%" $ spawn "xbacklight -inc 10")
     , ("<XF86MonBrightnessDown>", addName "Brightness -10%" $ spawn "xbacklight -dec 10")
-    , ("<XF86AudioRaiseVolume>" , addName "Volume +5%"      $ spawn "pactl set-sink-volume @DEFAULT_SINK@ +5%")
-    , ("<XF86AudioLowerVolume>" , addName "Volume -5%"      $ spawn "pactl set-sink-volume @DEFAULT_SINK@ -5%")
+    -- , ("<XF86AudioRaiseVolume>" , addName "Volume +5%"      $ spawn "pactl set-sink-volume @DEFAULT_SINK@ +5%")
+    -- , ("<XF86AudioLowerVolume>" , addName "Volume -5%"      $ spawn "pactl set-sink-volume @DEFAULT_SINK@ -5%")
+    , ("<XF86AudioRaiseVolume>" , addName "Volume +5%"      $ spawn "~/.local/bin/volume inc")
+    , ("<XF86AudioLowerVolume>" , addName "Volume -5%"      $ spawn "~/.local/bin/volume dec")
     , ("<XF86AudioMute>"        , addName "Volume mute"     $ spawn "pactl set-sink-mute @DEFAULT_SINK@ toggle")
     , ("<XF86AudioMicMute>"     , addName "Volume mic mute" $ spawn "pactl set-source-mute @DEFAULT_SOURCE@ toggle")
     , ("M-S-<Up>"               , addName "Brightness +10%" $ spawn "xbacklight -inc 10")
     , ("M-S-<Down>"             , addName "Brightness -10%" $ spawn "xbacklight -dec 10")
-    , ("M-<Up>"                 , addName "Volume +5%"      $ spawn "pactl set-sink-volume @DEFAULT_SINK@ +5%")
-    , ("M-<Down>"               , addName "Volume -5%"      $ spawn "pactl set-sink-volume @DEFAULT_SINK@ -5%")
+    -- , ("M-<Up>"                 , addName "Volume +5%"      $ spawn "pactl set-sink-volume @DEFAULT_SINK@ +5%")
+    -- , ("M-<Down>"               , addName "Volume -5%"      $ spawn "pactl set-sink-volume @DEFAULT_SINK@ -5%")
+    , ("M-<Up>"                 , addName "Volume +5%"      $ spawn "~/.local/bin/volume inc")
+    , ("M-<Down>"               , addName "Volume -5%"      $ spawn "~/.local/bin/volume dec")
     ]
 
   ^++^ titleSection c "Custom Prefix" 
@@ -304,6 +308,16 @@ myKeys host c =
     , ("M-a s s"        , addName "Suspend"                 $ spawn "systemctl suspend")
     , ("M-a l"          , addName "Lock Screen"             $ spawn "i3lock -c 000000")
     , ("M-a f"          , addName "File manager"            $ spawn "nautilus --new-window")
+    ] 
+
+  ^++^ titleSection c "Notification Control" 
+    [ ("C-<Space>"      , addName "Close"                   $ spawn "dunstctl close")
+    , ("C-S-<Space>"    , addName "Close All"               $ spawn "dunstctl close-all")
+    , ("C-`"            , addName "History pop"             $ spawn "dunstctl history-pop")
+    , ("C-S-`"          , addName "Context menu"            $ spawn "dunstctl context")
+    -- [ ("M-a x x"        , addName "Close"                   $ spawn "dunstctl close")
+    -- , ("M-a x a"        , addName "Close All"               $ spawn "dunstctl close-all")
+    -- , ("M-a x c"        , addName "Context menu"            $ spawn "dunstctl context")
     ] 
 
   ^++^ titleSection c "Workspaces"
