@@ -9,10 +9,6 @@
 
 ZSH_CONFIG="$ZDOTDIR/.zshrc"
 
-if [[ -e $ZDOTDIR/.zshrc_local ]]; then
-    source $ZDOTDIR/.zshrc_local
-fi
-
 export LC_ALL=en_US.UTF-8
 
 # Use neovim for vim if present.
@@ -26,10 +22,9 @@ export EDITOR='nvim'
 
 export GPG_TTY=$(tty)
 
-# if [[ "$OSTYPE" == "darwin"* ]]; then # for MacOSX
-#   export PINENTRY_USER_DATA="USE_CURSES=1"
-# fi
-export PINENTRY_USER_DATA="USE_CURSES=1"
+if [[ "$OSTYPE" == "darwin"* ]]; then # for MacOSX
+  export PINENTRY_USER_DATA="USE_CURSES=1"
+fi
 
 # Hide Docker legacy commands
 export DOCKER_HIDE_LEGACY_COMMANDS=true
@@ -37,14 +32,16 @@ export DOCKER_HIDE_LEGACY_COMMANDS=true
 
 [ -e "/opt/homebrew/bin/brew" ] && eval "$(/opt/homebrew/bin/brew shellenv)"
 
-# Start ssh-agent if not running
-if ! pgrep -u "$USER" ssh-agent > /dev/null; then
-  ssh-agent -t 1h > "$XDG_RUNTIME_DIR/ssh-agent.env"
-  source "$XDG_RUNTIME_DIR/ssh-agent.env" >/dev/null
-  ssh-add 
-fi
-if [[ ! "$SSH_AUTH_SOCK" ]]; then
-  source "$XDG_RUNTIME_DIR/ssh-agent.env" >/dev/null
+# Start ssh-agent if not running (macOS manages the agent via Keychain automatically)
+if [[ "$OSTYPE" != "darwin"* ]]; then
+  if ! pgrep -u "$USER" ssh-agent > /dev/null; then
+    ssh-agent -t 1h > "$XDG_RUNTIME_DIR/ssh-agent.env"
+    source "$XDG_RUNTIME_DIR/ssh-agent.env" >/dev/null
+    ssh-add
+  fi
+  if [[ ! "$SSH_AUTH_SOCK" ]]; then
+    source "$XDG_RUNTIME_DIR/ssh-agent.env" >/dev/null
+  fi
 fi
 
 # -------- ZSH Config {{{1
@@ -87,8 +84,7 @@ unsetopt menu_complete      # On multiple matches, insert the first one immediat
                             # the completion is requested again, remove the first match at put
                             # the second match, etc. - iterate on matches
 
-# Display how long all tasks over 10 seconds take.
-# Negative value - stops that feature
+# Display how long tasks take. Disabled (negative value) — set to a positive number of seconds to enable.
 export REPORTTIME=-1
 
 # Load zmv program module
@@ -98,12 +94,6 @@ autoload -U zmv
 autoload -U colors && colors
 
 # -------- Vim Mode {{{1
-
-# Updates editor information when the keymap changes.
-function zle-keymap-select() {
-  zle reset-prompt
-  zle -R
-}
 
 # Ensure that the prompt is redrawn when the terminal size changes.
 TRAPWINCH() {
@@ -133,8 +123,6 @@ bindkey '^?' backward-delete-char
 bindkey '^h' backward-delete-char
 bindkey '^w' backward-kill-word
 
-# allow ctrl-r to perform backward search in history
-bindkey '^r' history-incremental-search-backward
 
 # allow ctrl-a and ctrl-e to move to beginning/end of line
 bindkey '^a' beginning-of-line
@@ -176,19 +164,6 @@ preexec() { echo -ne '\e[6 q' ;}
 
 # }}}
 # -------- Plugins {{{1
-# -------- Install and initialize FZF {{{2
-# Load fzf
-if [ ! -d ~/.fzf ]; then
-  git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-  ~/.fzf/install --all --no-update-rc --no-bash --no-fish
-fi
-
-if [ -f ~/.fzf.zsh ]; then
-  source ~/.fzf.zsh
-else
-  echo "File ~/.fzf.zsh is missing. Please reinstall fzf: ~/.fzf/install --all"
-fi
-
 # -------- Initialize plugin manager {{{2
 if [[ ! -f $ZDOTDIR/.zinit/bin/zinit.zsh ]]; then
   print -P "%F{33}▓▒░ %F{220}Installing DHARMA Initiative Plugin Manager (zdharma-continuum/zinit)…%f"
@@ -201,7 +176,15 @@ source "$HOME/.config/zsh/.zinit/bin/zinit.zsh"
 autoload -Uz _zinit
 (( ${+_comps} )) && _comps[zinit]=_zinit
 
+# -------- Plugin: fzf {{{2
+# General-purpose fuzzy finder. Powers Ctrl-T (file picker) and many custom
+# fzf-driven functions throughout this config (git branch picker, etc.).
+zinit ice from"gh-r" as"program" atload'eval "$(fzf --zsh)"'
+zinit light junegunn/fzf
+
 # -------- Plugin: zsh-autosuggestions {{{2
+# Fish-like inline suggestions as you type, drawn from history.
+# Accept the suggestion with Ctrl-Space; keep typing to ignore it.
 export ZSH_AUTOSUGGEST_USE_ASYNC=1
 export ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 zinit ice wait lucid atload'_zsh_autosuggest_start'
@@ -209,12 +192,13 @@ zinit light zsh-users/zsh-autosuggestions
 bindkey '^ ' autosuggest-accept # accept auto suggestion with Ctrl-Space
 
 # -------- Plugin: zsh-completions {{{2
+# Extra completion definitions for hundreds of tools not covered by zsh itself.
 zinit ice wait lucid blockf atpull'zinit creinstall -q .'
 zinit light zsh-users/zsh-completions
 
 # -------- Plugin: zsh-history-substring-search {{{2
-# Substring search
-# enable fuzzy search: ab c will match *ab*c*
+# Up/Down (and Alt-j/k) search history by the substring already typed.
+# Fuzzy mode: "ab c" matches anything containing *ab*c*.
 HISTORY_SUBSTRING_SEARCH_FUZZY='true'
 zinit ice wait lucid
 zinit light zsh-users/zsh-history-substring-search
@@ -232,18 +216,54 @@ bindkey -M vicmd '^[k' history-substring-search-up
 bindkey -M vicmd '^[j' history-substring-search-down
 
 # -------- Plugin: fast-syntax-highlighting {{{2
+# Syntax highlighting in the command line as you type — commands, flags,
+# paths, strings. Faster than the standard zsh-syntax-highlighting.
 zinit ice wait lucid atinit"zpcompinit; zpcdreplay"
 zinit light zdharma-continuum/fast-syntax-highlighting
 
 # -------- Plugin: zsh-diff-so-fancy {{{2
-zinit ice wait"2" lucid as"program" pick"bin/git-dsf"
+# Prettier git diffs in the terminal. Adds the `git dsf` command.
+zinit ice wait"1" lucid as"program" pick"bin/git-dsf"
 zinit load zdharma-continuum/zsh-diff-so-fancy
 
-# -------- Plugin: fzf-marks {{{2
-FZF_MARKS_COMMAND="fzf --height 40% --reverse --preview-window right:50%:hidden"
-FZF_MARKS_JUMP='^O'
-zinit ice wait lucid
-zinit load urbainvaes/fzf-marks
+# -------- Plugin: zoxide {{{2
+# Smart cd replacement that tracks frecency (frequency + recency) of visited
+# directories. Use `j <query>` to jump, `ji` for interactive fzf picker.
+zinit ice from"gh-r" as"program" atload'eval "$(zoxide init zsh --cmd j)"'
+zinit light ajeetdsouza/zoxide
+
+# -------- Plugin: atuin {{{2
+# SQLite-backed shell history with rich metadata (exit code, duration, cwd).
+# Replaces Ctrl-R with a searchable TUI. Up-arrow keeps history-substring-search.
+zinit ice from"gh-r" as"program" atload'eval "$(atuin init zsh --disable-up-arrow)"'
+zinit light atuinsh/atuin
+
+# -------- Plugin: direnv {{{2
+# Per-directory environment variables. Automatically loads/unloads .envrc
+# files when entering/leaving a directory.
+zinit ice from"gh-r" as"program" mv"direnv* -> direnv" atload'eval "$(direnv hook zsh)"'
+zinit light direnv/direnv
+
+# -------- CLI tools {{{2
+# bat: cat replacement with syntax highlighting and git integration.
+zinit ice from"gh-r" as"program" pick"*/bat"
+zinit light sharkdp/bat
+
+# fd: fast and user-friendly find replacement; used in fzf default command.
+zinit ice from"gh-r" as"program" pick"*/fd"
+zinit light sharkdp/fd
+
+# eza: modern ls replacement with icons, git status, and tree view.
+zinit ice from"gh-r" as"program" pick"eza"
+zinit light eza-community/eza
+
+# ripgrep: extremely fast grep replacement; used in the ff alias.
+zinit ice from"gh-r" as"program" pick"*/rg"
+zinit light BurntSushi/ripgrep
+
+# delta: syntax-highlighting pager for git diffs.
+zinit ice from"gh-r" as"program" pick"*/delta"
+zinit light dandavison/delta
 
 # -------- Completions {{{1
 
@@ -311,7 +331,7 @@ if (( $+commands[fzf] )); then
 
   FZF_DIR_HIGHLIGHTER='ls -l --color=always 2> /dev/null || ls -lG 2> /dev/null'
   (( $+commands[tree] )) && FZF_DIR_HIGHLIGHTER='tree -CtrL 2'
-  (( $+commands[exa]  )) && FZF_DIR_HIGHLIGHTER='exa --color=always -TL2'
+  (( $+commands[eza]  )) && FZF_DIR_HIGHLIGHTER='eza --color=always -TL2'
   export FZF_DIR_HIGHLIGHTER
 
   FZF_DEFAULT_COMMAND='(git ls-tree -r --name-only HEAD ||
@@ -347,127 +367,8 @@ if (( $+commands[fzf] )); then
   --preview-window right:50%
   "
 
-  # FZF: Ctrl - R
-  SHELL_HIGHLIGHTER="bat --color=always -l bash"
-  export FZF_CTRL_R_OPTS="
-  --preview 'echo {} | tr -s \" \" | cut -d\" \" -f3- | $SHELL_HIGHLIGHTER'
-  --preview-window 'down:2:wrap'
-  --exact
-  --expect=ctrl-x
-  "
-
-  # FZF: Alt - C
-  FZF_ALT_C_COMMAND="command find -L . -mindepth 1 -name '.git' -prune \
-      -o -type d -print 2> /dev/null | cut -b3-"
-  (( $+commands[fd] )) && FZF_ALT_C_COMMAND='command fd --type d --hidden --follow --exclude .git 2>/dev/null'
-  export FZF_ALT_C_COMMAND
-
-  export FZF_ALT_C_OPTS="
-  --exit-0
-  --bind 'enter:execute(echo {})+abort'
-  --preview '($FZF_DIR_HIGHLIGHTER {}) | head -200 2>/dev/null'
-  --preview-window=right:50%
-  "
-
 fi
 
-# -------- Functions {{{1
-
-# Trim functions
-function ltrim() { sed 's/^\s\+//g' }
-function rtrim() { sed 's/\s\+$//g' }
-function trim()  { ltrim | rtrim    }
-
-# pet utilities:
-# * Alt-S - select snippet
-# * pet-add-prev alias to add previous cmd as new snippet
-function pet-select() {
-  BUFFER=$(pet search --query "$LBUFFER")
-  CURSOR=$#BUFFER
-  zle redisplay
-}
-zle -N pet-select
-stty -ixon
-bindkey '^[s' pet-select
-
-function pet-add-prev() {
-  PREV=$(fc -lrn | head -n 1)
-  sh -c "pet new `printf %q "$PREV"`"
-}
-
-# -------- Color Definitions {{{1
-# Reset
-Color_Off='\033[0m'       # Text Reset
-
-# Regular Colors
-Black='\033[0;30m'        # Black
-Red='\033[0;31m'          # Red
-Green='\033[0;32m'        # Green
-Yellow='\033[0;33m'       # Yellow
-Blue='\033[0;34m'         # Blue
-Purple='\033[0;35m'       # Purple
-Cyan='\033[0;36m'         # Cyan
-White='\033[0;37m'        # White
-
-# Bold
-BBlack='\033[1;30m'       # Black
-BRed='\033[1;31m'         # Red
-BGreen='\033[1;32m'       # Green
-BYellow='\033[1;33m'      # Yellow
-BBlue='\033[1;34m'        # Blue
-BPurple='\033[1;35m'      # Purple
-BCyan='\033[1;36m'        # Cyan
-BWhite='\033[1;37m'       # White
-
-# Underline
-UBlack='\033[4;30m'       # Black
-URed='\033[4;31m'         # Red
-UGreen='\033[4;32m'       # Green
-UYellow='\033[4;33m'      # Yellow
-UBlue='\033[4;34m'        # Blue
-UPurple='\033[4;35m'      # Purple
-UCyan='\033[4;36m'        # Cyan
-UWhite='\033[4;37m'       # White
-
-# Background
-On_Black='\033[40m'       # Black
-On_Red='\033[41m'         # Red
-On_Green='\033[42m'       # Green
-On_Yellow='\033[43m'      # Yellow
-On_Blue='\033[44m'        # Blue
-On_Purple='\033[45m'      # Purple
-On_Cyan='\033[46m'        # Cyan
-On_White='\033[47m'       # White
-
-# High Intensity
-IBlack='\033[0;90m'       # Black
-IRed='\033[0;91m'         # Red
-IGreen='\033[0;92m'       # Green
-IYellow='\033[0;93m'      # Yellow
-IBlue='\033[0;94m'        # Blue
-IPurple='\033[0;95m'      # Purple
-ICyan='\033[0;96m'        # Cyan
-IWhite='\033[0;97m'       # White
-
-# Bold High Intensity
-BIBlack='\033[1;90m'      # Black
-BIRed='\033[1;91m'        # Red
-BIGreen='\033[1;92m'      # Green
-BIYellow='\033[1;93m'     # Yellow
-BIBlue='\033[1;94m'       # Blue
-BIPurple='\033[1;95m'     # Purple
-BICyan='\033[1;96m'       # Cyan
-BIWhite='\033[1;97m'      # White
-
-# High Intensity backgrounds
-On_IBlack='\033[0;100m'   # Black
-On_IRed='\033[0;101m'     # Red
-On_IGreen='\033[0;102m'   # Green
-On_IYellow='\033[0;103m'  # Yellow
-On_IBlue='\033[0;104m'    # Blue
-On_IPurple='\033[0;105m'  # Purple
-On_ICyan='\033[0;106m'    # Cyan
-On_IWhite='\033[0;107m'   # White
 # -------- Aliases {{{1
 # -------- Aliases: Expansion Functions {{{
 
@@ -499,6 +400,10 @@ zle -N expand-alias
 
 bindkey " " expand-alias
 
+if [[ -e $ZDOTDIR/.zshrc_local ]]; then
+    source $ZDOTDIR/.zshrc_local
+fi
+
 # -------- Aliases: General {{{2
 
 alias reload!="source $ZSH_CONFIG"
@@ -519,7 +424,6 @@ function md() {
 }
 
 # Helpers
-alias grep='grep --color=auto'
 alias df='df -h' # disk free, in Gigabytes, not bytes
 alias du='du -h -c' # calculate disk usage for a folder
 ealias rmf="rm -rf"
@@ -546,13 +450,13 @@ ealias ......="cd ../../../../.."
 alias cd.='cd ..'
 alias cd..='cd ..'
 
-# Changing "ls" to "exa" if "exa" is installed
-if (( $+commands[exa] )); then
-  alias ls='exa --color=always --group-directories-first' # my preferred listing
-  alias la='exa -a --color=always --group-directories-first'  # all files and dirs
-  alias ll='exa -lga --color=always --group-directories-first'  # long format
-  alias l='exa -lg --color=always --group-directories-first'  # long format
-  alias lt='exa -aT --color=always --group-directories-first' # tree listing
+# Changing "ls" to "eza" if installed
+if (( $+commands[eza] )); then
+  alias ls='eza --color=always --group-directories-first' # my preferred listing
+  alias la='eza -a --color=always --group-directories-first'  # all files and dirs
+  alias ll='eza -lga --color=always --group-directories-first'  # long format
+  alias l='eza -lg --color=always --group-directories-first'  # long format
+  alias lt='eza -aT --color=always --group-directories-first' # tree listing
 elif [[ "$OSTYPE" == "darwin"* ]]; then # for MacOSX and bsd version of ls
   alias ls="ls -G"
   alias la="ls -AG"
@@ -567,7 +471,6 @@ else
   alias lt="tree -aC --dirsfirst"
 fi
 
-alias weather='curl http://wttr.in/Plovdiv'
 
 wd() {
   case $1 in
@@ -595,22 +498,6 @@ alias external-ip="dig +short myip.opendns.com @resolver1.opendns.com"
 # Colorize commands when possible.
 alias grep="grep --color=auto"
 alias diff="diff --color=auto"
-
-# Set grc alias for available commands.
-if (( $+commands[grc] )); then
-  if [[ "$OSTYPE" == "darwin"* ]]; then # for MacOSX
-    GRC_PATH="/usr/local/share/grc/"
-  else
-    GRC_PATH="/usr/share/grc/"
-  fi
-  for cmd in g++ gas head make ld ping6 tail traceroute6 $( ls $GRC_PATH ); do
-    cmd="${cmd##*conf.}"
-    if [[ "$cmd" = "ls" ]]; then # don't highlight 'ls' - exa already does that
-      continue
-    fi
-    type "${cmd}" >/dev/null 2>&1 && alias "${cmd}"="$( which grc ) --colour=auto ${cmd}"
-  done
-fi
 
 (( $+commands[bat] )) && alias cat="bat --plain --wrap character"
 
@@ -658,7 +545,7 @@ alias -s {md,txt,TXT,java,xml,json,js,go,kt,conf,cfg}=$EDITOR
 
 ealias -g G='| grep'
 ealias -g L='| less'
-alias -g grep='grep --color=auto --exclude-dir={.bzr,CVS,.git,.hg,.svn}'
+# alias -g grep='grep --color=auto --exclude-dir={.bzr,CVS,.git,.hg,.svn}'
 ealias -g A1="| awk '{print \$1}'"
 ealias -g A2="| awk '{print \$2}'"
 ealias -g A3="| awk '{print \$3}'"
@@ -672,12 +559,6 @@ ealias -g .....="../../../.."
 # -------- Aliases: Git {{{2
 
 if (( $+commands[git] )); then
-  (( $+commands[hub] )) && alias git='hub'
-
-  git_branch() {
-    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'
-  }
-
   # Git aliases
   ealias g="git"
   ealias gst='git status'
@@ -706,42 +587,11 @@ if (( $+commands[git] )); then
   ealias gmom='git merge origin/master'
   ealias gr='git restore'
   ealias grs='git restore --staged'
-
-  if (( $+commands[fzf] )); then
-    gmm() {
-      local query="${@:-}"
-      local preview_highlighter=""
-      (( $+commands[diff-so-fancy] )) && preview_highlighter=" | diff-so-fancy | less -RX"
-      (( $+commands[delta] )) && preview_highlighter=" | delta --dark --minus-color='#4d0100' --plus-color='#014000' --tabs 2"
-      local preview_cmd="echo {} | sed 's/^\s\+//g' | xargs -I% git diff $(git_branch)..% $preview_highlighter"
-      git branch -a | grep -v "^*" | fzf -1 -q "$query" --preview="$preview_cmd | head -300" --preview-window=right:70% --bind "alt-e:execute($preview_cmd >/dev/tty </dev/tty)" | cli-prompt "Merge ${BIRed}{}${Color_Off} into ${BIGreen}$(git_branch)${Color_Off}?" | xargs -I% git merge % $(git_branch)
-    }
-
-    gff() {
-      local query="${@:-}"
-      git remote | fzf -1 -q "$query" -m --preview='git ls-remote --get-url {}' --preview-window=down:2:wrap | xargs -I% git fetch %
-    }
-
-    gpp() {
-      local query="${@:-}"
-      git remote | fzf -1 -q "$query" -m --preview='git ls-remote --get-url {}' --preview-window=down:2:wrap | xargs -I% git push % $(git_branch)
-    }
-  fi
+  ealias gss='git stash'
+  ealias gssp='git stash pop'
 fi
 
 # -------- Aliases: Tools {{{2
-
-# tm - create new tmux session, or switch to existing one. Works from within tmux too. (@bag-man)
-# `tm` will allow you to select your tmux session via fzf.
-# `tm irc` will attach to the irc session (if it exists), else it will create it.
-# (( $+commands[tmux] )) && \
-#   tm() {
-#     [[ -n "$TMUX" ]] && change="switch-client" || change="attach-session"
-#     if [ $1 ]; then
-#       tmux $change -t "$1" 2>/dev/null || (tmux new-session -d -s $1 && tmux $change -t "$1"); return
-#     fi
-#     session=$(tmux list-sessions -F "#{session_name}" 2>/dev/null | fzf --exit-0) &&  tmux $change -t "$session" || echo "No sessions found."
-#   }
 
 # Tmux attach
 (( $+commands[tmux] )) && \
@@ -756,9 +606,6 @@ fi
   }
 
 # Misc tools
-(( $+commands[youtube-viewer] )) && ealias ytv="youtube-viewer"
-(( $+commands[youtube-dl]     )) && ealias yt="youtube-dl --add-metadata -i"
-(( $+commands[youtube-dl]     )) && ealias yta="yt -x -f bestaudio/best"
 (( $+commands[ffmpeg]         )) && alias ffmpeg="ffmpeg -hide_banner"
 
 # Find all custom-defined scripts, present fuzzy finder and open the chosen one in default editor
@@ -783,12 +630,13 @@ fi
 if (( $+commands[docker] )); then
   ealias dk='docker'
   ealias dkp='docker ps'
-  ealias dc='docker-compose'
-  ealias dcu='docker-compose up -d'
-  ealias dcp='docker-compose pull'
+  ealias dc='docker compose'
+  ealias dcu='docker compose up -d'
+  ealias dcp='docker compose pull'
+  ealias dkprune='docker system prune -a --volumes'
 
   if (( $+commands[fzf] && $+commands[xargs] )); then
-    alias dke="docker ps --format '{{.Names}}' | fzf | xargs -I{} -o docker exec -it {} /bin/sh"
+    alias dke="docker ps --format '{{.Names}}' | fzf | xargs -I{} -o docker exec -it {} /bin/bash"
     alias dkl="docker ps --format '{{.Names}}' | fzf | xargs -I{} -o docker logs -f {}"
   fi
 fi
@@ -825,15 +673,11 @@ if (( $+commands[beet] )); then
   alias imp="beet -c ~/.config/beets/collection-config.yaml import -s "
 fi
 
-# (( $+commands[mpv] && $+commands[devour] )) && alias mpv="devour mpv"
-
-# (( $+commands[emacsclient] )) && alias emacs="emacsclient -c -a ''"
-
 if (( $+commands[brew] )); then
   ealias br="brew "
   ealias brs="brew search "
   ealias bri="brew install "
-  ealias brci="brew cask install "
+  ealias brci="brew install --cask "
 fi
 
 # (( $+commands[mpv] )) && ealias horizont="mpv http://stream.bnr.bg:8011/horizont.aac"
@@ -850,6 +694,8 @@ if (( $+commands[apt] )); then
   ealias apuu="sudo apt upgrade"
   ealias apr="sudo apt purge"
 fi
+
+ealias gabi="curl -X POST -s \"https://cms.gabieli.com/app/dir\" | jq -r '.cargos[] | select(.sourceCountryCode == \"DE\") | .cargos[:10] | (map(keys) | add | unique) as \$cols | map(. as \$row | \$cols | map(\$row[.])) as \$rows | \$cols, \$rows[] | @tsv'"
 
 # -------- Pacman Trap {{{1
 # from https://wiki.archlinux.org/index.php/Zsh#On-demand_rehash
@@ -914,3 +760,8 @@ fi
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+
+
+ealias dnsr="sudo killall -9 mDNSResponder && sudo killall -9 mDNSResponderHelper"
+
+[[ -d ~/.config/emacs/bin ]] && export PATH="$PATH:~/.config/emacs/bin"

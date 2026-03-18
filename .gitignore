@@ -1,0 +1,5 @@
+# Machine-local secrets
+zsh/.config/zsh/.zshrc_local
+.stowrc
+.envrc
+

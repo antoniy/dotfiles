@@ -141,3 +141,7 @@
   path = ~/.gitconfig.local
 
 ; vim: set filetype=gitconfig:
+[branch]
+	sort = -committerdate
+[maintenance]
+	repo = /Users/achonkov/projects/CC

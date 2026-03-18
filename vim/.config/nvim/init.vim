@@ -5,81 +5,40 @@
 "   \ V / | | | | | | | |  _| (_) | |    | |___ / /_ ___) / ___ \ |___
 "    \_/  |_|_| |_| |_| |_|  \___/|_|    |_____/____|____/_/   \_\____|
 "
+
 " -------- General settings {{{1
 
-set nocompatible                  " do not preserve compatibility with Vi
-
-" -------- OS Detection {{{2
-silent function! OSX()
-  return has('macunix')
-endfunction
-
-silent function! LINUX()
-    return has('unix') && !has('macunix') && !has('win32unix')
-endfunction
-
-silent function! WINDOWS()
-  return  (has('win16') || has('win32') || has('win64'))
-endfunction
-
-silent function! FREEBSD()
-  let s:uname = system("uname -s")
-  return (match(s:uname, 'FreeBSD') >= 0)
-endfunction
-" }}}
-
-set modifiable                    " buffer contents can be modified
-set encoding=utf-8                " default character encoding
-set autoread                      " detect when a file has been modified externally
-set spelllang=en,bg               " languages to check for spelling (english, greek)
+set spelllang=en,bg               " languages to check for spelling
 set spellsuggest=10               " number of suggestions for correct spelling
-set updatetime=300                " time of idleness is miliseconds before saving swapfile
-set undolevels=1000               " how many undo levels to keep in memory
+set updatetime=100                " ms of idle before saving swapfile (also drives vim-signify refresh)
 set showcmd                       " show command in last line of the screen
 set nostartofline                 " keep cursor in the same column when moving between lines
 set errorbells                    " ring the bell for errors
-set visualbell                    " then use a flash instead of a beep sound
-set belloff=esc                   " hitting escape in normal mode does not constitute an error
-set confirm                       " ask for confirmation when quitting a file that has changes
-set hidden                        " hide buffers
-set autoindent                    " indent automatically (useful for formatoptions)
+set visualbell                    " use a flash instead of a beep sound
+set belloff=esc                   " hitting escape in normal mode is not an error
+set confirm                       " ask for confirmation when quitting unsaved changes
+set hidden                        " allow switching buffers without saving
+set autoindent                    " indent automatically
 set smartindent
-set expandtab                     " use spaces instead of tab
+set expandtab                     " use spaces instead of tabs
 set tabstop=2                     " tab character width
-set shiftwidth=2                  " needs to be the same as tabstop
-set smartcase                     " ignore case if the search contains majuscules
+set shiftwidth=2                  " indent width (match tabstop)
+set smartcase                     " case-insensitive search unless query has uppercase
 set hlsearch                      " highlight all matches of last search
-set incsearch                     " enable incremental searching (get feedback as you type)
-set backspace=indent,eol,start    " backspace key should delete indentation, line ends, characters
-set whichwrap=s,b                 " which motion keys should jump to the above/below wrapped line
-"set textwidth=72                  " hard wrap at this column
-set joinspaces                    " insert two spaces after puncutation marks when joining multiple lines into one
-set wildmenu                      " enable tab completion with suggestions when executing commands
-set wildmode=longest,list,full    " settings for how to complete matched strings
-set modeline                    " vim reads the modeline to execute commands for the current file
-set timeoutlen=1000 ttimeoutlen=0 " timeoutlen is used for mapping delays, ttimoutlen - for key code delays. The purpose of this configuration is to eliminate the delay when we go from visual mode into insert mode.
+set incsearch                     " show matches incrementally as you type
+set whichwrap=s,b                 " allow space/backspace to move across line boundaries
+set joinspaces                    " insert two spaces after punctuation when joining lines
+set wildmenu                      " tab-completion menu for commands
+set wildmode=longest,list,full    " completion behaviour: longest common, then list, then cycle
+set modeline                      " read per-file vim modelines
+set timeoutlen=1000 ttimeoutlen=0 " no delay when leaving insert mode (key code timeout = 0)
 
-" if LINUX()
-  set clipboard+=unnamedplus         " use system clipboard for copy/paste
-" endif
-" set clipboard+=unnamed
-
-" better word wrapping: breaks at spaces or hyphens
+" better word wrapping: break at spaces or hyphens rather than mid-word
 set formatoptions=l
 set lbr
 
-" Use F5 to toggle paste mode
-set pastetoggle=<f5>
-
-" vim-signify: default updatetime 4000ms is not good for async update
-set updatetime=100
-
-" highlight cursor line
-set cursorline
-" set cursorcolumn
-
-" set cmdheight=2
-set signcolumn=yes
+set cursorline                    " highlight the current line
+set signcolumn=yes                " always show the sign column (git, LSP diagnostics)
 
 " -------- Mappings {{{1
 
@@ -99,8 +58,9 @@ set signcolumn=yes
 
 let mapleader = " "
 
-map <leader>? :verbose map <CR><CR>
+nnoremap <leader>? :verbose map<CR>
 
+" Emacs-style movement in insert and command mode
 noremap! <C-F> <Right>
 noremap! <C-B> <Left>
 noremap! <C-D> <Del>
@@ -110,23 +70,23 @@ cnoremap <C-E> <END>
 cnoremap <C-P> <Up>
 cnoremap <C-N> <Down>
 
-" Changing window size.
+" Resize the current window with shift+arrow keys
 noremap <silent> <S-Left>  :<C-U>wincmd <<CR>
 noremap <silent> <S-Right> :<C-U>wincmd ><CR>
 noremap <silent> <S-Up>    :<C-U>wincmd -<CR>
 noremap <silent> <S-Down>  :<C-U>wincmd +<CR>
 
-" Change current directory of current window.
+" Change current directory to the directory of the current file
 nnoremap <silent> <Leader>cd :<C-U>cd %:p:h<CR>
 
-" Overwrite the current line with yanked text.
+" Overwrite the current line with yanked text
 nnoremap <silent> go  pk"_dd
 
 nnoremap '.  :e %:h<C-d>
 
 " -------- Plugins {{{1
 
-" Auto install VimPlug if missing
+" Auto-install vim-plug if missing
 if empty(glob('~/.local/share/nvim/site/autoload/plug.vim'))
   silent !curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs
     \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
@@ -135,122 +95,98 @@ endif
 
 call plug#begin('~/.config/nvim/plugged/')
 
-" Appearance
-Plug 'chriskempson/base16-vim'
-Plug 'vim-airline/vim-airline'
-Plug 'vim-airline/vim-airline-themes'
-Plug 'morhetz/gruvbox'
-Plug 'gruvbox-community/gruvbox'
+" --- Appearance ---
+Plug 'chriskempson/base16-vim'        " base16 colour schemes
+Plug 'vim-airline/vim-airline'        " status/tabline
+Plug 'vim-airline/vim-airline-themes' " themes for airline
+Plug 'morhetz/gruvbox'                " gruvbox colour scheme
 
-" Markdown
-Plug 'godlygeek/tabular'
-Plug 'plasticboy/vim-markdown'
-Plug 'mzlogin/vim-markdown-toc'
-Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() } }
+" --- Markdown ---
+Plug 'plasticboy/vim-markdown'                                        " markdown syntax and folding
+Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() } } " live browser preview
 
-" Syntax
-Plug 'sheerun/vim-polyglot'
+" --- Syntax ---
+Plug 'sheerun/vim-polyglot'           " language pack (syntax + indent for 100+ languages)
 
-" Git 
-Plug 'tpope/vim-fugitive'
-Plug 'airblade/vim-gitgutter'
-Plug 'rhysd/git-messenger.vim'
+" --- Git ---
+Plug 'tpope/vim-fugitive'             " Git commands inside vim (:G, :Gblame, etc.)
+Plug 'airblade/vim-gitgutter'         " show git diff markers in the sign column
+Plug 'rhysd/git-messenger.vim'        " show the commit message under the cursor
 
-" Code/text tools
-Plug 'tpope/vim-surround'
-Plug 'easymotion/vim-easymotion'
-Plug 'tpope/vim-commentary'
-Plug 'terryma/vim-multiple-cursors'
-Plug 'vim-scripts/argtextobj.vim'
-Plug 'vim-syntastic/syntastic'
-Plug 'majutsushi/tagbar'
-Plug 'alvan/vim-closetag'
-Plug 'vim-scripts/ReplaceWithRegister'
-Plug 'tpope/vim-repeat'
-Plug 'tpope/vim-speeddating'
-Plug 'zainin/vim-mikrotik'
+" --- Code / text tools ---
+Plug 'tpope/vim-surround'             " add/change/delete surrounding brackets, quotes, tags
+Plug 'tpope/vim-commentary'           " toggle comments with gc
+Plug 'terryma/vim-multiple-cursors'   " Ctrl+N multi-cursor editing
+Plug 'alvan/vim-closetag'             " auto-close HTML/XML tags
+Plug 'vim-scripts/ReplaceWithRegister' " gr motion to replace with register contents
+Plug 'tpope/vim-repeat'               " make . repeat plugin mappings
+Plug 'tpope/vim-speeddating'          " increment/decrement dates with C-A/C-X
+Plug 'zainin/vim-mikrotik'            " MikroTik RouterOS syntax highlighting
 
-" File finders
-Plug 'junegunn/fzf', { 'dir': '~/.fzf' }
-Plug 'junegunn/fzf.vim'
-Plug 'junegunn/gv.vim'
-Plug 'preservim/nerdtree'
-Plug 'glacambre/firenvim', { 'do': { _ -> firenvim#install(0) } }
-Plug 'mcchrish/nnn.vim'
 
-" Misc
-Plug 'christoomey/vim-tmux-navigator'
-Plug 'tpope/vim-eunuch'
-Plug 'tpope/vim-unimpaired'
-Plug 'junegunn/goyo.vim'
-Plug 'junegunn/limelight.vim'
-Plug 'skammer/vim-css-color'
-Plug 'xolox/vim-misc'
-" Plug 'xolox/vim-notes'
-" Plug 'lyokha/vim-xkbswitch'
+" --- File finders ---
+Plug 'junegunn/fzf', { 'dir': '~/.fzf' }     " fuzzy finder binary
+Plug 'junegunn/fzf.vim'                       " fzf vim integration (Files, Buffers, Rg, etc.)
+Plug 'junegunn/gv.vim'                        " git commit browser (:GV)
+Plug 'preservim/nerdtree'                     " file system tree explorer
 
-call plug#end()            " required
+" --- Misc ---
+Plug 'christoomey/vim-tmux-navigator'         " seamless pane navigation between vim and tmux
+Plug 'tpope/vim-eunuch'                       " Unix shell commands (:Rename, :Delete, :Move, etc.)
+Plug 'tpope/vim-unimpaired'                   " bracket mappings for common toggles (yob, yos, etc.)
+Plug 'junegunn/goyo.vim'                      " distraction-free writing mode
+Plug 'junegunn/limelight.vim'                 " dim all paragraphs except the current one
+Plug 'skammer/vim-css-color'                  " highlight colour codes in their actual colour
+
+call plug#end()
 
 " Automatically install missing plugins on startup
-autocmd VimEnter * 
+autocmd VimEnter *
       \  if len(filter(values(g:plugs), '!isdirectory(v:val.dir)'))
       \|   PlugInstall --sync | q
       \| endif
 
 " -------- Appearance {{{1
 
-" enable syntax highlighting
 syntax on
 
-" turn hybrid line numbers on
+" Hybrid line numbers: absolute in insert mode, relative in normal mode
 set number relativenumber
 
-" disable relative numbers in insert mode or when the buffer looses focus
 augroup numbertoggle
   autocmd!
   autocmd BufEnter,FocusGained,InsertLeave * set relativenumber
   autocmd BufLeave,FocusLost,InsertEnter   * set norelativenumber
 augroup END
 
-" Default color scheme
+" Gruvbox colour scheme
 let g:gruvbox_italic=1
 colorscheme gruvbox
 
-" set airline theme
+" Airline status bar
 let g:airline_theme='gruvbox'
-let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#tabline#enabled = 1 " show open buffers in the tabline
 
-" DEPRECATED: use 'yob' to toggle theme (from unimpaired plugin)
-" Switch between dark and light theme using <leader>d and <leader>l respectively
-" nnoremap <silent> <leader>dark :set background=dark<CR>
-" nnoremap <silent> <leader>light :set background=light<CR>
-
-" Allow for transparent background
-" hi Normal guibg=NONE ctermbg=NONE
-
-" needed for proper syntax highlighting in tmux
+" needed for proper 24-bit colour in tmux
 let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
 let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
 set termguicolors
 
 " -------- Config Reload {{{1
 
-" watch for changes then auto source vimrc
-" http://stackoverflow.com/a/2403926
+" Auto-source vimrc on save
 augroup myvimrc
     au!
     au BufWritePost .vimrc,_vimrc,vimrc,.gvimrc,_gvimrc,gvimrc,init.vim so $MYVIMRC | if has('gui_running') | so $MYGVIMRC | endif
 augroup END
 
-" Reload config file manually
-" noremap <leader>r :so %<CR>
 noremap <leader>reload :so $MYVIMRC<CR>
 
 " -------- Splits {{{1
 
-set splitbelow splitright         " Splits open at the bottom and right, which is non-retarded, unlike vim defaults.
+set splitbelow splitright         " open splits below and to the right
 
-" Ctrl+W + {S,V} split whole screen horizontal/vertical
+" Ctrl+W + {S,V} split the whole screen horizontally / vertically
 nnoremap <C-W>S :botright new<CR>
 nnoremap <C-W>V :botright vnew<CR>
 
@@ -259,288 +195,153 @@ nnoremap <C-W>V :botright vnew<CR>
 " https://github.com/iamcco/markdown-preview.nvim
 " https://github.com/plasticboy/vim-markdown
 
-" disable vim-markdown folding so we can use the vim-markdown-folding plugin instead
+" use pythonic folding style for headings
 let g:vim_markdown_folding_style_pythonic = 1
-" set enable conceal with simple style
+" conceal markup characters with simple style
 set conceallevel=2
-" work with no extensions for markdown files in links - default for github, gitlab, etc
+" treat links without extensions as valid (default for GitHub/GitLab)
 let g:vim_markdown_no_extensions_in_markdown = 1
-" follow file#anchor links
+" follow anchor links (file#section)
 let g:vim_markdown_follow_anchor = 1
 
-" open the server to the world not just localhost
+" open the preview server to the world (not just localhost)
 let g:mkdp_open_to_the_world = 1
-" Set default port for the preview server
+" fixed port for the preview server
 let g:mkdp_port = '8894'
-" Show preview URL in console when the preview is started
+" print the preview URL in the console when started
 let g:mkdp_echo_preview_url = 1
 
-" add mapping to trigger markdown preview manually
+" --- Markdown mappings ---
 nmap <leader>md <Plug>MarkdownPreviewToggle
-" format the ascii table under the cursor
-map <leader>tf :TableFormat<CR>
-" mapping to create markdown link out of the current WORD: word -> [word]()
-map <leader>l diWa[]() <ESC>F[pf(
-" set a shortcut for our general wiki index
+nnoremap <leader>tf :TableFormat<CR>
+" wrap the current WORD as a markdown link: word -> [word]()
+nnoremap <leader>l diWa[]() <ESC>F[pf(
+" open the personal wiki index
 nmap <silent> <leader>ww :e $HOME/.wiki/Home.md<CR>
 
 " -------- Folding {{{1
 
-" enable folding; http://vim.wikia.com/wiki/Folding
 set foldmethod=marker
 
-" fold color
+" fold colours
 hi Folded cterm=bold ctermfg=DarkBlue ctermbg=none
 hi FoldColumn cterm=bold ctermfg=DarkBlue ctermbg=none
 
-" refocus folds; close any other fold except the one that you are on
+" close all folds except the one the cursor is in
 nnoremap <leader>z zMzvzz
 
-" automatic folding for xml
+" show a * in the foldtext when the folded region contains git changes
+set foldtext=gitgutter#fold#foldtext()
+
+" automatic syntax folding for XML files
 augroup XML
   autocmd!
   autocmd FileType xml let g:xml_syntax_folding=1
   autocmd FileType xml setlocal foldmethod=syntax fdn=2 fdl=1
   autocmd FileType xml :syntax on
-  " autocmd FileType xml :%foldopen!
 augroup END
 
 " -------- Aliases {{{1
 
-" Alias for write and quit
 nnoremap <leader>wq :wq<CR>
-nnoremap <leader>q :q<CR>
-nnoremap <leader>W :w<CR>
-
-" Alias replace all to S
-" nnoremap S :%s//g<Left><Left>
-
-" Vertically center document when entering insert mode
-" autocmd InsertEnter * norm zz
+nnoremap <leader>q  :q<CR>
+nnoremap <leader>W  :w<CR>
 
 " -------- Motions and Moves {{{1
 
-" keep search matches in the middle of the window.
+" keep search matches vertically centred in the window
 nnoremap n nzzzv
 nnoremap N Nzzzv
 
-" clear matches after search
-noremap <silent> ,, :noh<cr>:call clearmatches()<cr>
+" clear search highlights and match decorations
+noremap <silent> ,, :noh<CR>:call clearmatches()<CR>
 
-" Don't move on *
-nnoremap * *<c-o>
+" * searches without jumping to the next match
+nnoremap * *<C-o>
 
-" shortcuts to prev/next/delete buffer for normal mode
-map gn :bn<cr>
-map gp :bp<cr>
-" map gd :bd<cr>
+" buffer navigation
+nnoremap gn :bn<CR>
+nnoremap gp :bp<CR>
 
-" When typing jj in insert mode go to normal mode
-imap jj <esc>
+" jj exits insert mode
+imap jj <Esc>
 
 " -------- Git {{{1
 
 let g:gitgutter_highlight_linenrs = 1
 
+" hunk navigation
 nmap ]h <Plug>(GitGutterNextHunk)
 nmap [h <Plug>(GitGutterPrevHunk)
+
+" hunk stage / undo / preview
 nmap ghs <Plug>(GitGutterStageHunk)
 nmap ghu <Plug>(GitGutterUndoHunk)
 nmap ghp <Plug>(GitGutterPreviewHunk)
 
-" Remaps git gutter text objects from 'c' (default) to 'h'
+" hunk text objects (remapped from default 'c' to 'h')
 omap ih <Plug>(GitGutterTextObjectInnerPending)
 omap ah <Plug>(GitGutterTextObjectOuterPending)
 xmap ih <Plug>(GitGutterTextObjectInnerVisual)
 xmap ah <Plug>(GitGutterTextObjectOuterVisual)
 
-" Mark folding text that there are changes
-" Example:
-" Default foldtext():         +-- 45 lines: abcdef
-" gitgutter#fold#foldtext():  +-- 45 lines (*): abcdef
-set foldtext=gitgutter#fold#foldtext()
-
-" git-messenger change of binding - use it 2 times to move focus into popup
-" window. Use ? to see options for the popup window.
+" git-messenger: press twice to focus the popup window, ? for options
 nmap <C-w>m <Plug>(git-messenger)
 
-" fugitive
+" fugitive: open git status
 nmap <silent> <leader>gg :G<CR>
 
 " -------- Find Tools {{{1
 
-" Also add a custom ProjectFiles command which search only in ~/projects directory.
+" custom fzf commands for specific directories
 command! -bang -nargs=? -complete=dir ProjectFiles call fzf#vim#files('~/projects/', <bang>0)
-command! -bang -nargs=? -complete=dir DotFiles call fzf#vim#files('~/.dotfiles/', <bang>0)
+command! -bang -nargs=? -complete=dir DotFiles    call fzf#vim#files('~/.dotfiles/', <bang>0)
 
-" Stop default preview window by default. It can be activated manually using <c-?>
+" hide preview window by default; toggle it with <C-?>
 let $FZF_DEFAULT_OPTS="--preview-window=hidden"
 
-" Show fuzzy picker for open buffers, recently editted files and files in home tree
-nnoremap <silent> <leader>e :Buffers<CR>
-nnoremap <silent> <leader>h :History<CR>
+nnoremap <silent> <leader>e  :Buffers<CR>
+nnoremap <silent> <leader>h  :History<CR>
 nnoremap <silent> <leader>ff :Files<CR>
 nnoremap <silent> <leader>fg :GFiles<CR>
 nnoremap <silent> <leader>fp :ProjectFiles<CR>
 nnoremap <silent> <leader>fd :DotFiles<CR>
 
-" Nerdtree
-map <leader>n :NERDTreeToggle<CR>
+" NERDTree file explorer
+nnoremap <leader>n :NERDTreeToggle<CR>
 let NERDTreeWinSize=40
 let NERDTreeIgnore=['\.pyc','\~$','\.swo$','\.swp$','\.git$','\.svn','\.idea$',
       \ '\.bzr','\.DS_Store','\.sass-cache','\.vagrant']
 let NERDTreeQuitOnOpen=1
 let NERDTreeDirArrows=1
 
-" -------- Distraction free mode {{{1
+" -------- Distraction Free Mode {{{1
 
-map <silent> <leader>focus :Goyo<CR>
+nnoremap <silent> <leader>focus :Goyo<CR>
 
 let g:goyo_width = '70%'
 
+" enable / disable limelight alongside Goyo
 autocmd! User GoyoEnter Limelight
 autocmd! User GoyoLeave Limelight!
 
-" -------- Keyboard Layout {{{1
-
-" if has("mac")
-"   " xkbswitch-macos - https://github.com/myshov/xkbswitch-macosx
-"   " link to library goes here
-" elseif has("unix")
-"   let g:XkbSwitchEnabled = 1
-"   let g:XkbSwitchKeymapNames = {'bg(phonetic)' : 'bg', 'en' : 'en'}
-"   let g:XkbSwitchLib = '/usr/lib/libxkbswitch.so'
-
-"   let g:XkbSwitchIMappingsTr = {
-"             \ 'bg(phonetic)':
-"             \ {'<': 'qwertyuiop[]asdfghjkl;''zxcvbnm,.`/'.
-"             \       'QWERTYUIOP{}ASDFGHJKL:"ZXCVBNM<>?~@#$^&|',
-"             \  '>': 'явертъуиопшщасдфгхйкл;''зьцжбнм,.ч/'.
-"             \       'ЯВЕРТЪУИОПШЩАСДФГХЙКЛ:"ЗѝЦЖБНМ„“?Ч@№$€§Ю'},
-"             \ }
-" endif
-
-" -------- Syntastic {{{1
-
-set statusline+=%#warningmsg#
-set statusline+=%{SyntasticStatuslineFlag()}
-set statusline+=%*
-
-let g:syntastic_always_populate_loc_list = 1
-let g:syntastic_auto_loc_list = 1
-let g:syntastic_check_on_open = 0
-let g:syntastic_check_on_wq = 0
-
-let g:syntastic_mode_map = {
-      \ "mode": "active",
-      \ "active_filetypes": [],
-      \ "passive_filetypes": ["java"] }
-
-map <leader>check :SyntasticCheck<CR>
-
-" -------- Firevim {{{1
-if exists('g:started_by_firenvim')
-  set background=light
-endif
-" -------- Tagbar {{{1
-
-nmap <F8> :TagbarToggle<CR>
-
-" -------- Notes {{{1
-
-" :let g:notes_directories = ['~/notes']
-
 " -------- Closetag {{{1
 
-" filenames like *.xml, *.html, *.xhtml, ...
-" These are the file extensions where this plugin is enabled.
-"
-let g:closetag_filenames = '*.html,*.xhtml,*.phtml,*.xml'
-
-" filenames like *.xml, *.xhtml, ...
-" This will make the list of non-closing tags self-closing in the specified files.
-"
+" file extensions where auto-close is enabled
+let g:closetag_filenames      = '*.html,*.xhtml,*.phtml,*.xml'
 let g:closetag_xhtml_filenames = '*.xhtml,*.jsx,*.xml'
-
-" filetypes like xml, html, xhtml, ...
-" These are the file types where this plugin is enabled.
-"
-let g:closetag_filetypes = 'html,xhtml,phtml,xml'
-
-" filetypes like xml, xhtml, ...
-" This will make the list of non-closing tags self-closing in the specified files.
-"
+let g:closetag_filetypes      = 'html,xhtml,phtml,xml'
 let g:closetag_xhtml_filetypes = 'xhtml,jsx,xml'
 
-" integer value [0|1]
-" This will make the list of non-closing tags case-sensitive (e.g. `<Link>` will be closed while `<link>` won't.)
-"
+" make non-closing tag matching case-sensitive
 let g:closetag_emptyTags_caseSensitive = 1
 
-" dict
-" Disables auto-close if not in a "valid" region (based on filetype)
-"
+" restrict auto-close to valid JSX/TSX regions
 let g:closetag_regions = {
     \ 'typescript.tsx': 'jsxRegion,tsxRegion',
     \ 'javascript.jsx': 'jsxRegion',
     \ }
 
-" Shortcut for closing tags, default is '>'
-"
-let g:closetag_shortcut = '>'
-
-" Add > at current position without closing the current tag, default is ''
-"
-let g:closetag_close_shortcut = '<leader>>'
-
-" -------- Symbol Shortcuts {{{1
-" Greek {{{2
-map! <C-v>GA Γ
-map! <C-v>DE Δ
-map! <C-v>TH Θ
-map! <C-v>LA Λ
-map! <C-v>XI Ξ
-map! <C-v>PI Π
-map! <C-v>SI Σ
-map! <C-v>PH Φ
-map! <C-v>PS Ψ
-map! <C-v>OM Ω
-map! <C-v>al α
-map! <C-v>be β
-map! <C-v>ga γ
-map! <C-v>de δ
-map! <C-v>ep ε
-map! <C-v>ze ζ
-map! <C-v>et η
-map! <C-v>th θ
-map! <C-v>io ι
-map! <C-v>ka κ
-map! <C-v>la λ
-map! <C-v>mu μ
-map! <C-v>xi ξ
-map! <C-v>pi π
-map! <C-v>rh ρ
-map! <C-v>si σ
-map! <C-v>ta τ
-map! <C-v>ps ψ
-map! <C-v>om ω
-map! <C-v>ph ϕ
-
-" Math {{{2
-
-map! <C-v>ll →
-map! <C-v>hh ⇌
-map! <C-v>kk ↑
-map! <C-v>jj ↓
-map! <C-v>= ∝
-map! <C-v>~ ≈
-map! <C-v>!= ≠
-map! <C-v>!> ⇸
-map! <C-v>~> ↝
-map! <C-v>>= ≥
-map! <C-v><= ≤
-map! <C-v>0  °
-map! <C-v>ce ¢
-map! <C-v>*  •
-map! <C-v>co ⌘
+let g:closetag_shortcut       = '>'   " key to close the tag
+let g:closetag_close_shortcut = '<leader>>' " insert > without closing
 
