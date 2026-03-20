@@ -197,6 +197,8 @@ nnoremap <C-W>V :botright vnew<CR>
 
 " use pythonic folding style for headings
 let g:vim_markdown_folding_style_pythonic = 1
+" open all folds by default (99 = effectively no auto-folding)
+let g:vim_markdown_folding_level = 99
 " conceal markup characters with simple style
 set conceallevel=2
 " treat links without extensions as valid (default for GitHub/GitLab)
