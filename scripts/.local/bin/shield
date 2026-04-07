@@ -1,0 +1,367 @@
+#!/usr/bin/env python3
+"""CLI remote control for NVIDIA Shield over ADB."""
+
+import argparse
+import subprocess
+import sys
+import tempfile
+import time
+import os
+import re
+
+ADB_PORT = 5555
+CACHE_FILE = os.path.expanduser("~/.shield_ip")
+
+# --- mDNS discovery ---
+
+def _dns_sd_run(args, timeout=3):
+    """Run dns-sd with a timeout and return its stdout."""
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+        tmp = f.name
+    try:
+        proc = subprocess.Popen(
+            ["dns-sd"] + args,
+            stdout=open(tmp, "w"),
+            stderr=subprocess.STDOUT,
+        )
+        time.sleep(timeout)
+        proc.kill()
+        proc.wait()
+        with open(tmp) as f:
+            return f.read()
+    finally:
+        os.unlink(tmp)
+
+
+def discover_shield():
+    """Auto-discover Shield IP via mDNS. Returns IP string or None."""
+    # Step 1: find instance name
+    out = _dns_sd_run(["-B", "_nv_shield_remote._tcp", "local"])
+    match = re.search(r"_nv_shield_remote._tcp\.\s+(.+)", out)
+    if not match:
+        return None
+    instance = match.group(1).strip()
+
+    # Step 2: resolve instance to hostname
+    out = _dns_sd_run(["-L", instance, "_nv_shield_remote._tcp", "local"])
+    match = re.search(r"can be reached at\s+(\S+?):\d+", out)
+    if not match:
+        return None
+    hostname = match.group(1)
+
+    # Step 3: resolve hostname to IP
+    out = _dns_sd_run(["-G", "v4", hostname])
+    match = re.search(r"Add\s+\S+\s+\d+\s+\S+\s+(\d+\.\d+\.\d+\.\d+)", out)
+    if not match:
+        return None
+    return match.group(1)
+
+
+# --- IP caching ---
+
+def load_cached_ip():
+    try:
+        with open(CACHE_FILE) as f:
+            return f.read().strip() or None
+    except FileNotFoundError:
+        return None
+
+
+def save_cached_ip(ip):
+    with open(CACHE_FILE, "w") as f:
+        f.write(ip)
+
+
+def is_reachable(ip):
+    """Quick check if the Shield responds to ADB."""
+    result = subprocess.run(
+        ["adb", "connect", f"{ip}:{ADB_PORT}"],
+        capture_output=True, text=True, timeout=5,
+    )
+    return "connected" in result.stdout
+
+
+def scan_and_cache():
+    """Run mDNS discovery, cache the result, and return the IP."""
+    print("Scanning for NVIDIA Shield via mDNS...")
+    ip = discover_shield()
+    if not ip:
+        print("Could not find Shield. Provide IP: shield --ip 192.168.x.x <command>")
+        print("Find it in Shield Settings > Network > Status.")
+        sys.exit(1)
+    save_cached_ip(ip)
+    print(f"Found Shield at {ip}")
+    return ip
+
+
+# --- ADB helpers ---
+
+def get_shield_ip(args):
+    ip = getattr(args, "ip", None) or os.environ.get("SHIELD_IP")
+    if ip:
+        return ip
+
+    # Try cached IP first
+    ip = load_cached_ip()
+    if ip:
+        if is_reachable(ip):
+            return ip
+        print(f"Cached IP {ip} is unreachable, re-scanning...")
+
+    return scan_and_cache()
+
+
+def adb(ip, *cmd):
+    """Run an adb command against the Shield and return stdout."""
+    target = f"{ip}:{ADB_PORT}"
+    result = subprocess.run(
+        ["adb", "-s", target] + list(cmd),
+        capture_output=True, text=True,
+    )
+    if result.returncode != 0 and result.stderr:
+        print(result.stderr.strip(), file=sys.stderr)
+    return result.stdout.strip()
+
+
+def connect(ip):
+    target = f"{ip}:{ADB_PORT}"
+    out = subprocess.run(
+        ["adb", "connect", target],
+        capture_output=True, text=True,
+    ).stdout.strip()
+    if "connected" not in out:
+        print(f"Failed to connect to {target}.")
+        print("Make sure ADB debugging is enabled:")
+        print("  Settings > Device Preferences > About > Build (tap 7x)")
+        print("  Settings > Device Preferences > Developer Options > Network debugging")
+        sys.exit(1)
+
+
+def key(ip, keycode):
+    adb(ip, "shell", "input", "keyevent", str(keycode))
+
+
+# --- Commands ---
+
+def cmd_sleep(args):
+    """Put the Shield to sleep (standby)."""
+    ip = get_shield_ip(args)
+    connect(ip)
+    key(ip, 26)  # KEYCODE_POWER
+    print("Shield is now sleeping.")
+
+
+def cmd_wake(args):
+    """Wake the Shield from sleep."""
+    ip = get_shield_ip(args)
+    connect(ip)
+    key(ip, "KEYCODE_WAKEUP")
+    print("Shield is now awake.")
+
+
+def cmd_shutdown(args):
+    """Fully power off the Shield."""
+    ip = get_shield_ip(args)
+    connect(ip)
+    adb(ip, "shell", "reboot", "-p")
+    print("Shield is shutting down.")
+
+
+def cmd_reboot(args):
+    """Reboot the Shield."""
+    ip = get_shield_ip(args)
+    connect(ip)
+    adb(ip, "reboot")
+    print("Shield is rebooting.")
+
+
+def cmd_volume(args):
+    """Control volume: up, down, or mute."""
+    ip = get_shield_ip(args)
+    connect(ip)
+    codes = {"up": 24, "down": 25, "mute": 164}
+    for _ in range(args.steps):
+        key(ip, codes[args.direction])
+    print(f"Volume {args.direction}" + (f" x{args.steps}" if args.steps > 1 else ""))
+
+
+def cmd_play(args):
+    """Toggle play/pause."""
+    ip = get_shield_ip(args)
+    connect(ip)
+    key(ip, 85)  # KEYCODE_MEDIA_PLAY_PAUSE
+    print("Toggled play/pause.")
+
+
+def cmd_nav(args):
+    """Send a navigation key: home, back, up, down, left, right, select, menu."""
+    ip = get_shield_ip(args)
+    connect(ip)
+    codes = {
+        "home": 3, "back": 4, "up": 19, "down": 20,
+        "left": 21, "right": 22, "select": 23, "menu": 82,
+    }
+    key(ip, codes[args.button])
+
+
+def cmd_launch(args):
+    """Launch an app by name or package ID."""
+    ip = get_shield_ip(args)
+    connect(ip)
+
+    aliases = {
+        "netflix": "com.netflix.ninja",
+        "youtube": "com.google.android.youtube.tv",
+        "yt": "org.smarttube.stable",
+        "smarttube": "org.smarttube.stable",
+        "plex": "com.plexapp.android",
+        "kodi": "org.xbmc.kodi",
+        "eon": "com.ug.eon.android.tv",
+        "disney": "com.disney.disneyplus",
+        "disney+": "com.disney.disneyplus",
+        "prime": "com.amazon.amazonvideo.livingroom",
+        "amazon": "com.amazon.amazonvideo.livingroom",
+        "hbo": "com.hbo.hbomax",
+        "twitch": "tv.twitch.android.app",
+        "spotify": "com.spotify.tv.android",
+        "steam": "com.valvesoftware.steamlink",
+        "geforce": "com.nvidia.geforcenow",
+        "settings": "com.android.tv.settings",
+    }
+
+    pkg = aliases.get(args.app.lower(), args.app)
+    adb(ip, "shell", "monkey", "-p", pkg, "-c", "android.intent.category.LAUNCHER", "1")
+    print(f"Launched {args.app}" + (f" ({pkg})" if args.app.lower() in aliases else ""))
+
+
+def cmd_apps(args):
+    """List installed apps."""
+    ip = get_shield_ip(args)
+    connect(ip)
+    out = adb(ip, "shell", "pm", "list", "packages", "-3")
+    packages = sorted(line.replace("package:", "") for line in out.splitlines() if line)
+    if args.filter:
+        packages = [p for p in packages if args.filter.lower() in p.lower()]
+    for p in packages:
+        print(p)
+    print(f"\n{len(packages)} app(s)")
+
+
+def cmd_screenshot(args):
+    """Take a screenshot and save it locally."""
+    ip = get_shield_ip(args)
+    connect(ip)
+    remote = "/sdcard/shield_screenshot.png"
+    adb(ip, "shell", "screencap", "-p", remote)
+    dest = args.output or "shield_screenshot.png"
+    adb(ip, "pull", remote, dest)
+    adb(ip, "shell", "rm", remote)
+    print(f"Screenshot saved to {dest}")
+
+
+def cmd_type(args):
+    """Type text into the currently focused input field."""
+    ip = get_shield_ip(args)
+    connect(ip)
+    # ADB input text needs spaces escaped
+    escaped = args.text.replace(" ", "%s")
+    adb(ip, "shell", "input", "text", escaped)
+    print(f"Typed: {args.text}")
+
+
+def cmd_info(args):
+    """Show device info."""
+    ip = get_shield_ip(args)
+    connect(ip)
+    props = {
+        "Model": "ro.product.model",
+        "Device": "ro.product.device",
+        "Android": "ro.build.version.release",
+        "Build": "ro.build.display.id",
+        "Serial": "ro.serialno",
+    }
+    for label, prop in props.items():
+        val = adb(ip, "shell", "getprop", prop)
+        print(f"  {label:10s} {val}")
+
+
+def cmd_install(args):
+    """Sideload an APK."""
+    ip = get_shield_ip(args)
+    connect(ip)
+    print(f"Installing {args.apk}...")
+    out = subprocess.run(
+        ["adb", "-s", f"{ip}:{ADB_PORT}", "install", "-r", args.apk],
+        capture_output=True, text=True,
+    )
+    print(out.stdout.strip() or out.stderr.strip())
+
+
+# --- CLI ---
+
+def main():
+    parser = argparse.ArgumentParser(
+        prog="shield",
+        description="Remote control for NVIDIA Shield over ADB.",
+    )
+    parser.add_argument("--ip", help="Shield IP (or set SHIELD_IP env var)")
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    sub.add_parser("sleep", help="Put Shield to sleep (standby)")
+    sub.add_parser("wake", help="Wake Shield from sleep")
+    sub.add_parser("shutdown", help="Fully power off Shield")
+    sub.add_parser("reboot", help="Reboot Shield")
+    sub.add_parser("play", help="Toggle play/pause")
+
+    p = sub.add_parser("vol", help="Volume control")
+    p.add_argument("direction", choices=["up", "down", "mute"])
+    p.add_argument("-n", "--steps", type=int, default=1, help="Repeat N times (default: 1)")
+
+    p = sub.add_parser("nav", help="Navigation keys")
+    p.add_argument("button", choices=["home", "back", "up", "down", "left", "right", "select", "menu"])
+
+    p = sub.add_parser("launch", help="Launch an app (e.g. netflix, youtube, plex, or a package name)")
+    p.add_argument("app")
+
+    p = sub.add_parser("apps", help="List installed apps")
+    p.add_argument("filter", nargs="?", help="Filter by name")
+
+    p = sub.add_parser("screenshot", help="Take a screenshot")
+    p.add_argument("-o", "--output", help="Output file (default: shield_screenshot.png)")
+
+    p = sub.add_parser("type", help="Type text into focused input")
+    p.add_argument("text")
+
+    sub.add_parser("info", help="Show device info")
+
+    p = sub.add_parser("install", help="Sideload an APK")
+    p.add_argument("apk", help="Path to .apk file")
+
+    # App shortcuts
+    app_shortcuts = {
+        "plex": "Open Plex",
+        "yt": "Open SmartTube",
+        "eon": "Open EON",
+    }
+    for name, help_text in app_shortcuts.items():
+        sub.add_parser(name, help=help_text)
+
+    args = parser.parse_args()
+
+    # Handle app shortcuts by setting args.app and routing to cmd_launch
+    if args.command in app_shortcuts:
+        args.app = args.command
+
+    dispatch = {
+        "sleep": cmd_sleep, "wake": cmd_wake, "shutdown": cmd_shutdown,
+        "reboot": cmd_reboot, "vol": cmd_volume, "play": cmd_play,
+        "nav": cmd_nav, "launch": cmd_launch, "apps": cmd_apps,
+        "screenshot": cmd_screenshot, "type": cmd_type, "info": cmd_info,
+        "install": cmd_install,
+        "plex": cmd_launch, "yt": cmd_launch, "eon": cmd_launch,
+    }
+    dispatch[args.command](args)
+
+
+if __name__ == "__main__":
+    main()
