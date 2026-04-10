@@ -2,20 +2,24 @@
 """CLI remote control for NVIDIA Shield over ADB."""
 
 import argparse
+import platform
 import subprocess
 import sys
 import tempfile
+import termios
 import time
+import tty
 import os
 import re
 
 ADB_PORT = 5555
+IS_LINUX = platform.system() == "Linux"
 CACHE_FILE = os.path.expanduser("~/.shield_ip")
 
 # --- mDNS discovery ---
 
 def _dns_sd_run(args, timeout=3):
-    """Run dns-sd with a timeout and return its stdout."""
+    """Run dns-sd (macOS) with a timeout and return its stdout."""
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
         tmp = f.name
     try:
@@ -33,8 +37,8 @@ def _dns_sd_run(args, timeout=3):
         os.unlink(tmp)
 
 
-def discover_shield():
-    """Auto-discover Shield IP via mDNS. Returns IP string or None."""
+def _discover_macos():
+    """Auto-discover Shield IP via dns-sd (macOS)."""
     # Step 1: find instance name
     out = _dns_sd_run(["-B", "_nv_shield_remote._tcp", "local"])
     match = re.search(r"_nv_shield_remote._tcp\.\s+(.+)", out)
@@ -55,6 +59,39 @@ def discover_shield():
     if not match:
         return None
     return match.group(1)
+
+
+def _discover_linux():
+    """Auto-discover Shield IP via avahi-browse (Linux)."""
+    # Single command: browse, resolve, parseable output, then exit
+    # Output format: =;iface;protocol;name;type;domain;hostname;address;port;txt
+    try:
+        result = subprocess.run(
+            ["avahi-browse", "-t", "-r", "-p", "_nv_shield_remote._tcp"],
+            capture_output=True, text=True, timeout=10,
+        )
+    except FileNotFoundError:
+        print("avahi-browse not found. Install avahi-utils:")
+        print("  sudo apt install avahi-utils    # Debian/Ubuntu")
+        print("  sudo dnf install avahi-tools    # Fedora")
+        sys.exit(1)
+
+    for line in result.stdout.splitlines():
+        if not line.startswith("="):
+            continue
+        fields = line.split(";")
+        if len(fields) >= 8:
+            ip = fields[7]
+            if re.match(r"\d+\.\d+\.\d+\.\d+", ip):
+                return ip
+    return None
+
+
+def discover_shield():
+    """Auto-discover Shield IP via mDNS. Returns IP string or None."""
+    if IS_LINUX:
+        return _discover_linux()
+    return _discover_macos()
 
 
 # --- IP caching ---
@@ -200,8 +237,21 @@ def cmd_nav(args):
     codes = {
         "home": 3, "back": 4, "up": 19, "down": 20,
         "left": 21, "right": 22, "select": 23, "menu": 82,
+        "forward": 90, "rewind": 89, "recents": 187,
+        "next": 87, "prev": 88, "chup": 166, "chdown": 167,
+        "info": 165, "search": 84, "settings": 176,
     }
-    key(ip, codes[args.button])
+    # Prefix matching: "h" -> "home", "sel" -> "select", etc.
+    matches = [k for k in codes if k.startswith(args.button)]
+    if len(matches) == 0:
+        print(f"Unknown button '{args.button}'. Options: {', '.join(codes)}")
+        sys.exit(1)
+    if len(matches) > 1:
+        print(f"Ambiguous '{args.button}': could be {', '.join(matches)}")
+        sys.exit(1)
+    button = matches[0]
+    key(ip, codes[button])
+    print(f"Sent {button}.")
 
 
 def cmd_launch(args):
@@ -297,6 +347,135 @@ def cmd_install(args):
     print(out.stdout.strip() or out.stderr.strip())
 
 
+def cmd_interactive(args):
+    """Interactive remote: press keys to control the Shield in real time."""
+    ip = get_shield_ip(args)
+    connect(ip)
+
+    GUIDE = """\
+┌─────────────────────────────────────┐
+│        NVIDIA Shield Remote         │
+├─────────────────────────────────────┤
+│                                     │
+│  Navigation     Arrow keys ↑↓←→     │
+│  Select         Enter               │
+│  Back           Backspace / Delete  │
+│  Home           h                   │
+│  Recent apps    a                   │
+│  Menu           m                   │
+│                                     │
+│  Play / Pause   Space               │
+│  Fast forward   f                   │
+│  Rewind         r                   │
+│  Next track     n                   │
+│  Prev track     p                   │
+│  Volume up      + or =              │
+│  Volume down    -                   │
+│  Mute           0                   │
+│  Channel up     ]                   │
+│  Channel down   [                   │
+│  Info           i                   │
+│  Search         s                   │
+│  Settings       g                   │
+│                                     │
+│  Text input     t                   │
+│  Quit           q or Esc            │
+│                                     │
+└─────────────────────────────────────┘
+"""
+    print(GUIDE)
+
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+
+    def read_key():
+        """Read a single keypress (handles multi-byte escape sequences)."""
+        ch = sys.stdin.read(1)
+        if ch == "\x1b":
+            ch2 = sys.stdin.read(1)
+            if ch2 == "[":
+                ch3 = sys.stdin.read(1)
+                # Extended sequences like Delete (\x1b[3~)
+                if ch3.isdigit():
+                    ch4 = sys.stdin.read(1)
+                    return "\x1b[" + ch3 + ch4
+                return "\x1b[" + ch3
+            return "\x1b"
+        return ch
+
+    def status(symbol, label):
+        sys.stdout.write(f"\r\033[K  {symbol} {label}")
+        sys.stdout.flush()
+
+    def enter_text_mode():
+        """Switch to text input mode, send text, return to raw mode."""
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        sys.stdout.write("\r\033[K")
+        try:
+            text = input("  text> ")
+        except EOFError:
+            text = ""
+        if text:
+            escaped = text.replace(" ", "%s")
+            adb(ip, "shell", "input", "text", escaped)
+            # Re-enter raw mode before printing status
+            tty.setraw(fd)
+            status("⌨", f"typed: {text}")
+        else:
+            tty.setraw(fd)
+            status("⌨", "cancelled")
+
+    KEY_MAP = {
+        "\x1b[A":    (19, "↑", "up"),
+        "\x1b[B":    (20, "↓", "down"),
+        "\x1b[C":    (22, "→", "right"),
+        "\x1b[D":    (21, "←", "left"),
+        "\r":        (23, "⏎", "select"),
+        "\n":        (23, "⏎", "select"),
+        "\x7f":      (4,  "⌫", "back"),
+        "\x08":      (4,  "⌫", "back"),
+        "\x1b[3~":   (4,  "⌫", "back"),       # Delete key (some terminals)
+        "h":         (3,  "⌂", "home"),
+        "a":         (187,"⊞", "recent apps"),
+        "m":         (82, "☰", "menu"),
+        " ":         (85, "⏯", "play/pause"),
+        "f":         (90, "⏩", "fast forward"),
+        "r":         (89, "⏪", "rewind"),
+        "n":         (87, "⏭", "next track"),
+        "p":         (88, "⏮", "prev track"),
+        "]":         (166,"△", "channel up"),
+        "[":         (167,"▽", "channel down"),
+        "i":         (165,"ℹ", "info"),
+        "s":         (84, "🔍", "search"),
+        "g":         (176,"⚙", "settings"),
+        "+":         (24, "🔊", "vol up"),
+        "=":         (24, "🔊", "vol up"),
+        "-":         (25, "🔉", "vol down"),
+        "0":         (164,"🔇", "mute"),
+    }
+
+    try:
+        tty.setraw(fd)
+        while True:
+            k = read_key()
+
+            if k in ("q", "\x1b", "\x03"):  # q, Esc, Ctrl-C
+                break
+
+            if k == "t":
+                enter_text_mode()
+                continue
+
+            if k in KEY_MAP:
+                keycode, symbol, label = KEY_MAP[k]
+                key(ip, keycode)
+                status(symbol, label)
+            # ignore unmapped keys silently
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        print("\r\033[K  Bye.")
+
+
 # --- CLI ---
 
 def main():
@@ -318,7 +497,7 @@ def main():
     p.add_argument("-n", "--steps", type=int, default=1, help="Repeat N times (default: 1)")
 
     p = sub.add_parser("nav", help="Navigation keys")
-    p.add_argument("button", choices=["home", "back", "up", "down", "left", "right", "select", "menu"])
+    p.add_argument("button", metavar="BUTTON", help="home, back, up, down, left, right, select, menu, forward, rewind, recents (prefix ok)")
 
     p = sub.add_parser("launch", help="Launch an app (e.g. netflix, youtube, plex, or a package name)")
     p.add_argument("app")
@@ -333,6 +512,7 @@ def main():
     p.add_argument("text")
 
     sub.add_parser("info", help="Show device info")
+    sub.add_parser("interactive", help="Interactive remote control mode")
 
     p = sub.add_parser("install", help="Sideload an APK")
     p.add_argument("apk", help="Path to .apk file")
@@ -357,7 +537,7 @@ def main():
         "reboot": cmd_reboot, "vol": cmd_volume, "play": cmd_play,
         "nav": cmd_nav, "launch": cmd_launch, "apps": cmd_apps,
         "screenshot": cmd_screenshot, "type": cmd_type, "info": cmd_info,
-        "install": cmd_install,
+        "install": cmd_install, "interactive": cmd_interactive,
         "plex": cmd_launch, "yt": cmd_launch, "eon": cmd_launch,
     }
     dispatch[args.command](args)
