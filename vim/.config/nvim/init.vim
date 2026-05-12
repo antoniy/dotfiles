@@ -100,6 +100,7 @@ Plug 'chriskempson/base16-vim'        " base16 colour schemes
 Plug 'vim-airline/vim-airline'        " status/tabline
 Plug 'vim-airline/vim-airline-themes' " themes for airline
 Plug 'morhetz/gruvbox'                " gruvbox colour scheme
+Plug 'catppuccin/nvim', { 'as': 'catppuccin' } " catppuccin colour scheme
 
 " --- Markdown ---
 Plug 'plasticboy/vim-markdown'                                        " markdown syntax and folding
@@ -159,12 +160,23 @@ augroup numbertoggle
   autocmd BufLeave,FocusLost,InsertEnter   * set norelativenumber
 augroup END
 
-" Gruvbox colour scheme
-let g:gruvbox_italic=1
-colorscheme gruvbox
+" Catppuccin colour scheme
+lua << EOF
+require("catppuccin").setup({
+  flavour = "mocha",
+  integrations = {
+    fzf = true,
+    gitgutter = true,
+    markdown = true,
+    nerdtree = true,
+    treesitter = true,
+  },
+})
+EOF
+colorscheme catppuccin-mocha
 
 " Airline status bar
-let g:airline_theme='gruvbox'
+let g:airline_theme='catppuccin_mocha'
 let g:airline#extensions#tabline#enabled = 1 " show open buffers in the tabline
 
 " needed for proper 24-bit colour in tmux
