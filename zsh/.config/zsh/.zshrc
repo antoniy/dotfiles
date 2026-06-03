@@ -30,7 +30,21 @@ fi
 export DOCKER_HIDE_LEGACY_COMMANDS=true
 
 
-[ -e "/opt/homebrew/bin/brew" ] && eval "$(/opt/homebrew/bin/brew shellenv)"
+# Homebrew env: static equivalent of `eval "$(brew shellenv)"`. This is brew's
+# own shellenv output inlined verbatim, which avoids spawning the ~30ms `brew`
+# (Ruby) process on every shell. path_helper is a ~free C binary that keeps the
+# PATH dedup/ordering identical. Regenerate with `brew shellenv` if brew ever
+# changes the format.
+if [ -e "/opt/homebrew/bin/brew" ]; then
+  export HOMEBREW_PREFIX="/opt/homebrew";
+  export HOMEBREW_CELLAR="/opt/homebrew/Cellar";
+  export HOMEBREW_REPOSITORY="/opt/homebrew";
+  fpath[1,0]="/opt/homebrew/share/zsh/site-functions";
+  export FPATH;
+  eval "$(/usr/bin/env PATH_HELPER_ROOT="/opt/homebrew" /usr/libexec/path_helper -s)"
+  [ -z "${MANPATH-}" ] || export MANPATH=":${MANPATH#:}";
+  export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}";
+fi
 
 # Start ssh-agent if not running (macOS manages the agent via Keychain automatically)
 if [[ "$OSTYPE" != "darwin"* ]]; then
@@ -229,19 +243,21 @@ zinit load zdharma-continuum/zsh-diff-so-fancy
 # -------- Plugin: zoxide {{{2
 # Smart cd replacement that tracks frecency (frequency + recency) of visited
 # directories. Use `j <query>` to jump, `ji` for interactive fzf picker.
-zinit ice from"gh-r" as"program" atload'eval "$(zoxide init zsh --cmd j)"'
+zinit ice wait lucid from"gh-r" as"program" atload'eval "$(zoxide init zsh --cmd j)"'
 zinit light ajeetdsouza/zoxide
 
 # -------- Plugin: atuin {{{2
 # SQLite-backed shell history with rich metadata (exit code, duration, cwd).
 # Replaces Ctrl-R with a searchable TUI. Up-arrow keeps history-substring-search.
-zinit ice from"gh-r" as"program" atload'eval "$(atuin init zsh --disable-up-arrow)"'
+# bpick pins the real release tarball: atuin also ships a bare `*-update` asset
+# (the self-updater) that gh-r auto-detection grabs by mistake. Pinned to arm64.
+zinit ice wait lucid from"gh-r" as"program" bpick'atuin-aarch64-apple-darwin.tar.gz' pick'*/atuin' atload'eval "$(atuin init zsh --disable-up-arrow)"'
 zinit light atuinsh/atuin
 
 # -------- Plugin: direnv {{{2
 # Per-directory environment variables. Automatically loads/unloads .envrc
 # files when entering/leaving a directory.
-zinit ice from"gh-r" as"program" mv"direnv* -> direnv" atload'eval "$(direnv hook zsh)"'
+zinit ice wait lucid from"gh-r" as"program" mv"direnv* -> direnv" atload'eval "$(direnv hook zsh)"'
 zinit light direnv/direnv
 
 # -------- CLI tools {{{2
@@ -254,15 +270,16 @@ zinit ice from"gh-r" as"program" pick"*/fd"
 zinit light sharkdp/fd
 
 # eza: modern ls replacement with icons, git status, and tree view.
-zinit ice from"gh-r" as"program" pick"eza"
-zinit light eza-community/eza
+# Installed via Homebrew (`brew install eza`), not zinit: eza ships no macOS
+# binary in its GitHub releases (Linux/Windows only). The eza aliases further
+# down are guarded by `$+commands[eza]`, which the brew binary satisfies.
 
 # ripgrep: extremely fast grep replacement; used in the ff alias.
 zinit ice from"gh-r" as"program" pick"*/rg"
 zinit light BurntSushi/ripgrep
 
 # delta: syntax-highlighting pager for git diffs.
-zinit ice from"gh-r" as"program" pick"*/delta"
+zinit ice wait lucid from"gh-r" as"program" pick"*/delta"
 zinit light dandavison/delta
 
 # -------- Completions {{{1
