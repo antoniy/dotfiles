@@ -131,7 +131,7 @@
 	process = git-lfs filter-process
 	required = true
 [commit]
-	gpgsign = true
+	gpgsign = false
   verbose = true
 [pull]
 	rebase = false
