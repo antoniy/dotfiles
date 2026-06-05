@@ -8,7 +8,6 @@ $hostname\
 $directory\
 $git_branch\
 $cmd_duration\
-$time\
 $status\
 $character"""
 
