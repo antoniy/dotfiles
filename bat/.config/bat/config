@@ -1,4 +1,6 @@
---theme="zenburn"
+# Theme comes from $BAT_THEME, set by the `theme` shell command
+# (Catppuccin Latte for light, Mocha for dark).  Do not set --theme here:
+# it would override BAT_THEME.
 
 # Show line numbers, Git modifications and file header (but no grid)
 --style="numbers,changes"

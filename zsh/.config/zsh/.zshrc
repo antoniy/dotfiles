@@ -421,6 +421,9 @@ if [[ -e $ZDOTDIR/.zshrc_local ]]; then
     source $ZDOTDIR/.zshrc_local
 fi
 
+# Day/night terminal theme toggle (`theme [light|dark|toggle]`)
+[[ -e $ZDOTDIR/theme.zsh ]] && source $ZDOTDIR/theme.zsh
+
 # -------- Aliases: General {{{2
 
 alias reload!="source $ZSH_CONFIG"

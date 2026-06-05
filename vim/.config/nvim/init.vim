@@ -100,7 +100,8 @@ Plug 'chriskempson/base16-vim'        " base16 colour schemes
 Plug 'vim-airline/vim-airline'        " status/tabline
 Plug 'vim-airline/vim-airline-themes' " themes for airline
 Plug 'morhetz/gruvbox'                " gruvbox colour scheme
-Plug 'catppuccin/nvim', { 'as': 'catppuccin' } " catppuccin colour scheme
+Plug 'catppuccin/nvim', { 'as': 'catppuccin' } " catppuccin colour scheme (night)
+Plug 'projekt0n/github-nvim-theme'             " github colour scheme (day)
 
 " --- Markdown ---
 Plug 'plasticboy/vim-markdown'                                        " markdown syntax and folding
@@ -160,7 +161,7 @@ augroup numbertoggle
   autocmd BufLeave,FocusLost,InsertEnter   * set norelativenumber
 augroup END
 
-" Catppuccin colour scheme
+" Colourscheme plugins set up (night = catppuccin mocha, day = github light).
 lua << EOF
 require("catppuccin").setup({
   flavour = "mocha",
@@ -172,11 +173,44 @@ require("catppuccin").setup({
     treesitter = true,
   },
 })
+local ok, gh = pcall(require, "github-theme")
+if ok then gh.setup({}) end
 EOF
-colorscheme catppuccin-mocha
+
+" === Day/night themes — EDIT HERE to change them ===========================
+" *_colorscheme : a :colorscheme name   *_airline : a g:airline_theme name
+let g:theme_light_colorscheme = 'github_light_high_contrast'
+let g:theme_light_airline     = 'github_light'
+let g:theme_dark_colorscheme  = 'catppuccin-mocha'
+let g:theme_dark_airline      = 'catppuccin_mocha'
+" ===========================================================================
+
+" Apply the theme from ~/.config/theme/current ("light" → day, else night).
+" Re-runs on focus so a running nvim flips when `theme` is toggled elsewhere.
+function! s:ApplyDayNight() abort
+  let l:f = expand('~/.config/theme/current')
+  let l:mode = filereadable(l:f) ? trim(get(readfile(l:f), 0, 'dark')) : 'dark'
+  if l:mode ==# 'light'
+    set background=light
+    silent! execute 'colorscheme ' . g:theme_light_colorscheme
+    let g:airline_theme = g:theme_light_airline
+  else
+    set background=dark
+    silent! execute 'colorscheme ' . g:theme_dark_colorscheme
+    let g:airline_theme = g:theme_dark_airline
+  endif
+  if exists(':AirlineRefresh') == 2
+    AirlineRefresh
+  endif
+endfunction
+
+augroup DayNightTheme
+  autocmd!
+  autocmd VimEnter,FocusGained,VimResume * call s:ApplyDayNight()
+augroup END
+call s:ApplyDayNight()
 
 " Airline status bar
-let g:airline_theme='catppuccin_mocha'
 let g:airline#extensions#tabline#enabled = 1 " show open buffers in the tabline
 
 " needed for proper 24-bit colour in tmux
