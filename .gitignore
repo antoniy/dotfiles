@@ -3,3 +3,13 @@ zsh/.config/zsh/.zshrc_local
 .stowrc
 .envrc
 
+# Claude Code project dir
+.claude/
+
+# macOS junk
+.DS_Store
+
+# Third-party tool binaries (not mine)
+scripts/.local/bin/claude
+scripts/.local/bin/copilot
+
