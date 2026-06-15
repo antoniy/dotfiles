@@ -9,6 +9,9 @@ zsh/.config/zsh/.zshrc_local
 # macOS junk
 .DS_Store
 
+# Python bytecode cache
+__pycache__/
+
 # Third-party tool binaries (not mine)
 scripts/.local/bin/claude
 scripts/.local/bin/copilot

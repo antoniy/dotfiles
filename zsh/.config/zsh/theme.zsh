@@ -92,3 +92,11 @@ theme() {
 
   print -r -- "theme → $mode   (nvim: updates on focus · claude: run /theme in a live session)"
 }
+
+# Print the iTerm2 colour-preset name for a mode (default: current mode).
+# The iTerm2 hotkey script (~/.dotfiles/iterm/theme-toggle.py) calls this so
+# preset names stay defined in exactly one place — the THEME_* maps above.
+theme-iterm-preset() {
+  local m="${1:-$(theme-current)}"
+  [[ "$m" == light ]] && print -r -- "$THEME_LIGHT[iterm]" || print -r -- "$THEME_DARK[iterm]"
+}
