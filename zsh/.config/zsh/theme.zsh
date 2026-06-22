@@ -3,8 +3,8 @@
 # Single source of truth: ~/.config/theme/current  (contains "light" or "dark").
 # `theme [light|dark|toggle]` writes that file and pushes the change to:
 #   iTerm2 (current window) · tmux (server-wide) · bat (this shell+children)
-#   · claude (settings.json, new sessions).  nvim follows on focus; starship
-#   follows the terminal palette for free.
+#   · claude (settings.json, new sessions) · htop (htoprc, next launch).  nvim
+#   follows on focus; starship follows the terminal palette for free.
 
 typeset -g THEME_FILE="$HOME/.config/theme/current"
 
@@ -14,6 +14,8 @@ typeset -g THEME_FILE="$HOME/.config/theme/current"
 #            (Settings → Profiles → Colors → Presets)
 #   bat    : a theme name from `bat --list-themes`
 #   claude : slug of ~/.claude/themes/<slug>.json (applied as custom:<slug>)
+#   htop   : color_scheme number (0 Default · 1 Mono · 2 Black-on-White
+#            · 3 Light Terminal · 4 MC · 5 Black Night · 6 Broken Gray)
 # tmux colours live in ~/.config/tmux/theme-{light,dark}.conf
 # nvim colours live in the "Day/night" block of init.vim (g:theme_* vars)
 # ============================================================================
@@ -21,11 +23,13 @@ typeset -gA THEME_LIGHT=(
   iterm  github-light
   bat    GitHub
   claude custom:github-light
+  htop   2
 )
 typeset -gA THEME_DARK=(
   iterm  catppuccin-mocha
   bat    'Catppuccin Mocha'
   claude custom:catppuccin-mocha
+  htop   0
 )
 
 # Current mode, defaulting to dark when the state file is missing/garbage.
@@ -46,6 +50,21 @@ _theme_iterm() {
   local seq="\e]1337;SetColors=preset=$1\a"
   if [[ -n "$TMUX" ]]; then printf '\ePtmux;\e%b\e\\' "$seq"
   else                      printf '%b' "$seq"; fi
+}
+
+# Rewrite the color_scheme line in htoprc to scheme number $1. htop has no live
+# theme reload — it reads htoprc only at launch and rewrites it on exit — so this
+# is a no-op for a running htop; the `htop` wrapper below re-syncs at next launch.
+_theme_htop_sync() {
+  local scheme="$1" rc="${HTOPRC:-$HOME/.config/htop/htoprc}"
+  [[ -f "$rc" ]] || return 0
+  grep -q "^color_scheme=$scheme\$" "$rc" && return 0   # already in sync
+  local tmp="${rc}.tmp.$$"
+  if sed "s/^color_scheme=.*/color_scheme=$scheme/" "$rc" >| "$tmp" 2>/dev/null; then
+    mv "$tmp" "$rc"
+  else
+    rm -f "$tmp"
+  fi
 }
 
 theme() {
@@ -79,6 +98,9 @@ theme() {
   # bat (this shell + children).
   export BAT_THEME="$t[bat]"
 
+  # htop — rewrite htoprc so the next launch comes up in the right colours.
+  _theme_htop_sync "$t[htop]"
+
   # Claude Code — new sessions pick this up; a live session needs /theme.
   local cfg="$HOME/.claude/settings.json"
   if [[ -f "$cfg" ]] && (( $+commands[jq] )); then
@@ -90,7 +112,7 @@ theme() {
     fi
   fi
 
-  print -r -- "theme → $mode   (nvim: updates on focus · claude: run /theme in a live session)"
+  print -r -- "theme → $mode   (nvim: updates on focus · claude: run /theme in a live session · htop: next launch)"
 }
 
 # Print the iTerm2 colour-preset name for a mode (default: current mode).
@@ -99,4 +121,18 @@ theme() {
 theme-iterm-preset() {
   local m="${1:-$(theme-current)}"
   [[ "$m" == light ]] && print -r -- "$THEME_LIGHT[iterm]" || print -r -- "$THEME_DARK[iterm]"
+}
+
+# Print the htop color_scheme number for a mode (default: current mode).
+theme-htop-scheme() {
+  local m="${1:-$(theme-current)}"
+  [[ "$m" == light ]] && print -r -- "$THEME_LIGHT[htop]" || print -r -- "$THEME_DARK[htop]"
+}
+
+# Wrap htop so it always launches in the current theme's colours. This is the
+# robust hook: htop overwrites htoprc on exit, so a change made by `theme` while
+# htop was running would be clobbered — re-syncing here fixes it on next launch.
+htop() {
+  _theme_htop_sync "$(theme-htop-scheme)"
+  command htop "$@"
 }
