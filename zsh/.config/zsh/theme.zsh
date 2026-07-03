@@ -23,7 +23,7 @@ typeset -gA THEME_LIGHT=(
   iterm  github-light
   bat    GitHub
   claude custom:github-light
-  htop   2
+  htop   3
 )
 typeset -gA THEME_DARK=(
   iterm  catppuccin-mocha
