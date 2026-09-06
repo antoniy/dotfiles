@@ -190,10 +190,16 @@ source "$HOME/.config/zsh/.zinit/bin/zinit.zsh"
 autoload -Uz _zinit
 (( ${+_comps} )) && _comps[zinit]=_zinit
 
+# -------- Completion functions {{{2
+# Tools whose zsh completion is a file rather than a compdef call, cclocal among them.
+# compinit rebuilds $_comps from $fpath every time it runs, so a file here survives the
+# second compinit that turbo mode does below; a compdef made at .zshrc time does not.
+fpath=(~/.zfunc $fpath)
+
 # -------- Plugin: fzf {{{2
 # General-purpose fuzzy finder. Powers Ctrl-T (file picker) and many custom
 # fzf-driven functions throughout this config (git branch picker, etc.).
-zinit ice from"gh-r" as"program" atload'eval "$(fzf --zsh)"'
+zinit ice from"gh-r" as"program"
 zinit light junegunn/fzf
 
 # -------- Plugin: zsh-autosuggestions {{{2
@@ -234,6 +240,26 @@ bindkey -M vicmd '^[j' history-substring-search-down
 # paths, strings. Faster than the standard zsh-syntax-highlighting.
 zinit ice wait lucid atinit"zpcompinit; zpcdreplay"
 zinit light zdharma-continuum/fast-syntax-highlighting
+
+# -------- Plugin: fzf-tab {{2
+# Turns zsh's completion menu into an fzf picker, for every completion the shell knows
+# about. Loaded after the compinit above, because it hooks the completion system.
+#
+# fzf's own bindings are evaluated here rather than on the fzf binary above, so they are set
+# up after this plugin has taken ^I. fzf-completion records whatever ^I was bound to and
+# falls back to it when the ** trigger is absent, so Tab reaches the fzf-tab menu and **
+# still reaches fzf's path picker.
+# ZSH_AUTOSUGGEST_MANUAL_REBIND above means zsh-autosuggestions wraps the widgets that exist
+# when it loads and never looks again, and both widgets below are created after it. Unwrapped,
+# neither clears the greyed-out suggestion, so it survives the completion and ends up in the
+# command. Bind just these two rather than calling _zsh_autosuggest_bind_widgets, which would
+# re-wrap every widget and displace the highlighter's own wrappers. 'modify' is the action
+# that function picks for any widget that might change the buffer.
+zinit ice wait lucid atload'eval "$(fzf --zsh)"; \
+    for w in fzf-tab-complete fzf-completion; do \
+        (( $+widgets[$w] )) && _zsh_autosuggest_bind_widget $w modify; \
+    done'
+zinit light Aloxaf/fzf-tab
 
 # -------- Plugin: zsh-diff-so-fancy {{{2
 # Prettier git diffs in the terminal. Adds the `git dsf` command.
@@ -785,3 +811,6 @@ export SDKMAN_DIR="$HOME/.sdkman"
 ealias dnsr="sudo killall -9 mDNSResponder && sudo killall -9 mDNSResponderHelper"
 
 [[ -d ~/.config/emacs/bin ]] && export PATH="$PATH:~/.config/emacs/bin"
+
+. "$HOME/.local/bin/env"
+
